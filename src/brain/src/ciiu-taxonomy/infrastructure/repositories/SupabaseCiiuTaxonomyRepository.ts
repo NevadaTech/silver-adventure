@@ -1,10 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { CiiuActivity } from '@/ciiu-taxonomy/domain/entities/CiiuActivity'
 import { CiiuTaxonomyRepository } from '@/ciiu-taxonomy/domain/repositories/CiiuTaxonomyRepository'
-import {
-  BrainSupabaseClient,
-  SUPABASE_CLIENT,
-} from '@/shared/infrastructure/supabase/SupabaseClient'
+import { SUPABASE_CLIENT } from '@/shared/infrastructure/supabase/SupabaseClient'
+import type { BrainSupabaseClient } from '@/shared/infrastructure/supabase/SupabaseClient'
 
 const TABLE = 'ciiu_taxonomy'
 const CHUNK_SIZE = 500

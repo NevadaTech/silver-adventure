@@ -1,2 +1,2 @@
 git lfs pre-push "$@"
-bun test:run
+bun --filter '*' test:run

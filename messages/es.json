@@ -1,0 +1,28 @@
+{
+  "Common": {
+    "loading": "Cargando...",
+    "error": "Algo salió mal",
+    "noResults": "No se encontraron resultados"
+  },
+  "Theme": {
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema",
+    "toggle": "Cambiar tema"
+  },
+  "Locale": {
+    "switchTo": "Cambiar idioma",
+    "en": "Inglés",
+    "es": "Español"
+  },
+  "HomePage": {
+    "title": "Usuarios desde Supabase",
+    "subtitle": "Arquitectura Hexagonal • Patrón BFF • SWR • Supabase Cloud"
+  },
+  "UserList": {
+    "loading": "Cargando usuarios...",
+    "error": "Error al cargar usuarios: {message}",
+    "empty": "No se encontraron usuarios. Insertá uno en tu panel de Supabase.",
+    "createdAt": "Creado {date}"
+  }
+}

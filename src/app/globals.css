@@ -1,0 +1,114 @@
+@import 'tailwindcss';
+
+/*
+ * Dark mode via class toggle (next-themes adds .dark to <html>).
+ * Tailwind v4 uses @custom-variant instead of darkMode config.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─────────────────────────────────────────────
+ * Design Tokens — single source of truth.
+ *
+ * To change the palette:
+ * 1. Edit the CSS variables below
+ * 2. Done. Every component picks them up automatically.
+ *
+ * Naming convention:
+ *   --color-{semantic-name}
+ *   e.g. --color-bg, --color-text, --color-primary
+ * ───────────────────────────────────────────── */
+
+:root {
+  /* ── Base ── */
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f9fafb;
+  --color-bg-tertiary: #f3f4f6;
+
+  /* ── Text ── */
+  --color-text: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+
+  /* ── Primary (brand) ── */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-text: #ffffff;
+
+  /* ── Borders & Surfaces ── */
+  --color-border: #e5e7eb;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f9fafb;
+
+  /* ── Semantic ── */
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
+  --color-info: #2563eb;
+}
+
+.dark {
+  /* ── Base ── */
+  --color-bg: #0a0a0a;
+  --color-bg-secondary: #171717;
+  --color-bg-tertiary: #262626;
+
+  /* ── Text ── */
+  --color-text: #ededed;
+  --color-text-secondary: #a3a3a3;
+  --color-text-muted: #737373;
+
+  /* ── Primary (brand) ── */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #60a5fa;
+  --color-primary-text: #ffffff;
+
+  /* ── Borders & Surfaces ── */
+  --color-border: #2e2e2e;
+  --color-surface: #171717;
+  --color-surface-hover: #262626;
+
+  /* ── Semantic ── */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+}
+
+/*
+ * Register tokens with Tailwind v4 so you can use them as:
+ *   bg-bg, text-text, border-border, bg-primary, etc.
+ *
+ * Example usage:
+ *   <div className="bg-bg text-text border-border">
+ *   <button className="bg-primary text-primary-text hover:bg-primary-hover">
+ */
+@theme inline {
+  --color-bg: var(--color-bg);
+  --color-bg-secondary: var(--color-bg-secondary);
+  --color-bg-tertiary: var(--color-bg-tertiary);
+
+  --color-text: var(--color-text);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-text: var(--color-primary-text);
+
+  --color-border: var(--color-border);
+  --color-surface: var(--color-surface);
+  --color-surface-hover: var(--color-surface-hover);
+
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-error: var(--color-error);
+  --color-info: var(--color-info);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+}

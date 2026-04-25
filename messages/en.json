@@ -1,0 +1,28 @@
+{
+  "Common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "noResults": "No results found"
+  },
+  "Theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "toggle": "Toggle theme"
+  },
+  "Locale": {
+    "switchTo": "Switch language",
+    "en": "English",
+    "es": "Spanish"
+  },
+  "HomePage": {
+    "title": "Users from Supabase",
+    "subtitle": "Hexagonal Architecture • BFF Pattern • SWR • Supabase Cloud"
+  },
+  "UserList": {
+    "loading": "Loading users...",
+    "error": "Error loading users: {message}",
+    "empty": "No users found. Insert one in your Supabase dashboard.",
+    "createdAt": "Created {date}"
+  }
+}

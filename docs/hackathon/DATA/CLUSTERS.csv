@@ -1,0 +1,9 @@
+cadenaID,clusterID,clusterORDEN,clusterCODIGO,clusterTITULO,clusterURL,clusterCOLORFONDO,clusterCOLORTEXTO,clusterDESCRIPCION,clusterFCHCREADO,clusterUSRCREO,clusterFCHMODIFICADO,clusterUSRMODIFICO,clusterFCHDESACTIVADO,clusterUSRDESACTIVO,clusterFCHBORRADO,clusterUSRBORRO,clusterESTADO
+3,7,99,LOGISTICA,Logistica,,,,,2024-12-02 15:37:56 UTC,,2024-12-02 15:38:08 UTC,,,,,,ACTIVO
+2,8,99,TURISMO,Turismo,,,,,2024-12-02 15:37:56 UTC,,2024-12-02 15:37:56 UTC,,,,,,ACTIVO
+1,3,99,YUCA,Yuca,,,,"""Cultivo de hortalizas",2024-12-02 15:37:56 UTC,,2024-12-02 15:37:56 UTC,,,,,,ACTIVO
+1,6,99,CAFE,Café,,,,Cultivo de café,2024-12-02 15:37:56 UTC,,2024-12-02 15:37:56 UTC,,,,,,ACTIVO
+1,2,99,MANGO,Mango,,,,Cultivo de frutas tropicales y subtropicales,2024-12-02 15:37:56 UTC,,2024-12-02 15:37:56 UTC,,,,,,ACTIVO
+1,5,99,PALMADEACEITE,Palma,,,,Cultivo de palma para aceite (palma africana) y otros frutos oleaginosos,2024-12-02 15:37:56 UTC,,2024-12-02 15:37:56 UTC,,,,,,ACTIVO
+1,4,99,CACAO,Cacao,,,,Cultivo de plantas con las que se preparan bebidas,2024-12-02 15:37:56 UTC,,2024-12-02 15:37:56 UTC,,,,,,ACTIVO
+1,1,99,BANANO,Banano,,,,Cultivo de plátano y banano,2024-12-02 15:37:56 UTC,,2024-12-02 15:37:56 UTC,,,,,,ACTIVO

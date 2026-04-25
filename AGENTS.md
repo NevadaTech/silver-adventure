@@ -366,7 +366,37 @@ The `[locale]/layout.tsx` wraps all pages with providers (outside → inside):
 
 ## 8. Environment Variables
 
-All env vars are **server-only** (NO `NEXT_PUBLIC_` prefix — BFF pattern), with two exceptions:
+### 8.1 Single Source of Truth (Symlink Strategy)
+
+This is a Bun monorepo with two workspaces (`front`, `brain`), each running on a different framework with a different convention for where to read `.env` files. To avoid duplicating values, the repo uses ONE real `.env` at the root and exposes it to each workspace through a **relative symlink**:
+
+```
+silver-adventure/
+├── .env                    ← real file (gitignored, single source of truth)
+├── .env.example            ← real file (committed, documents ALL variables)
+└── src/
+    ├── front/.env  →  ../../.env   (symlink — Next.js 16 reads it from here)
+    └── brain/.env  →  ../../.env   (symlink — NestJS reads it from cwd)
+```
+
+The `.gitignore` rule `.env*` (with `!.env.example` exception) matches the symlink basenames automatically. No additional rules needed.
+
+**Tradeoff**: both workspaces see ALL variables in `process.env`. Filesystem isolation is NOT enforced — isolation is enforced ONLY at the validation layer (Zod schema per workspace). Acceptable for a shared deployment. NOT acceptable if a workspace ever needs secrets another workspace must never see — at that point split into separate files or move to a secret manager.
+
+### 8.2 Per-Workspace Validation
+
+Each workspace defines its own Zod schema declaring which variables it consumes and their types. Variables not declared in the schema are ignored by the typed `env` export (even if they exist in `process.env`).
+
+| Workspace   | Validator location                                   | Status                |
+| ----------- | ---------------------------------------------------- | --------------------- |
+| `src/front` | `src/front/core/shared/infrastructure/env.ts`        | Implemented           |
+| `src/brain` | `src/brain/.../env.ts` (mirror the front when added) | Add when first needed |
+
+Validation is **fail-fast**: invalid or missing required variables crash the process at startup with a clear Zod error.
+
+### 8.3 BFF Pattern — `NEXT_PUBLIC_` Discipline
+
+All variables are **server-only** (NO `NEXT_PUBLIC_` prefix) by default. The two exceptions exist because they are NOT secrets:
 
 | Variable                    | Side   | Purpose                                          |
 | --------------------------- | ------ | ------------------------------------------------ |
@@ -376,11 +406,28 @@ All env vars are **server-only** (NO `NEXT_PUBLIC_` prefix — BFF pattern), wit
 | `NEXT_PUBLIC_DEBUG_ENABLED` | Client | Enable client-side logger (`"true"` / `"false"`) |
 | `NEXT_PUBLIC_APP_URL`       | Client | Application URL                                  |
 
-> `NEXT_PUBLIC_DEBUG_ENABLED` and `NEXT_PUBLIC_APP_URL` are the ONLY `NEXT_PUBLIC_` vars. They are boolean flags / URLs — NOT secrets. They do NOT violate the BFF pattern.
+> `NEXT_PUBLIC_DEBUG_ENABLED` and `NEXT_PUBLIC_APP_URL` are the ONLY `NEXT_PUBLIC_` variables. They are boolean flags / URLs — they do NOT violate the BFF pattern. `DEBUG_ENABLED` is optional and defaults to `"false"`.
 
-Server-side vars are validated at startup with Zod in `src/core/shared/infrastructure/env.ts`. If any required variable is missing or invalid, the server crashes immediately with a clear error message. `DEBUG_ENABLED` is optional and defaults to `"false"`.
+### 8.4 Adding a New Environment Variable
 
-Reference `.env.example` for all variables. **NEVER** commit `.env` files.
+Follow this exact order:
+
+1. **Edit `/.env`** — add the variable with its real value (never committed).
+2. **Edit `/.env.example`** — document the variable with an empty value or placeholder (committed).
+3. **Update the Zod schema** of the workspace(s) that consume it:
+   - Front-only var → `src/front/core/shared/infrastructure/env.ts`
+   - Brain-only var → brain's env validator
+   - Shared var → both schemas
+4. **Use the typed export** (`env.NEW_VAR`) in code, never `process.env.NEW_VAR` directly.
+
+Mental model: **the file is shared, but the intent to use lives in each workspace's Zod schema.**
+
+### 8.5 Rules
+
+- **NEVER** commit `.env` files. Only `.env.example` is tracked.
+- **NEVER** replace a workspace symlink with a real `.env` file. The symlink IS the contract — replacing it silently breaks the single source of truth.
+- **NEVER** read `process.env.X` directly in domain or application code. Use the typed `env` export from the workspace's validator.
+- **NEVER** add a `NEXT_PUBLIC_` variable without a strong justification (BFF pattern). The current two exceptions are the exhaustive list.
 
 ---
 

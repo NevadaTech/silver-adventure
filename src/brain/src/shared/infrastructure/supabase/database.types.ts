@@ -1,0 +1,1 @@
+../../../../../front/core/shared/infrastructure/supabase/database.types.ts

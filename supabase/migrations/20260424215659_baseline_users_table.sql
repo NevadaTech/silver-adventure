@@ -1,0 +1,4 @@
+-- Baseline placeholder for the pre-existing `users` table created by the front
+-- team before migrations were tracked here. The schema is already applied on
+-- the remote — this file exists only so the supabase CLI's history matches.
+-- Do NOT add SQL here; create a NEW migration for any change.

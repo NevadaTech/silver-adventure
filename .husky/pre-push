@@ -1,2 +1,3 @@
 git lfs pre-push "$@"
+bun --filter brain typecheck
 bun --filter '*' test:run

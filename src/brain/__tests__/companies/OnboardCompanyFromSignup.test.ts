@@ -240,8 +240,12 @@ describe('OnboardCompanyFromSignup', () => {
       f.membershipRepo,
       f.recRepo,
       new PeerMatcher(f.featureBuilder),
-      new ValueChainMatcher(),
-      new AllianceMatcher(),
+      new ValueChainMatcher(
+        new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+      ),
+      new AllianceMatcher(
+        new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+      ),
     )
 
     const result = await useCase.execute({
@@ -288,8 +292,12 @@ describe('OnboardCompanyFromSignup', () => {
       f.membershipRepo,
       f.recRepo,
       new PeerMatcher(f.featureBuilder),
-      new ValueChainMatcher(),
-      new AllianceMatcher(),
+      new ValueChainMatcher(
+        new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+      ),
+      new AllianceMatcher(
+        new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+      ),
     )
 
     const result = await useCase.execute({

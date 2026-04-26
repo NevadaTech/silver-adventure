@@ -154,20 +154,20 @@ describe('DynamicValueChainRules', () => {
     })
 
     it("'false' === 'true' is false (flag-off path, default)", () => {
-      const envValue = 'false'
+      const envValue = 'false' as string
       expect(envValue === 'true').toBe(false)
     })
 
     it("undefined coerced to string is not equal to 'true'", () => {
       // The zod schema defaults to 'false', so undefined in process.env → 'false'
-      const envValue = undefined ?? 'false'
+      const envValue = (undefined as string | undefined) ?? 'false'
       expect(envValue === 'true').toBe(false)
     })
 
     it('DynamicValueChainRules correctly receives false when flag is off', async () => {
       // Simulates: const flagEnabled = env.AI_DRIVEN_RULES_ENABLED === 'true'
       // where env.AI_DRIVEN_RULES_ENABLED = 'false' (default)
-      const flagString = 'false'
+      const flagString = 'false' as string
       const flagEnabled = flagString === 'true'
 
       const graph = new InMemoryCiiuGraphRepository()

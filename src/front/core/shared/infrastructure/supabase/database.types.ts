@@ -81,6 +81,7 @@ export type Database = {
           ciiu_origen: string
           confidence: number | null
           has_match: boolean
+          model_version: string | null
           reason: string | null
           relation_type: string | null
         }
@@ -90,6 +91,7 @@ export type Database = {
           ciiu_origen: string
           confidence?: number | null
           has_match: boolean
+          model_version?: string | null
           reason?: string | null
           relation_type?: string | null
         }
@@ -99,6 +101,7 @@ export type Database = {
           ciiu_origen?: string
           confidence?: number | null
           has_match?: boolean
+          model_version?: string | null
           reason?: string | null
           relation_type?: string | null
         }

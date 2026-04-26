@@ -18,21 +18,19 @@ export async function POST(request: Request) {
       nit,
       whatsapp,
       email,
-      password,
     } = body
 
     serverLogger.info('Extracted fields:', {
       businessName,
       sector,
       whatsapp,
-      password,
     })
 
-    if (!businessName || !sector || !whatsapp || !password) {
+    if (!businessName || !sector || !whatsapp) {
       return Response.json(
         {
-          error: 'businessName, sector, whatsapp, and password are required',
-          received: { businessName, sector, whatsapp, password },
+          error: 'businessName, sector, and whatsapp are required',
+          received: { businessName, sector, whatsapp },
         },
         { status: 400 },
       )
@@ -56,7 +54,6 @@ export async function POST(request: Request) {
       nit,
       whatsapp,
       email,
-      password,
     })
 
     return Response.json(

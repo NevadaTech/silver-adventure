@@ -12,7 +12,6 @@ export interface RegisterUserWithOtpInput {
   nit?: string
   whatsapp: string
   email?: string
-  password: string
 }
 
 export interface RegisterUserWithOtpOutput {
@@ -78,15 +77,12 @@ export class RegisterUserWithOtp implements UseCase<
     if (!this.isValidWhatsappFormat(input.whatsapp)) {
       throw new Error('Invalid WhatsApp format')
     }
-
-    if (!input.password?.trim() || input.password.length < 8) {
-      throw new Error('Password must be at least 8 characters')
-    }
   }
 
   private isValidWhatsappFormat(whatsapp: string): boolean {
-    const phoneRegex = /^\+\d{10,15}$/
-    return phoneRegex.test(whatsapp)
+    const cleaned = whatsapp.replace(/\s/g, '')
+    // Accept: +573001234567, +57 300 1234567, 573001234567, 3001234567
+    return /^(\+?57)?3\d{9}$/.test(cleaned)
   }
 
   private generateOtpCode(): string {

@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     const otpRepository = otpStore
     const verifyOtpCode = new VerifyOtpCode(authStore, otpRepository)
 
-    const { user } = await verifyOtpCode.execute({
+    const { accessToken, refreshToken, user } = await verifyOtpCode.execute({
       sessionId,
       code,
     })
@@ -27,6 +27,8 @@ export async function POST(request: Request) {
     return Response.json(
       {
         data: {
+          accessToken,
+          refreshToken,
           user: {
             id: user.id,
             name: user.name,

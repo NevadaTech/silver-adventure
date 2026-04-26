@@ -311,6 +311,14 @@
         "cta": "Crear mi perfil",
         "sending": "Enviando..."
       },
+      "Otp": {
+        "eyebrow": "Verificación",
+        "title": "Confirma tu número",
+        "subtitle": "Te enviamos un código a {whatsapp}. Entra los 6 dígitos para verificar.",
+        "label": "Código de 6 dígitos",
+        "verify": "Verificar",
+        "resend": "Reenviar código"
+      },
       "Success": {
         "title": "¡Bienvenido a Ruta C!",
         "body": "Tu perfil está en cola. La Cámara te contactará en menos de 24 horas para confirmar y empezar a recomendarte oportunidades.",

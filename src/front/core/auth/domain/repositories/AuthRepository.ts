@@ -9,14 +9,18 @@ export interface BusinessProfile {
   nit?: string
 }
 
+export interface AuthRepositoryResult {
+  accessToken: string
+  refreshToken: string
+  user: User
+}
+
 export interface AuthRepository {
-  register(email: string, password: string, name: string): Promise<User>
-  findByEmail(email: string): Promise<User | null>
   registerWithOtp(
     email: string,
     password: string,
     businessName: string,
     whatsapp: string,
     businessProfile: BusinessProfile,
-  ): Promise<User>
+  ): Promise<AuthRepositoryResult>
 }

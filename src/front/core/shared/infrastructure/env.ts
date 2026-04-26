@@ -20,6 +20,13 @@ export const envSchema = z.object({
    * Valores válidos: "true" | "false" (cualquier otro valor = false).
    */
   DEBUG_ENABLED: z.enum(['true', 'false']).optional().default('false'),
+  /**
+   * Secret para derivar credenciales sintéticas en OTP (HMAC para password).
+   * Debe tener al menos 32 caracteres para seguridad.
+   */
+  HMAC_SECRET: z
+    .string()
+    .min(32, { error: 'HMAC_SECRET must be at least 32 characters' }),
 })
 
 export type Env = z.infer<typeof envSchema>

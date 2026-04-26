@@ -7,6 +7,7 @@ export class MockSmsAdapter implements SmsPort {
   async sendOtp(phoneNumber: string, code: string): Promise<void> {
     this.lastSentPhone = phoneNumber
     this.lastSentCode = code
+    // eslint-disable-next-line no-console
     console.log(
       `[MOCK SMS] OTP sent to ${phoneNumber}: ${code} (for development only)`,
     )

@@ -1,0 +1,45 @@
+import { useTranslations } from 'next-intl'
+import { setRequestLocale } from 'next-intl/server'
+
+import { UserList } from '@/core/users/infrastructure/components/UserList'
+import { ThemeToggle } from '@/core/shared/infrastructure/theme/ThemeToggle'
+
+type Props = {
+  params: Promise<{ locale: string }>
+}
+
+/**
+ * Dev playground — preserves the original Supabase + SWR demo.
+ *
+ * Lives at /dev (or /:locale/dev) so the team can keep poking at
+ * the data layer while the landing owns the home route.
+ */
+export default async function DevPlayground({ params }: Props) {
+  const { locale } = await params
+  setRequestLocale(locale)
+
+  return <DevContent />
+}
+
+function DevContent() {
+  const t = useTranslations('HomePage')
+
+  return (
+    <div className="bg-bg flex min-h-screen flex-col items-center justify-center font-sans">
+      <main className="flex w-full max-w-lg flex-col gap-8 p-8">
+        <div className="flex items-center justify-between">
+          <h1 className="text-text text-3xl font-semibold tracking-tight">
+            {t('title')}
+          </h1>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>
+        </div>
+
+        <UserList />
+
+        <p className="text-text-muted text-sm">{t('subtitle')}</p>
+      </main>
+    </div>
+  )
+}

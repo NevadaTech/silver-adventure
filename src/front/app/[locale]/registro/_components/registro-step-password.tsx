@@ -5,14 +5,16 @@ import { Eye, EyeOff } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import type { RegistroDataPartial } from './schema'
 
+type StepErrors = Partial<Record<'password' | 'passwordConfirm', string>>
+
 type Props = {
   data: RegistroDataPartial
-  errors: Record<string, string>
+  errors: StepErrors
   onChange: (patch: RegistroDataPartial) => void
 }
 
 export function RegistroStepPassword({ data, errors, onChange }: Props) {
-  const t = useTranslations('Landing.Registro.Steps')
+  const t = useTranslations('Landing.Registro.Password')
   const tErrors = useTranslations('Landing.Registro.Errors')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -30,11 +32,9 @@ export function RegistroStepPassword({ data, errors, onChange }: Props) {
           {t('eyebrow')}
         </span>
         <h2 className="font-display text-text mt-1 text-2xl font-bold sm:text-3xl">
-          {t('password')}
+          {t('title')}
         </h2>
-        <p className="text-text-secondary mt-2 text-sm">
-          {t('passwordDescription')}
-        </p>
+        <p className="text-text-secondary mt-2 text-sm">{t('subtitle')}</p>
       </header>
 
       <div className="space-y-4">
@@ -53,7 +53,7 @@ export function RegistroStepPassword({ data, errors, onChange }: Props) {
               value={password}
               onChange={(e) => onChange({ password: e.target.value })}
               className="border-border-soft focus:border-primary focus:ring-primary/20 bg-surface text-text w-full rounded-lg border px-4 py-3 pr-12 focus:ring-2 focus:outline-none"
-              placeholder="Contraseña segura"
+              placeholder={t('passwordPlaceholder')}
               autoComplete="new-password"
             />
             <button
@@ -84,10 +84,22 @@ export function RegistroStepPassword({ data, errors, onChange }: Props) {
             {t('passwordRequirements')}
           </div>
           <div className="space-y-1.5">
-            <PasswordRequirement met={hasLength} label="8+ caracteres" />
-            <PasswordRequirement met={hasUppercase} label="Mayúscula (A-Z)" />
-            <PasswordRequirement met={hasLowercase} label="Minúscula (a-z)" />
-            <PasswordRequirement met={hasNumber} label="Número (0-9)" />
+            <PasswordRequirement
+              met={hasLength}
+              label={t('requirement8Plus')}
+            />
+            <PasswordRequirement
+              met={hasUppercase}
+              label={t('requirementUppercase')}
+            />
+            <PasswordRequirement
+              met={hasLowercase}
+              label={t('requirementLowercase')}
+            />
+            <PasswordRequirement
+              met={hasNumber}
+              label={t('requirementNumber')}
+            />
           </div>
         </div>
 
@@ -106,7 +118,7 @@ export function RegistroStepPassword({ data, errors, onChange }: Props) {
               value={data.passwordConfirm || ''}
               onChange={(e) => onChange({ passwordConfirm: e.target.value })}
               className="border-border-soft focus:border-primary focus:ring-primary/20 bg-surface text-text w-full rounded-lg border px-4 py-3 pr-12 focus:ring-2 focus:outline-none"
-              placeholder="Confirma tu contraseña"
+              placeholder={t('passwordConfirmPlaceholder')}
               autoComplete="new-password"
             />
             <button

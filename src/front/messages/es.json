@@ -109,11 +109,26 @@
         "business": "Tu negocio",
         "contact": "Ubicación",
         "password": "Contraseña",
-        "confirm": "Confirmación",
-        "passwordDescription": "Crea una contraseña segura para proteger tu cuenta.",
+        "confirm": "Confirmación"
+      },
+      "Password": {
+        "eyebrow": "Paso 3 de 4",
+        "title": "Crea tu contraseña",
+        "subtitle": "Elige una contraseña segura para proteger tu cuenta.",
         "passwordLabel": "Contraseña",
         "passwordConfirmLabel": "Confirmar contraseña",
-        "passwordRequirements": "Requisitos de contraseña"
+        "passwordRequirements": "Requisitos",
+        "passwordMin8": "La contraseña debe tener al menos 8 caracteres",
+        "passwordNeedsUppercase": "Debe contener una mayúscula",
+        "passwordNeedsLowercase": "Debe contener una minúscula",
+        "passwordNeedsNumber": "Debe contener un número",
+        "passwordMismatch": "Las contraseñas no coinciden",
+        "passwordPlaceholder": "Contraseña segura",
+        "passwordConfirmPlaceholder": "Confirma tu contraseña",
+        "requirement8Plus": "8+ caracteres",
+        "requirementUppercase": "Mayúscula (A-Z)",
+        "requirementLowercase": "Minúscula (a-z)",
+        "requirementNumber": "Número (0-9)"
       },
       "Business": {
         "eyebrow": "Paso 1 de 3",

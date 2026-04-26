@@ -3,10 +3,8 @@ import { useTranslations } from 'next-intl'
 
 import { Link } from '@/i18n/navigation'
 
-import { mockCurrentUser } from '../_data/mock-user'
-
 import { AppNavLink } from './app-nav-link'
-import { UserMenu } from './user-menu'
+import { UserMenuLoader } from './user-menu-loader'
 
 export function AppHeader() {
   const t = useTranslations('App.Header')
@@ -50,7 +48,7 @@ export function AppHeader() {
           >
             <Bell className="h-5 w-5" />
           </button>
-          <UserMenu currentUser={mockCurrentUser} />
+          <UserMenuLoader />
         </div>
       </div>
     </header>

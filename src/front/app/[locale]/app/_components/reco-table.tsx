@@ -5,7 +5,6 @@ import { ArrowRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 import { useRecomendaciones } from '@/core/recommendations/infrastructure/hooks/useRecomendaciones'
-import { mockRecomendaciones } from '../_data/mock-recomendaciones'
 import type { EstadoReco, Recomendacion, TipoRelacion } from '../_data/types'
 
 import { RecoActor } from './reco-actor'
@@ -19,27 +18,19 @@ const PAGE_SIZE = 8
 export function RecoTable() {
   const t = useTranslations('App.Recomendaciones')
 
-  const { data: live, isLoading } = useRecomendaciones()
+  const { data: live, isLoading, error, reason } = useRecomendaciones()
 
   const [active, setActive] = useState<TabValue>('todas')
   const [showAll, setShowAll] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [overrides, setOverrides] = useState<Record<string, EstadoReco>>({})
 
-  // Use real data when available; fall back to mock so the UI still renders
-  // before the brain has finished onboarding the user's company.
-  const source: Recomendacion[] =
-    live && live.length > 0 ? live : mockRecomendaciones
-
-  const data = useMemo(
-    () =>
-      source.map((reco) =>
-        overrides[reco.id] ? { ...reco, estado: overrides[reco.id]! } : reco,
-      ),
-    [source, overrides],
-  )
-
-  void isLoading
+  const data = useMemo(() => {
+    const source: Recomendacion[] = live ?? []
+    return source.map((reco) =>
+      overrides[reco.id] ? { ...reco, estado: overrides[reco.id]! } : reco,
+    )
+  }, [live, overrides])
 
   const counts = useMemo(() => {
     const base: Record<TabValue, number> = {
@@ -82,6 +73,42 @@ export function RecoTable() {
     setOverrides((prev) => ({ ...prev, [id]: estado }))
   }
 
+  if (isLoading && data.length === 0) {
+    return (
+      <div className="bg-surface border-border-soft overflow-hidden rounded-2xl border">
+        <RecoTableSkeleton />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-surface border-border-soft rounded-2xl border p-10 text-center">
+        <h3 className="font-display text-text text-lg font-bold">
+          {t('errorState.title')}
+        </h3>
+        <p className="text-text-secondary mt-2 text-sm">
+          {t('errorState.description')}
+        </p>
+      </div>
+    )
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="bg-surface border-border-soft rounded-2xl border p-10 text-center">
+        <h3 className="font-display text-text text-lg font-bold">
+          {t('empty.title')}
+        </h3>
+        <p className="text-text-secondary mt-2 text-sm">
+          {reason === 'no_company'
+            ? t('empty.noCompanyDescription')
+            : t('empty.description')}
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <RecoTabs
@@ -120,6 +147,23 @@ export function RecoTable() {
         onUpdateEstado={updateEstado}
       />
     </div>
+  )
+}
+
+function RecoTableSkeleton() {
+  return (
+    <ul aria-hidden className="divide-border-soft divide-y">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <li key={i} className="flex items-center gap-4 px-5 py-4">
+          <span className="bg-surface-hover h-10 w-10 animate-pulse rounded-md" />
+          <div className="flex flex-1 flex-col gap-2">
+            <span className="bg-surface-hover h-4 w-1/3 animate-pulse rounded" />
+            <span className="bg-surface-hover h-3 w-2/3 animate-pulse rounded" />
+          </div>
+          <span className="bg-surface-hover h-6 w-12 animate-pulse rounded" />
+        </li>
+      ))}
+    </ul>
   )
 }
 

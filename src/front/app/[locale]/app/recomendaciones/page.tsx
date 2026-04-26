@@ -2,10 +2,8 @@ import { Filter, ArrowDownUp } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { setRequestLocale } from 'next-intl/server'
 
-import { mockRecomendaciones } from '../_data/mock-recomendaciones'
-import { mockCurrentUser } from '../_data/mock-user'
-
 import { RecoFilters } from '../_components/reco-filters'
+import { RecoHeader } from '../_components/reco-header'
 import { RecoTable } from '../_components/reco-table'
 
 type Props = {
@@ -25,18 +23,7 @@ function RecomendacionesContent() {
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-8">
       <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div>
-          <h1 className="font-display text-text text-3xl font-extrabold tracking-tight">
-            {t('title')}
-          </h1>
-          <p className="text-text-secondary mt-2 text-sm">
-            {t('subtitleTemplate', {
-              count: mockRecomendaciones.length,
-              empresa: mockCurrentUser.empresa,
-              tiempo: t('lastUpdated'),
-            })}
-          </p>
-        </div>
+        <RecoHeader />
         <div className="flex items-center gap-2">
           <button
             type="button"

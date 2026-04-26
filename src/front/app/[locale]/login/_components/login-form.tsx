@@ -5,6 +5,7 @@ import { ArrowRight, Loader2, Lock, Mail } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 import { Link, useRouter } from '@/i18n/navigation'
+import { createSupabaseBrowserClient } from '@/core/shared/infrastructure/supabase/client'
 
 import { Field, TextInput } from '../../registro/_components/registro-fields'
 
@@ -20,6 +21,7 @@ export function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<Errors>({})
+  const [apiError, setApiError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function validate(): boolean {
@@ -37,10 +39,23 @@ export function LoginForm() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!validate()) return
-    startTransition(() => {
-      setTimeout(() => {
-        router.push('/app/recomendaciones')
-      }, 600)
+    setApiError(null)
+    startTransition(async () => {
+      const supabase = createSupabaseBrowserClient()
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      })
+      if (error) {
+        // Supabase devuelve "Invalid login credentials" para email/password
+        // incorrectos. Lo mapeamos a una clave i18n para no acoplar copy a inglés.
+        const isCredentialsError = /invalid.*credentials/i.test(error.message)
+        setApiError(
+          isCredentialsError ? tErrors('invalidCredentials') : error.message,
+        )
+        return
+      }
+      router.push('/app/recomendaciones')
     })
   }
 
@@ -104,6 +119,15 @@ export function LoginForm() {
           </div>
         )}
       </Field>
+
+      {apiError ? (
+        <div
+          role="alert"
+          className="bg-error/10 text-error rounded-lg border border-red-200 p-3 text-sm"
+        >
+          {apiError}
+        </div>
+      ) : null}
 
       <button
         type="submit"

@@ -7,13 +7,33 @@ import { z } from 'zod'
  * Se parsea UNA vez al levantar — si falta algo, explota inmediato
  * con un mensaje claro en vez de un error críptico en runtime.
  *
- * NINGUNA variable lleva NEXT_PUBLIC_ porque todo corre server-side (BFF).
+ * Casi todas son server-only (BFF). Las únicas excepciones `NEXT_PUBLIC_`
+ * están documentadas en AGENTS.md sección 8.3 — todas son no-secretos
+ * (URLs, flags, publishable keys diseñadas para vivir en el cliente).
  */
 export const envSchema = z.object({
   SUPABASE_URL: z.url({ error: 'SUPABASE_URL must be a valid URL' }),
   SUPABASE_PUBLISHABLE_KEY: z
     .string()
     .min(1, { error: 'SUPABASE_PUBLISHABLE_KEY cannot be empty' }),
+  /**
+   * Mismo valor que SUPABASE_URL pero con prefijo NEXT_PUBLIC_ para que
+   * Next.js lo inline en el bundle del browser. Necesario para que
+   * `createSupabaseBrowserClient` (cliente del lado del navegador) pueda
+   * gestionar la sesión de auth (setSession, refresh, signOut).
+   * NO es secreto — es la URL pública del proyecto Supabase.
+   */
+  NEXT_PUBLIC_SUPABASE_URL: z.url({
+    error: 'NEXT_PUBLIC_SUPABASE_URL must be a valid URL',
+  }),
+  /**
+   * Mismo valor que SUPABASE_PUBLISHABLE_KEY pero con prefijo NEXT_PUBLIC_.
+   * NO es secreto — la "publishable key" de Supabase está diseñada para
+   * vivir en el cliente. RLS es lo que protege la data.
+   */
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1, {
+    error: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY cannot be empty',
+  }),
   /**
    * Habilita logging detallado en server-side.
    * Opcional — si no está definido, el logger queda deshabilitado (NullLogger).

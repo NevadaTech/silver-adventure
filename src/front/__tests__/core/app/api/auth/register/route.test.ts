@@ -40,8 +40,6 @@ vi.mock('@/core/shared/infrastructure/logger/serverLogger', () => ({
 
 // Mock Supabase server client
 const mockSignUp = vi.fn()
-const mockUpdateUserById = vi.fn()
-const mockDeleteUser = vi.fn()
 const mockInsert = vi.fn()
 const mockSelect = vi.fn()
 const mockSingle = vi.fn()
@@ -54,11 +52,9 @@ vi.mock('@/core/shared/infrastructure/supabase/server', () => {
     createSupabaseServerClient: vi.fn(() => ({
       auth: {
         signUp: mockSignUp,
-        admin: {
-          updateUserById: mockUpdateUserById,
-          deleteUser: mockDeleteUser,
-        },
       },
+    })),
+    createSupabaseUserClient: vi.fn(() => ({
       from: mockFrom,
     })),
   }
@@ -84,12 +80,6 @@ describe('POST /api/auth/register', () => {
           refresh_token: 'refresh-token-456',
         },
       },
-      error: null,
-    })
-
-    // Default successful email confirmation
-    mockUpdateUserById.mockResolvedValue({
-      data: { user: { id: 'user-123' } },
       error: null,
     })
 
@@ -204,27 +194,6 @@ describe('POST /api/auth/register', () => {
           has_chamber: true,
         }),
       )
-    })
-
-    it('calls email confirmation after user creation', async () => {
-      const request = new Request('http://localhost/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          businessName: 'Test Business',
-          sector: 'comercio',
-          email: 'test@example.com',
-          password: 'TestPass123',
-          municipio: 'Santa Marta',
-          barrio: 'Centro',
-          descripcion: 'Negocio de prueba que vende productos a clientes',
-        }),
-      })
-
-      await POST(request)
-
-      expect(mockUpdateUserById).toHaveBeenCalledWith('user-123', {
-        email_confirm: true,
-      })
     })
 
     it('handles null/undefined optional fields correctly', async () => {
@@ -550,60 +519,10 @@ describe('POST /api/auth/register', () => {
       const data = await response.json()
       expect(data.error).toContain('Email already exists')
     })
-
-    it('returns error when email confirmation fails', async () => {
-      mockUpdateUserById.mockResolvedValue({
-        data: null,
-        error: { message: 'Could not update user' },
-      })
-
-      const request = new Request('http://localhost/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          businessName: 'Test Business',
-          sector: 'comercio',
-          email: 'test@example.com',
-          password: 'TestPass123',
-          municipio: 'Santa Marta',
-          barrio: 'Centro',
-          descripcion: 'Negocio de prueba que vende productos a clientes',
-        }),
-      })
-
-      const response = await POST(request)
-
-      expect(response.status).toBe(400)
-      const data = await response.json()
-      expect(data.error).toBe('Could not update user')
-    })
-
-    it('rolls back auth user if email confirmation fails', async () => {
-      mockUpdateUserById.mockResolvedValue({
-        data: null,
-        error: { message: 'Could not update user' },
-      })
-
-      const request = new Request('http://localhost/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          businessName: 'Test Business',
-          sector: 'comercio',
-          email: 'test@example.com',
-          password: 'TestPass123',
-          municipio: 'Santa Marta',
-          barrio: 'Centro',
-          descripcion: 'Negocio de prueba que vende productos a clientes',
-        }),
-      })
-
-      await POST(request)
-
-      expect(mockDeleteUser).toHaveBeenCalledWith('user-123')
-    })
   })
 
   describe('Profile Creation Errors', () => {
-    it('rolls back auth user if profile creation fails', async () => {
+    it('returns 400 when profile insert fails', async () => {
       mockSingle.mockResolvedValue({
         data: null,
         error: { message: 'Insert failed' },
@@ -627,30 +546,6 @@ describe('POST /api/auth/register', () => {
       expect(response.status).toBe(400)
       const data = await response.json()
       expect(data.error).toBe('Insert failed')
-    })
-
-    it('deletes auth user when profile insert fails', async () => {
-      mockSingle.mockResolvedValue({
-        data: null,
-        error: { message: 'Insert failed' },
-      })
-
-      const request = new Request('http://localhost/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          businessName: 'Test Business',
-          sector: 'comercio',
-          email: 'test@example.com',
-          password: 'TestPass123',
-          municipio: 'Santa Marta',
-          barrio: 'Centro',
-          descripcion: 'Negocio de prueba que vende productos a clientes',
-        }),
-      })
-
-      await POST(request)
-
-      expect(mockDeleteUser).toHaveBeenCalledWith('user-123')
     })
   })
 
@@ -815,14 +710,6 @@ describe('POST /api/auth/register', () => {
         })
       })
 
-      mockUpdateUserById.mockImplementation(() => {
-        callOrder.push('updateUserById')
-        return Promise.resolve({
-          data: { user: { id: 'user-123' } },
-          error: null,
-        })
-      })
-
       mockSingle.mockImplementation(() => {
         callOrder.push('profileInsert')
         return Promise.resolve({
@@ -851,7 +738,7 @@ describe('POST /api/auth/register', () => {
 
       await POST(request)
 
-      expect(callOrder).toEqual(['signUp', 'updateUserById', 'profileInsert'])
+      expect(callOrder).toEqual(['signUp', 'profileInsert'])
     })
 
     it('inserts profile with correct user id from auth response', async () => {

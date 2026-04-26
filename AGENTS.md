@@ -396,17 +396,19 @@ Validation is **fail-fast**: invalid or missing required variables crash the pro
 
 ### 8.3 BFF Pattern — `NEXT_PUBLIC_` Discipline
 
-All variables are **server-only** (NO `NEXT_PUBLIC_` prefix) by default. The two exceptions exist because they are NOT secrets:
+All variables are **server-only** (NO `NEXT_PUBLIC_` prefix) by default. The exceptions below exist because they are NOT secrets:
 
-| Variable                    | Side   | Purpose                                          |
-| --------------------------- | ------ | ------------------------------------------------ |
-| `SUPABASE_URL`              | Server | Supabase project URL                             |
-| `SUPABASE_PUBLISHABLE_KEY`  | Server | Supabase publishable API key                     |
-| `DEBUG_ENABLED`             | Server | Enable server-side logger (`"true"` / `"false"`) |
-| `NEXT_PUBLIC_DEBUG_ENABLED` | Client | Enable client-side logger (`"true"` / `"false"`) |
-| `NEXT_PUBLIC_APP_URL`       | Client | Application URL                                  |
+| Variable                               | Side   | Purpose                                                                              |
+| -------------------------------------- | ------ | ------------------------------------------------------------------------------------ |
+| `SUPABASE_URL`                         | Server | Supabase project URL                                                                 |
+| `SUPABASE_PUBLISHABLE_KEY`             | Server | Supabase publishable API key                                                         |
+| `DEBUG_ENABLED`                        | Server | Enable server-side logger (`"true"` / `"false"`)                                     |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Client | Same value as `SUPABASE_URL`. Required by `createSupabaseBrowserClient` for auth.    |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Client | Same value as `SUPABASE_PUBLISHABLE_KEY`. Publishable by design — RLS protects data. |
+| `NEXT_PUBLIC_DEBUG_ENABLED`            | Client | Enable client-side logger (`"true"` / `"false"`)                                     |
+| `NEXT_PUBLIC_APP_URL`                  | Client | Application URL                                                                      |
 
-> `NEXT_PUBLIC_DEBUG_ENABLED` and `NEXT_PUBLIC_APP_URL` are the ONLY `NEXT_PUBLIC_` variables. They are boolean flags / URLs — they do NOT violate the BFF pattern. `DEBUG_ENABLED` is optional and defaults to `"false"`.
+> The four `NEXT_PUBLIC_` variables above are the EXHAUSTIVE list. All are non-secrets by design (URLs, boolean flags, Supabase publishable key). `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` are duplicated as `NEXT_PUBLIC_*` because Next.js requires the prefix to inline the value into the browser bundle. The BFF pattern is preserved because **all DB queries still go through `/api/*` Route Handlers** — the browser client only manages the auth session (`setSession`, `signOut`, refresh), never touches data tables. RLS policies on `public.users` enforce that even a leaked publishable key can only see/modify the row of an authenticated user. `DEBUG_ENABLED` is optional and defaults to `"false"`.
 
 ### 8.4 Adding a New Environment Variable
 

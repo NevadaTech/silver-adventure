@@ -17,6 +17,12 @@ const envSchema = z.object({
   SUPABASE_PUBLISHABLE_KEY: z
     .string()
     .min(1, { error: 'SUPABASE_PUBLISHABLE_KEY cannot be empty' }),
+  NEXT_PUBLIC_SUPABASE_URL: z.url({
+    error: 'NEXT_PUBLIC_SUPABASE_URL must be a valid URL',
+  }),
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1, {
+    error: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY cannot be empty',
+  }),
   DEBUG_ENABLED: z.enum(['true', 'false']).optional().default('false'),
 })
 
@@ -24,6 +30,8 @@ describe('envSchema', () => {
   const validEnv = {
     SUPABASE_URL: 'https://example.supabase.co',
     SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_abc123',
+    NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_abc123',
   }
 
   it('should parse valid environment variables', () => {
@@ -37,8 +45,40 @@ describe('envSchema', () => {
   })
 
   it('should reject missing SUPABASE_URL', () => {
+    const { SUPABASE_URL: _, ...withoutUrl } = validEnv
+    const result = envSchema.safeParse(withoutUrl)
+
+    expect(result.success).toBe(false)
+  })
+
+  it('should reject missing NEXT_PUBLIC_SUPABASE_URL', () => {
+    const { NEXT_PUBLIC_SUPABASE_URL: _, ...withoutPublicUrl } = validEnv
+    const result = envSchema.safeParse(withoutPublicUrl)
+
+    expect(result.success).toBe(false)
+  })
+
+  it('should reject missing NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', () => {
+    const { NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: _, ...withoutPublicKey } =
+      validEnv
+    const result = envSchema.safeParse(withoutPublicKey)
+
+    expect(result.success).toBe(false)
+  })
+
+  it('should reject empty NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', () => {
     const result = envSchema.safeParse({
-      SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_abc123',
+      ...validEnv,
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: '',
+    })
+
+    expect(result.success).toBe(false)
+  })
+
+  it('should reject invalid URL for NEXT_PUBLIC_SUPABASE_URL', () => {
+    const result = envSchema.safeParse({
+      ...validEnv,
+      NEXT_PUBLIC_SUPABASE_URL: 'not-a-url',
     })
 
     expect(result.success).toBe(false)
@@ -54,9 +94,8 @@ describe('envSchema', () => {
   })
 
   it('should reject missing SUPABASE_PUBLISHABLE_KEY', () => {
-    const result = envSchema.safeParse({
-      SUPABASE_URL: 'https://example.supabase.co',
-    })
+    const { SUPABASE_PUBLISHABLE_KEY: _, ...withoutKey } = validEnv
+    const result = envSchema.safeParse(withoutKey)
 
     expect(result.success).toBe(false)
   })
@@ -127,12 +166,24 @@ describe('parseEnv', () => {
   const validEnv = {
     SUPABASE_URL: 'https://example.supabase.co',
     SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_abc123',
+    NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_abc123',
+  }
+
+  function setEnv() {
+    for (const [key, value] of Object.entries(validEnv)) {
+      process.env[key] = value
+    }
+  }
+
+  function unsetEnv() {
+    for (const key of Object.keys(validEnv)) {
+      delete process.env[key]
+    }
   }
 
   it('should return typed env object for valid input', async () => {
-    // Seteamos env vars ANTES de importar el módulo
-    process.env.SUPABASE_URL = validEnv.SUPABASE_URL
-    process.env.SUPABASE_PUBLISHABLE_KEY = validEnv.SUPABASE_PUBLISHABLE_KEY
+    setEnv()
 
     // Dynamic import — el módulo se evalúa con las env vars ya seteadas
     const { parseEnv } = await import('@/core/shared/infrastructure/env')
@@ -141,27 +192,26 @@ describe('parseEnv', () => {
 
     expect(env.SUPABASE_URL).toBe('https://example.supabase.co')
     expect(env.SUPABASE_PUBLISHABLE_KEY).toBe('sb_publishable_abc123')
+    expect(env.NEXT_PUBLIC_SUPABASE_URL).toBe('https://example.supabase.co')
+    expect(env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY).toBe(
+      'sb_publishable_abc123',
+    )
 
-    // Cleanup
-    delete process.env.SUPABASE_URL
-    delete process.env.SUPABASE_PUBLISHABLE_KEY
+    unsetEnv()
   })
 
   it('should throw with descriptive error for invalid input', async () => {
-    process.env.SUPABASE_URL = validEnv.SUPABASE_URL
-    process.env.SUPABASE_PUBLISHABLE_KEY = validEnv.SUPABASE_PUBLISHABLE_KEY
+    setEnv()
 
     const { parseEnv } = await import('@/core/shared/infrastructure/env')
 
     expect(() => parseEnv({})).toThrow('Invalid environment variables')
 
-    delete process.env.SUPABASE_URL
-    delete process.env.SUPABASE_PUBLISHABLE_KEY
+    unsetEnv()
   })
 
   it('should include variable name in error message', async () => {
-    process.env.SUPABASE_URL = validEnv.SUPABASE_URL
-    process.env.SUPABASE_PUBLISHABLE_KEY = validEnv.SUPABASE_PUBLISHABLE_KEY
+    setEnv()
 
     const { parseEnv } = await import('@/core/shared/infrastructure/env')
 
@@ -169,7 +219,6 @@ describe('parseEnv', () => {
       'SUPABASE_PUBLISHABLE_KEY',
     )
 
-    delete process.env.SUPABASE_URL
-    delete process.env.SUPABASE_PUBLISHABLE_KEY
+    unsetEnv()
   })
 })

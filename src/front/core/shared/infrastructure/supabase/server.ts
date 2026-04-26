@@ -21,3 +21,19 @@ import type { Database } from './database.types'
 export function createSupabaseServerClient() {
   return createClient<Database>(env.SUPABASE_URL, env.SUPABASE_PUBLISHABLE_KEY)
 }
+
+/**
+ * Per-request Supabase client scoped to a specific user via their JWT.
+ * RLS sees `auth.uid()` resolved from the access_token, so policies that
+ * check `auth.uid() = users.id` apply correctly. Use this for any operation
+ * that must run as the user (insert/update/select on their own rows).
+ */
+export function createSupabaseUserClient(accessToken: string) {
+  return createClient<Database>(
+    env.SUPABASE_URL,
+    env.SUPABASE_PUBLISHABLE_KEY,
+    {
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    },
+  )
+}

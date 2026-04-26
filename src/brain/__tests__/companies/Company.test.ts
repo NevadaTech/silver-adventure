@@ -38,6 +38,15 @@ describe('Company', () => {
     expect(() => Company.create({ ...validInput, razonSocial: '' })).toThrow()
   })
 
+  it('normalizes municipio to UPPER+TRIM so casing variants produce the same canonical value', () => {
+    const a = Company.create({ ...validInput, municipio: 'Santa Marta' })
+    const b = Company.create({ ...validInput, municipio: 'SANTA MARTA' })
+    const c = Company.create({ ...validInput, municipio: '  santa marta  ' })
+    expect(a.municipio).toBe('SANTA MARTA')
+    expect(b.municipio).toBe('SANTA MARTA')
+    expect(c.municipio).toBe('SANTA MARTA')
+  })
+
   it('throws when razonSocial is whitespace only', () => {
     expect(() =>
       Company.create({ ...validInput, razonSocial: '   ' }),

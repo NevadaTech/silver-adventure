@@ -84,7 +84,7 @@ describe('EcosystemDiscoverer', () => {
     const results = await discoverer.discover(companies)
     expect(results).toHaveLength(1)
     expect(results[0].cluster.tipo).toBe('heuristic-ecosistema')
-    expect(results[0].cluster.municipio).toBe('Santa Marta')
+    expect(results[0].cluster.municipio).toBe('SANTA MARTA')
     expect(results[0].members).toHaveLength(7)
   })
 
@@ -126,7 +126,7 @@ describe('EcosystemDiscoverer', () => {
     const results = await discoverer.discover(companies)
     expect(results).toHaveLength(2)
     const municipios = results.map((r) => r.cluster.municipio).sort()
-    expect(municipios).toEqual(['Barranquilla', 'Santa Marta'])
+    expect(municipios).toEqual(['BARRANQUILLA', 'SANTA MARTA'])
   })
 
   it('generates stable IDs between two calls with same graph and companies', async () => {

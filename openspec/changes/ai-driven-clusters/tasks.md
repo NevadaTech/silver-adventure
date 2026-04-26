@@ -622,12 +622,12 @@ E.4 ──► F.2 (docs AGENTS.md)
 
 ### Phase C (6 tasks)
 
-- [ ] C.1 — `DynamicValueChainRules`
-- [ ] C.2 — `ValueChainMatcher` async
-- [ ] C.3 — `AllianceMatcher` async
-- [ ] C.4 — `AiMatchEngine` con `modelVersion`
-- [ ] C.5 — `GenerateRecommendations.runFallback()` async
-- [ ] C.6 — Regresión flag=false matchers
+- [x] C.1 — `DynamicValueChainRules` (1d14ce9)
+- [x] C.2 — `ValueChainMatcher` async (470c73d)
+- [x] C.3 — `AllianceMatcher` async (b9193f7)
+- [x] C.4 — `AiMatchEngine` con `modelVersion` (4c3a74a)
+- [x] C.5 — `GenerateRecommendations.runFallback()` async (b4ad2b7)
+- [x] C.6 — Regresión flag=false matchers (embedded in C.2/C.3)
 
 ### Phase D (9 tasks)
 

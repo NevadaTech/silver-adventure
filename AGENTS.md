@@ -694,3 +694,13 @@ bun supabase:types   # Regenerate Supabase types
 12. **NEVER commit `.env` files** — only `.env.example` is tracked
 13. **ALL database operations go through Route Handlers** (`src/app/api/`) — Server Components and Client Components NEVER call Supabase directly
 14. **ALWAYS write the test FIRST** (TDD) — RED → GREEN → REFACTOR. No production code without a failing test.
+
+---
+
+## 17. Brain — Module Dependencies (NestJS bounded contexts)
+
+The brain workspace (`src/brain`) uses NestJS modules as bounded context boundaries. One inter-module dependency to be aware of:
+
+**`ClustersModule` imports `RecommendationsModule`** to consume `CiiuGraphPort`. `RecommendationsModule` exports the `CIIU_GRAPH_PORT` token (backed by `SupabaseCiiuGraphRepository`) so that `EcosystemDiscoverer` (in `ClustersModule`) can query the CIIU relationship graph without owning the adapter. The dependency is **strictly unidirectional**: `clusters → recommendations`. `RecommendationsModule` does NOT import `ClustersModule`.
+
+`EcosystemDiscoverer` uses label propagation over the CIIU graph (`ai_match_cache` via the port) to detect communities and materializes them as `heuristic-ecosistema` clusters — a new cluster type alongside the existing `predefined`, `heuristic-division`, `heuristic-grupo`, and `heuristic-municipio`. This pass only runs when `AI_DRIVEN_RULES_ENABLED=true`.

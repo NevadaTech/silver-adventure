@@ -77,21 +77,25 @@ export class EcosystemDiscoverer {
     for (const community of communities) {
       const sortedCiius = community.slice().sort()
 
-      // Group companies in this community by municipio
+      // Group companies in this community by normalized municipio key
+      // (avoids id collisions when companies have inconsistent casing/spacing
+      // for the same municipio — e.g. "Santa Marta" vs "SANTA MARTA").
       const membersByMunicipio = new Map<string, Company[]>()
       for (const ciiu of community) {
         const comps = byCiiu.get(ciiu) ?? []
         for (const comp of comps) {
-          if (!membersByMunicipio.has(comp.municipio)) {
-            membersByMunicipio.set(comp.municipio, [])
+          const key = slugLower(comp.municipio)
+          if (!membersByMunicipio.has(key)) {
+            membersByMunicipio.set(key, [])
           }
-          membersByMunicipio.get(comp.municipio)!.push(comp)
+          membersByMunicipio.get(key)!.push(comp)
         }
       }
 
-      for (const [municipio, members] of membersByMunicipio) {
+      for (const [, members] of membersByMunicipio) {
         if (members.length === 0) continue
 
+        const municipio = members[0].municipio
         const id = buildEcosystemClusterId(sortedCiius, municipio)
         const ciiusForTitle =
           sortedCiius.length <= 5 ? sortedCiius : sortedCiius.slice(0, 5)

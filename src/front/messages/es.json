@@ -26,7 +26,8 @@
       "navLabel": "Navegación principal",
       "navAudiences": "Audiencias",
       "navHow": "Cómo funciona",
-      "navTeam": "Equipo"
+      "navTeam": "Equipo",
+      "login": "Entrar"
     },
     "Hero": {
       "eyebrow": "Conectamos el Magdalena",
@@ -325,6 +326,305 @@
         "invalidNit": "NIT inválido (9 a 15 dígitos, acepta puntos y guion)",
         "invalidEmail": "Email inválido. Revisa el formato.",
         "mustAccept": "Debes aceptar los términos para continuar"
+      }
+    }
+  },
+  "Login": {
+    "eyebrow": "Acceso emprendedor",
+    "title": "Bienvenido de vuelta",
+    "subtitle": "Entra para ver tus recomendaciones del día.",
+    "fields": {
+      "email": {
+        "label": "Email",
+        "placeholder": "tunegocio@gmail.com"
+      },
+      "password": {
+        "label": "Contraseña",
+        "placeholder": "Mínimo 6 caracteres"
+      }
+    },
+    "cta": "Entrar",
+    "sending": "Entrando...",
+    "registerCta": "¿Aún no tienes cuenta?",
+    "registerLink": "Regístrate gratis",
+    "errors": {
+      "invalidEmail": "Email inválido. Revisa el formato.",
+      "minLength": "La contraseña debe tener al menos 6 caracteres."
+    }
+  },
+  "App": {
+    "Header": {
+      "logo": "Ir al inicio de Ruta C Conecta",
+      "navLabel": "Navegación de la aplicación",
+      "nav": {
+        "inicio": "Inicio",
+        "recomendaciones": "Recomendaciones",
+        "cluster": "Mi cluster",
+        "conexiones": "Conexiones",
+        "negocio": "Mi negocio"
+      },
+      "notifications": "Notificaciones",
+      "userMenu": {
+        "profile": "Mi perfil",
+        "logout": "Cerrar sesión"
+      }
+    },
+    "Recomendaciones": {
+      "title": "Recomendaciones",
+      "subtitleTemplate": "{count} actores priorizados para {empresa} · actualizado {tiempo}",
+      "lastUpdated": "hace 3 horas",
+      "filtrar": "Filtros",
+      "ordenar": "Ordenar",
+      "ordenarScore": "Ordenar: score",
+      "tabs": {
+        "todas": "Todas",
+        "proveedor": "Proveedor",
+        "aliado": "Aliado",
+        "cliente": "Cliente",
+        "referente": "Referente"
+      },
+      "filters": {
+        "estados": "Todos los estados",
+        "sector": "Sector: todos",
+        "etapa": "Etapa: todas",
+        "distancia": "Distancia: 5 km",
+        "formales": "Solo formales"
+      },
+      "columns": {
+        "actor": "Actor",
+        "tipo": "Tipo de relación",
+        "match": "Match",
+        "porQue": "¿Por qué a ti?",
+        "estado": "Estado",
+        "acciones": "Acciones"
+      },
+      "ver": "Ver",
+      "descubierto": "Descubierto",
+      "statuses": {
+        "nueva": "Nueva",
+        "vista": "Vista",
+        "guardada": "Guardada",
+        "descartada": "Descartada"
+      },
+      "tipos": {
+        "proveedor": "Proveedor",
+        "aliado": "Aliado estratégico",
+        "cliente": "Cliente",
+        "clienteFull": "Cliente potencial",
+        "referente": "Referente"
+      },
+      "footerTemplate": "Mostrando {visible} de {total}",
+      "cargarMas": "cargar más",
+      "Detail": {
+        "close": "Cerrar detalle",
+        "match": "Match",
+        "porQue": "¿Por qué a ti?",
+        "anclas": "Datos que sustentan la recomendación",
+        "anclasLabels": {
+          "pares_conectados": "Pares similares conectados",
+          "distancia_km": "Distancia desde tu negocio",
+          "frecuencia_entrega": "Frecuencia de entrega",
+          "programa_compartido": "Programa en común",
+          "sector_compatible": "Sector compatible",
+          "anios_operando": "Años operando"
+        },
+        "sobreNegocio": "Sobre el negocio",
+        "aniosOperandoLabel": "Años operando",
+        "aniosOperando": "{count, plural, one {# año} other {# años}}",
+        "programas": "Programas Cámara",
+        "productos": "Productos y servicios",
+        "comoContactar": "Cómo contactar",
+        "whatsapp": "WhatsApp",
+        "direccion": "Dirección",
+        "acciones": {
+          "aceptar": "Aceptar conexión",
+          "guardar": "Guardar",
+          "guardada": "Guardada",
+          "descartar": "Descartar",
+          "descartada": "Descartada"
+        },
+        "whatsappPrefilledTemplate": "Hola {nombre}, te contacto desde Hotel Brisas Marinas. Vi tu perfil en Ruta C Conecta y me interesa conectar contigo."
+      }
+    },
+    "MiCluster": {
+      "eyebrow": "Tu clúster",
+      "etapaLabel": "Etapa",
+      "stats": {
+        "members": "Miembros del clúster",
+        "activeConnections": "Conexiones activas",
+        "activeConnectionsValue": "{count, plural, one {# conexión} other {# conexiones}}",
+        "centrality": "Tu centralidad"
+      },
+      "traits": {
+        "title": "Características compartidas",
+        "subtitle": "Lo que tu clúster tiene en común y define el matching."
+      },
+      "members": {
+        "title": "Miembros del clúster",
+        "subtitle": "Empresas similares a la tuya en sector y etapa. Click en una para ver el detalle."
+      },
+      "flag": {
+        "self": "Tú",
+        "connected": "Conectado",
+        "not_connected": "Sin conectar"
+      },
+      "valueChains": {
+        "title": "Cadenas de valor cercanas",
+        "subtitle": "Clústeres con los que tu clúster ya intercambia.",
+        "countTemplate": "{count, plural, one {# negocio} other {# negocios}}",
+        "cta": "Ver recomendaciones",
+        "tipos": {
+          "proveedor": "Proveedores",
+          "aliado": "Aliados",
+          "cliente": "Clientes"
+        }
+      },
+      "adapterRazonTemplate": "Pertenece a tu mismo clúster. Comparten: {traits}"
+    },
+    "Inicio": {
+      "greetingTemplate": "Buenos días, {nombre}",
+      "headline": "Hoy Conector encontró {count, plural, one {# oportunidad nueva} other {# oportunidades nuevas}} para ti",
+      "hero": {
+        "eyebrow": "El Conector sugiere",
+        "title": "Hoy te encontré un match casi perfecto",
+        "ctaPrimary": "Ver recomendación",
+        "ctaSecondary": "Más tarde"
+      },
+      "kpi": {
+        "newRecos": "Recomendaciones nuevas",
+        "activeConnections": "Conexiones activas",
+        "clusterSize": "Tamaño del clúster",
+        "centrality": "Tu centralidad",
+        "deltaTemplate": "+{count} esta semana"
+      },
+      "activity": {
+        "title": "Actividad reciente del Conector",
+        "subtitle": "Lo que el agente ha hecho por tu negocio hoy.",
+        "viewAll": "Ver historial completo (próximamente)"
+      },
+      "miniCluster": {
+        "title": "Tu clúster",
+        "viewAll": "Ver clúster completo",
+        "plusNTemplate": "+{count}"
+      },
+      "actions": {
+        "recomendaciones": "Ver todas las recomendaciones",
+        "recomendacionesCount": "{count, plural, one {# negocio sugerido} other {# negocios sugeridos}}",
+        "conexiones": "Mis conexiones",
+        "conexionesCount": "{count, plural, one {# negocio conectado} other {# negocios conectados}}",
+        "miCluster": "Mi clúster",
+        "miClusterHint": "Empresas similares a la tuya"
+      }
+    },
+    "Conexiones": {
+      "title": "Mis conexiones",
+      "subtitleTemplate": "{count, plural, one {# negocio en tu red} other {# negocios en tu red}}",
+      "emptyState": "No tienes conexiones en este estado todavía.",
+      "lastInteractionLabel": "Última interacción",
+      "conectorSuggests": "El Conector sugiere",
+      "whatsappPrefilledTemplate": "Hola {nombre}, te escribo desde Hotel Brisas Marinas. Sigamos avanzando con lo que conversamos.",
+      "detailRazonTemplate": "Esta conexión ya forma parte de tu red. Continúa la conversación con {nombre} desde aquí.",
+      "stats": {
+        "active": "Activas",
+        "pending": "Pendientes",
+        "paused": "En pausa",
+        "archived": "Archivadas"
+      },
+      "tabs": {
+        "todas": "Todas",
+        "active": "Activas",
+        "pending": "Pendientes",
+        "paused": "En pausa",
+        "archived": "Archivadas"
+      },
+      "statuses": {
+        "active": "Activa",
+        "pending": "Pendiente",
+        "paused": "En pausa",
+        "archived": "Archivada"
+      },
+      "actions": {
+        "whatsapp": "WhatsApp",
+        "pause": "Pausar",
+        "activate": "Reactivar",
+        "view": "Ver detalle"
+      }
+    },
+    "MiNegocio": {
+      "editar": "Editar perfil",
+      "stats": {
+        "completitud": "Completitud del perfil",
+        "recomiendan": "Empresas que te recomiendan",
+        "guardaron": "Empresas que guardaron tu perfil",
+        "aparecesEn": "Apareces en"
+      },
+      "tabs": {
+        "general": "General",
+        "productos": "Productos y servicios",
+        "programas": "Programas",
+        "visibilidad": "Visibilidad"
+      },
+      "general": {
+        "datos": {
+          "title": "Datos del negocio"
+        },
+        "ubicacion": {
+          "title": "Ubicación y contacto"
+        },
+        "aniosTemplate": "{count, plural, one {# año operando} other {# años operando}}",
+        "fields": {
+          "nombre": "Nombre",
+          "nit": "NIT",
+          "sector": "Sector",
+          "etapa": "Etapa",
+          "anios": "Tiempo operando",
+          "descripcion": "Descripción",
+          "municipio": "Municipio",
+          "barrio": "Barrio",
+          "direccion": "Dirección",
+          "whatsapp": "WhatsApp",
+          "email": "Email"
+        }
+      },
+      "productos": {
+        "title": "Productos y servicios",
+        "subtitleTemplate": "{count, plural, one {# servicio publicado} other {# servicios publicados}}"
+      },
+      "programas": {
+        "title": "Programas Cámara",
+        "subtitle": "Tu participación en los programas de la Cámara de Comercio.",
+        "desdeTemplate": "Activo desde {year}",
+        "inactivo": "No participas"
+      },
+      "visibilidad": {
+        "completitudTitle": "Completitud del perfil",
+        "completitudHint": "Negocios con perfil 100% completo aparecen primero en las recomendaciones.",
+        "aparecesEn": "Apareces en clústeres",
+        "recomiendan": "Te tienen como recomendación",
+        "guardaron": "Guardaron tu perfil",
+        "clustersUnit": "{count, plural, one {clúster} other {clústeres}}",
+        "empresasUnit": "{count, plural, one {empresa} other {empresas}}"
+      }
+    },
+    "Placeholder": {
+      "recomendacionesCta": "Ver recomendaciones",
+      "sections": {
+        "inicio": {
+          "title": "Tu inicio del día",
+          "body": "Aquí verás un resumen de tu negocio: nuevas recomendaciones, conexiones recientes y oportunidades del clúster."
+        },
+        "cluster": {
+          "title": "Mi clúster",
+          "body": "El mapa de tu clúster con empresas afines en sector y etapa. Verás conexiones ya hechas, posibles aliados y vacantes en cadena de valor."
+        },
+        "conexiones": {
+          "title": "Conexiones",
+          "body": "Las relaciones que ya activaste con otros negocios: proveedores en uso, clientes recurrentes y aliados estratégicos."
+        },
+        "negocio": {
+          "title": "Mi negocio",
+          "body": "Tu perfil empresarial: datos de contacto, sector, programas en los que participas y lo que cuentas a la red."
+        }
       }
     }
   }

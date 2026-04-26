@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { ArrowLeft, ArrowRight, Loader2, Send } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { z } from 'zod'
+import type { z } from 'zod'
 
 import { RegistroProgress } from './registro-progress'
 import { RegistroStepBusiness } from './registro-step-business'

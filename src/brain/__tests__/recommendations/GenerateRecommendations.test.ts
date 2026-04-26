@@ -196,7 +196,7 @@ describe('GenerateRecommendations', () => {
       expect(await setup.recRepo.countBySource('src')).toBeLessThanOrEqual(20)
     })
 
-    it('caps each (relationType) to at most 2 recommendations per company', async () => {
+    it('delivers exactly 2 recommendations per relationType when supply allows', async () => {
       const setup = makeSetup()
       const companies: Company[] = [
         company({ id: 'banano', ciiu: 'A0122', municipio: 'SANTA MARTA' }),
@@ -217,7 +217,64 @@ describe('GenerateRecommendations', () => {
         'banano',
         'cliente',
       )
-      expect(clientes.length).toBeLessThanOrEqual(2)
+      expect(clientes.length).toBe(2)
+    })
+  })
+
+  describe('floor coverage (at least 2 per relationType)', () => {
+    it('delivers up to 2 of each relationType when supply allows in fallback mode', async () => {
+      const setup = makeSetup()
+      await setup.companyRepo.saveMany([
+        company({ id: 'banano', ciiu: 'A0122', municipio: 'SANTA MARTA' }),
+        company({ id: 'banano2', ciiu: 'A0122', municipio: 'SANTA MARTA' }),
+        company({ id: 'banano3', ciiu: 'A0122', municipio: 'SANTA MARTA' }),
+        company({ id: 'mayor1', ciiu: 'G4631', municipio: 'SANTA MARTA' }),
+        company({ id: 'mayor2', ciiu: 'G4631', municipio: 'SANTA MARTA' }),
+        company({ id: 'transp1', ciiu: 'H4923', municipio: 'SANTA MARTA' }),
+        company({ id: 'transp2', ciiu: 'H4923', municipio: 'SANTA MARTA' }),
+      ])
+
+      await setup.useCase.execute({ enableAi: false })
+
+      const referente = await setup.recRepo.findBySourceAndType(
+        'banano',
+        'referente',
+      )
+      const cliente = await setup.recRepo.findBySourceAndType(
+        'banano',
+        'cliente',
+      )
+      const proveedor = await setup.recRepo.findBySourceAndType(
+        'banano',
+        'proveedor',
+      )
+      const aliado = await setup.recRepo.findBySourceAndType('banano', 'aliado')
+
+      expect(referente.length).toBe(2)
+      expect(cliente.length).toBe(2)
+      expect(proveedor.length).toBe(2)
+      expect(aliado.length).toBe(2)
+    })
+
+    it('supplements AI matches with fallback recs to fill missing relation types', async () => {
+      const setup = makeSetup({
+        matchResponse: { has_match: false },
+      })
+      await setup.companyRepo.saveMany([
+        company({ id: 'banano', ciiu: 'A0122', municipio: 'SANTA MARTA' }),
+        company({ id: 'banano2', ciiu: 'A0122', municipio: 'SANTA MARTA' }),
+        company({ id: 'mayor1', ciiu: 'G4631', municipio: 'SANTA MARTA' }),
+        company({ id: 'mayor2', ciiu: 'G4631', municipio: 'SANTA MARTA' }),
+        company({ id: 'transp1', ciiu: 'H4923', municipio: 'SANTA MARTA' }),
+      ])
+
+      await setup.useCase.execute({ enableAi: true })
+
+      const all = await setup.recRepo.findBySource('banano')
+      const sources = new Set(all.map((r) => r.source))
+
+      expect(all.length).toBeGreaterThan(0)
+      expect(sources.has('rule')).toBe(true)
     })
   })
 
@@ -240,7 +297,7 @@ describe('GenerateRecommendations', () => {
       const recs = await setup.recRepo.findBySource('mayor')
 
       expect(recs.length).toBeGreaterThan(0)
-      expect(recs.every((r) => r.source === 'ai-inferred')).toBe(true)
+      expect(recs.some((r) => r.source === 'ai-inferred')).toBe(true)
     })
 
     it('falls back to hardcoded matchers when AI orchestration throws', async () => {

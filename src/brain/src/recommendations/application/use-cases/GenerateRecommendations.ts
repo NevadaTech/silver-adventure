@@ -86,7 +86,11 @@ export class GenerateRecommendations implements UseCase<
         this.logger.log(
           `AI eval stats: total=${stats.total} cached=${stats.cached} evaluated=${stats.evaluated} errors=${stats.errors}`,
         )
-        recsBySource = await this.expandFromCache(companies)
+        const aiRecs = await this.expandFromCache(companies)
+        const fallbackRecs = await this.runFallback(companies)
+        recsBySource = new Map<string, Recommendation[]>()
+        mergeInto(recsBySource, aiRecs)
+        mergeInto(recsBySource, fallbackRecs)
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e)
         this.logger.error(

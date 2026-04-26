@@ -99,6 +99,90 @@ describe('ExplainRecommendation', () => {
     expect(captured).toContain('cliente')
   })
 
+  it('includes the business definition of the relation type', async () => {
+    let captured = ''
+    vi.spyOn(gemini, 'generateText').mockImplementation(async (prompt) => {
+      captured = prompt
+      return 'enrichment'
+    })
+
+    await useCase.execute({ recommendationId: 'rec-1' })
+
+    expect(captured.toLowerCase()).toContain('cliente')
+    expect(captured.toLowerCase()).toMatch(/consume|adquiere|compra/)
+  })
+
+  it('includes value-chain rules applicable to the CIIU pair', async () => {
+    let captured = ''
+    vi.spyOn(gemini, 'generateText').mockImplementation(async (prompt) => {
+      captured = prompt
+      return 'enrichment'
+    })
+
+    await useCase.execute({ recommendationId: 'rec-1' })
+
+    expect(captured).toContain('Banano hacia mayoristas')
+  })
+
+  it('includes shared ecosystems when both companies belong to one', async () => {
+    let captured = ''
+    vi.spyOn(gemini, 'generateText').mockImplementation(async (prompt) => {
+      captured = prompt
+      return 'enrichment'
+    })
+
+    await useCase.execute({ recommendationId: 'rec-1' })
+
+    expect(captured).toContain('Agro Exportador')
+  })
+
+  it('translates structured reasons to natural language', async () => {
+    let captured = ''
+    vi.spyOn(gemini, 'generateText').mockImplementation(async (prompt) => {
+      captured = prompt
+      return 'enrichment'
+    })
+
+    await useCase.execute({ recommendationId: 'rec-1' })
+
+    expect(captured.toLowerCase()).toContain('cadena de valor')
+    expect(captured).not.toContain('"feature"')
+    expect(captured).not.toContain('cadena_valor_directa')
+  })
+
+  it('includes both companies operational context (etapa, personal, ingreso)', async () => {
+    await companyRepo.saveMany([
+      company({
+        id: 'src',
+        razonSocial: 'Banano SA',
+        ciiu: 'A0122',
+        personal: 25,
+        ingresoOperacion: 500_000_000,
+      }),
+      company({
+        id: 'tgt',
+        razonSocial: 'Mayorista SA',
+        ciiu: 'G4631',
+        personal: 80,
+        ingresoOperacion: 2_000_000_000,
+      }),
+    ])
+
+    let captured = ''
+    vi.spyOn(gemini, 'generateText').mockImplementation(async (prompt) => {
+      captured = prompt
+      return 'enrichment'
+    })
+
+    await useCase.execute({ recommendationId: 'rec-1' })
+
+    expect(captured).toContain('25')
+    expect(captured).toContain('80')
+    expect(captured.toLowerCase()).toMatch(/personal|empleados|colaboradores/)
+    expect(captured.toLowerCase()).toMatch(/ingreso|facturaci/)
+    expect(captured.toLowerCase()).toMatch(/etapa/)
+  })
+
   it('throws when the recommendation does not exist', async () => {
     await expect(
       useCase.execute({ recommendationId: 'missing' }),

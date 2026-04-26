@@ -16,9 +16,9 @@ interface CompanyRow {
   ciiu_grupo: string
   municipio: string
   tipo_organizacion: string | null
-  personal: number | string | null
-  ingreso_operacion: number | string | null
-  activos_totales: number | string | null
+  personal: number | null
+  ingreso_operacion: number | null
+  activos_totales: number | null
   email: string | null
   telefono: string | null
   direccion: string | null

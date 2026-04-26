@@ -1,16 +1,23 @@
 import { Injectable } from '@nestjs/common'
 import { randomUUID } from 'node:crypto'
 import type { Company } from '@/companies/domain/entities/Company'
-import { ECOSYSTEMS } from '@/recommendations/application/services/ValueChainRules'
+import { DynamicValueChainRules } from '@/recommendations/application/services/DynamicValueChainRules'
 import { Recommendation } from '@/recommendations/domain/entities/Recommendation'
 import { Reasons } from '@/recommendations/domain/value-objects/Reason'
+import { env } from '@/shared/infrastructure/env'
 
 const SAME_MUNICIPIO_SCORE = 0.75
 const DIFF_MUNICIPIO_SCORE = 0.55
 
 @Injectable()
 export class AllianceMatcher {
-  match(companies: Company[]): Map<string, Recommendation[]> {
+  constructor(private readonly dynamicRules: DynamicValueChainRules) {}
+
+  async match(companies: Company[]): Promise<Map<string, Recommendation[]>> {
+    const ecosystems = await this.dynamicRules.getEcosystems(
+      env.AI_DRIVEN_RULES_ENABLED === 'true',
+    )
+
     const byCiiu = new Map<string, Company[]>()
     for (const c of companies) {
       const arr = byCiiu.get(c.ciiu) ?? []
@@ -21,7 +28,7 @@ export class AllianceMatcher {
     const out = new Map<string, Recommendation[]>()
     const seen = new Set<string>()
 
-    for (const eco of ECOSYSTEMS) {
+    for (const eco of ecosystems) {
       const members = eco.ciiuCodes.flatMap((code) => byCiiu.get(code) ?? [])
       for (let i = 0; i < members.length; i++) {
         for (let j = i + 1; j < members.length; j++) {

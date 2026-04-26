@@ -3,7 +3,7 @@ import { CiiuActivity } from '@/ciiu-taxonomy/domain/entities/CiiuActivity'
 import { InMemoryCiiuTaxonomyRepository } from '@/ciiu-taxonomy/infrastructure/repositories/InMemoryCiiuTaxonomyRepository'
 import { AiMatchEngine } from '@/recommendations/application/services/AiMatchEngine'
 import { InMemoryAiMatchCacheRepository } from '@/recommendations/infrastructure/repositories/InMemoryAiMatchCacheRepository'
-import { StubGeminiAdapter } from '@/shared/infrastructure/gemini/StubGeminiAdapter'
+import { StubLlmAdapter } from '@/shared/infrastructure/llm/StubLlmAdapter'
 
 const mayorista = CiiuActivity.create({
   code: '4631',
@@ -29,7 +29,7 @@ const restaurante = CiiuActivity.create({
 
 describe('AiMatchEngine', () => {
   it('short-circuits to referente when ciiuOrigen === ciiuDestino without calling Gemini', async () => {
-    const gemini = new StubGeminiAdapter('', { has_match: true })
+    const gemini = new StubLlmAdapter('', { has_match: true })
     const cache = new InMemoryAiMatchCacheRepository()
     const ciiuRepo = new InMemoryCiiuTaxonomyRepository()
     const spy = vi.spyOn(gemini, 'inferStructured')
@@ -45,7 +45,7 @@ describe('AiMatchEngine', () => {
   })
 
   it('caches the result on second call with the same pair', async () => {
-    const gemini = new StubGeminiAdapter('', {
+    const gemini = new StubLlmAdapter('', {
       has_match: true,
       relation_type: 'cliente',
       confidence: 0.85,
@@ -71,7 +71,7 @@ describe('AiMatchEngine', () => {
   })
 
   it('returns no-match when CIIU origen is missing in DIAN taxonomy', async () => {
-    const gemini = new StubGeminiAdapter('', { has_match: true })
+    const gemini = new StubLlmAdapter('', { has_match: true })
     const cache = new InMemoryAiMatchCacheRepository()
     const ciiuRepo = new InMemoryCiiuTaxonomyRepository()
     const spy = vi.spyOn(gemini, 'inferStructured')
@@ -86,7 +86,7 @@ describe('AiMatchEngine', () => {
   })
 
   it('returns no-match when only one CIIU is missing', async () => {
-    const gemini = new StubGeminiAdapter('', { has_match: true })
+    const gemini = new StubLlmAdapter('', { has_match: true })
     const cache = new InMemoryAiMatchCacheRepository()
     const ciiuRepo = new InMemoryCiiuTaxonomyRepository([mayorista])
     const engine = new AiMatchEngine(gemini, cache, ciiuRepo)
@@ -97,7 +97,7 @@ describe('AiMatchEngine', () => {
 
   it('includes applicable rules in the prompt as guidance', async () => {
     let capturedPrompt = ''
-    const gemini = new StubGeminiAdapter('', {
+    const gemini = new StubLlmAdapter('', {
       has_match: true,
       relation_type: 'cliente',
       confidence: 0.9,
@@ -125,7 +125,7 @@ describe('AiMatchEngine', () => {
 
   it('falls back to "no rules apply" message when no rules match the pair', async () => {
     let capturedPrompt = ''
-    const gemini = new StubGeminiAdapter('', {
+    const gemini = new StubLlmAdapter('', {
       has_match: false,
       relation_type: null,
       confidence: 0,
@@ -162,7 +162,7 @@ describe('AiMatchEngine', () => {
   })
 
   it('clamps confidence into 0..1 range', async () => {
-    const gemini = new StubGeminiAdapter('', {
+    const gemini = new StubLlmAdapter('', {
       has_match: true,
       relation_type: 'cliente',
       confidence: 1.5,
@@ -180,7 +180,7 @@ describe('AiMatchEngine', () => {
   })
 
   it('treats invalid relation_type from Gemini as null', async () => {
-    const gemini = new StubGeminiAdapter('', {
+    const gemini = new StubLlmAdapter('', {
       has_match: true,
       relation_type: 'enemigo',
       confidence: 0.7,
@@ -198,7 +198,7 @@ describe('AiMatchEngine', () => {
   })
 
   it('persists the cache entry after Gemini call', async () => {
-    const gemini = new StubGeminiAdapter('', {
+    const gemini = new StubLlmAdapter('', {
       has_match: true,
       relation_type: 'cliente',
       confidence: 0.85,

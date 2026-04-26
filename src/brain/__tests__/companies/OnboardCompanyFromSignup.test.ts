@@ -14,9 +14,9 @@ import { FeatureVectorBuilder } from '@/recommendations/application/services/Fea
 import { PeerMatcher } from '@/recommendations/application/services/PeerMatcher'
 import { ValueChainMatcher } from '@/recommendations/application/services/ValueChainMatcher'
 import { InMemoryRecommendationRepository } from '@/recommendations/infrastructure/repositories/InMemoryRecommendationRepository'
-import type { GeminiPort } from '@/shared/domain/GeminiPort'
+import type { LlmPort } from '@/shared/domain/LlmPort'
 
-class FixedGemini implements GeminiPort {
+class FixedGemini implements LlmPort {
   constructor(private readonly response: unknown) {}
   async generateText() {
     return JSON.stringify(this.response)

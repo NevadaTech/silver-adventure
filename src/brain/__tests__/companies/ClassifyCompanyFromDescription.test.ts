@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { CiiuActivity } from '@/ciiu-taxonomy/domain/entities/CiiuActivity'
 import { InMemoryCiiuTaxonomyRepository } from '@/ciiu-taxonomy/infrastructure/repositories/InMemoryCiiuTaxonomyRepository'
 import { ClassifyCompanyFromDescription } from '@/companies/application/use-cases/ClassifyCompanyFromDescription'
-import type { GeminiPort } from '@/shared/domain/GeminiPort'
+import type { LlmPort } from '@/shared/domain/LlmPort'
 
-class ScriptedGemini implements GeminiPort {
+class ScriptedGemini implements LlmPort {
   public readonly prompts: string[] = []
   private call = 0
 

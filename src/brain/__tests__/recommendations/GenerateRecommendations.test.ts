@@ -16,7 +16,7 @@ import { ValueChainMatcher } from '@/recommendations/application/services/ValueC
 import { GenerateRecommendations } from '@/recommendations/application/use-cases/GenerateRecommendations'
 import { InMemoryAiMatchCacheRepository } from '@/recommendations/infrastructure/repositories/InMemoryAiMatchCacheRepository'
 import { InMemoryRecommendationRepository } from '@/recommendations/infrastructure/repositories/InMemoryRecommendationRepository'
-import { StubGeminiAdapter } from '@/shared/infrastructure/gemini/StubGeminiAdapter'
+import { StubLlmAdapter } from '@/shared/infrastructure/llm/StubLlmAdapter'
 
 const company = (overrides: Partial<CreateCompanyInput> = {}): Company =>
   Company.create({
@@ -65,7 +65,7 @@ function makeSetup({
   const recRepo = new InMemoryRecommendationRepository()
   const cache = new InMemoryAiMatchCacheRepository()
   const ciiuRepo = makeCiiuRepo()
-  const gemini = new StubGeminiAdapter(
+  const gemini = new StubLlmAdapter(
     '',
     matchResponse ?? {
       has_match: true,

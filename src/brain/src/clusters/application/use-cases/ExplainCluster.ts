@@ -12,8 +12,8 @@ import {
   COMPANY_REPOSITORY,
   type CompanyRepository,
 } from '@/companies/domain/repositories/CompanyRepository'
-import type { GeminiPort } from '@/shared/domain/GeminiPort'
-import { GEMINI_PORT } from '@/shared/shared.module'
+import type { LlmPort } from '@/shared/domain/LlmPort'
+import { LLM_PORT } from '@/shared/shared.module'
 import type { UseCase } from '@/shared/domain/UseCase'
 
 export interface ExplainClusterInput {
@@ -38,8 +38,8 @@ export class ExplainCluster implements UseCase<
     private readonly membershipRepo: ClusterMembershipRepository,
     @Inject(COMPANY_REPOSITORY)
     private readonly companyRepo: CompanyRepository,
-    @Inject(GEMINI_PORT)
-    private readonly gemini: GeminiPort,
+    @Inject(LLM_PORT)
+    private readonly gemini: LlmPort,
   ) {}
 
   async execute({

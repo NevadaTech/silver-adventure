@@ -15,7 +15,7 @@ import { ClustersController } from '@/clusters/infrastructure/http/clusters.cont
 import { CompanyClustersController } from '@/clusters/infrastructure/http/company-clusters.controller'
 import { Company } from '@/companies/domain/entities/Company'
 import { InMemoryCompanyRepository } from '@/companies/infrastructure/repositories/InMemoryCompanyRepository'
-import { StubGeminiAdapter } from '@/shared/infrastructure/gemini/StubGeminiAdapter'
+import { StubLlmAdapter } from '@/shared/infrastructure/llm/StubLlmAdapter'
 
 function makeCompany(id: string, ciiu = 'G4711'): Company {
   return Company.create({
@@ -69,7 +69,7 @@ describe('ClustersController', () => {
       clusterRepo,
       membershipRepo,
       companyRepo,
-      new StubGeminiAdapter('AI desc'),
+      new StubLlmAdapter('AI desc'),
     )
     controller = new ClustersController(generate, explain, clusterRepo)
   })

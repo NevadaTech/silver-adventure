@@ -1,6 +1,6 @@
-import type { GeminiPort } from '@/shared/domain/GeminiPort'
+import type { LlmPort } from '@/shared/domain/LlmPort'
 
-export class StubGeminiAdapter implements GeminiPort {
+export class StubLlmAdapter implements LlmPort {
   constructor(
     private readonly textResponse: string = 'stub response',
     private readonly structuredResponse: unknown = {},

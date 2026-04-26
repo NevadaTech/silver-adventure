@@ -46,6 +46,9 @@ import { SupabaseRecommendationRepository } from './infrastructure/repositories/
   exports: [
     RECOMMENDATION_REPOSITORY,
     AI_MATCH_CACHE_REPOSITORY,
+    PeerMatcher,
+    ValueChainMatcher,
+    AllianceMatcher,
     GenerateRecommendations,
     GetCompanyRecommendations,
     GetGroupedCompanyRecommendations,

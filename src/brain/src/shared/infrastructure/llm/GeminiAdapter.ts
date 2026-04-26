@@ -1,12 +1,17 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import type { GeminiPort } from '@/shared/domain/GeminiPort'
+import type { LlmPort } from '@/shared/domain/LlmPort'
 import { env } from '@/shared/infrastructure/env'
 
-export class GeminiAdapter implements GeminiPort {
+export class GeminiAdapter implements LlmPort {
   private readonly client: GoogleGenerativeAI
   private readonly modelName: string
 
   constructor() {
+    if (!env.GEMINI_API_KEY) {
+      throw new Error(
+        'GeminiAdapter requires GEMINI_API_KEY (set LLM_PROVIDER=gemini and the key in .env)',
+      )
+    }
     this.client = new GoogleGenerativeAI(env.GEMINI_API_KEY)
     this.modelName = env.GEMINI_CHAT_MODEL
   }

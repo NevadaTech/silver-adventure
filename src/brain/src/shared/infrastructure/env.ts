@@ -16,28 +16,60 @@ try {
  * Validación estricta con Zod. Se parsea UNA vez al levantar.
  * Si falta algo, el server explota inmediato con un mensaje claro.
  */
-export const envSchema = z.object({
-  PORT: z.coerce.number().int().positive().default(3001),
+export const envSchema = z
+  .object({
+    PORT: z.coerce.number().int().positive().default(3001),
 
-  SUPABASE_URL: z.string().url(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+    SUPABASE_URL: z.string().url(),
+    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
 
-  AGENT_CRON_SCHEDULE: z.string().min(1).default('*/60 * * * * *'),
-  AGENT_ENABLED: z.enum(['true', 'false']).default('true'),
-  AI_MATCH_INFERENCE_ENABLED: z.enum(['true', 'false']).default('true'),
+    AGENT_CRON_SCHEDULE: z.string().min(1).default('*/60 * * * * *'),
+    AGENT_ENABLED: z.enum(['true', 'false']).default('true'),
+    AI_MATCH_INFERENCE_ENABLED: z.enum(['true', 'false']).default('true'),
 
-  GEMINI_API_KEY: z.string().min(1),
-  GEMINI_EMBEDDING_MODEL: z.string().min(1).default('text-embedding-004'),
-  GEMINI_CHAT_MODEL: z.string().min(1).default('gemini-2.5-flash'),
+    LLM_PROVIDER: z.enum(['openrouter', 'gemini']).default('openrouter'),
 
-  GCP_PROJECT_ID: z.string().min(1).optional(),
-  GCP_LOCATION: z.string().min(1).default('us-central1'),
-  GOOGLE_APPLICATION_CREDENTIALS: z.string().optional(),
+    GEMINI_API_KEY: z.string().min(1).optional(),
+    GEMINI_EMBEDDING_MODEL: z.string().min(1).default('text-embedding-004'),
+    GEMINI_CHAT_MODEL: z.string().min(1).default('gemini-2.5-flash'),
 
-  BIGQUERY_DATASET: z.string().min(1).default('ruta_c'),
+    OPENROUTER_API_KEY: z.string().min(1).optional(),
+    OPENROUTER_CHAT_MODEL: z
+      .string()
+      .min(1)
+      .default('google/gemma-4-31b-it:free'),
+    OPENROUTER_BASE_URL: z
+      .string()
+      .url()
+      .default('https://openrouter.ai/api/v1'),
+    OPENROUTER_APP_URL: z.string().url().optional(),
+    OPENROUTER_APP_NAME: z.string().min(1).optional(),
 
-  DEBUG_ENABLED: z.enum(['true', 'false']).optional().default('false'),
-})
+    GCP_PROJECT_ID: z.string().min(1).optional(),
+    GCP_LOCATION: z.string().min(1).default('us-central1'),
+    GOOGLE_APPLICATION_CREDENTIALS: z.string().optional(),
+
+    BIGQUERY_DATASET: z.string().min(1).default('ruta_c'),
+
+    DEBUG_ENABLED: z.enum(['true', 'false']).optional().default('false'),
+  })
+  .superRefine((data, ctx) => {
+    if (data.LLM_PROVIDER === 'openrouter' && !data.OPENROUTER_API_KEY) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['OPENROUTER_API_KEY'],
+        message:
+          'OPENROUTER_API_KEY is required when LLM_PROVIDER="openrouter"',
+      })
+    }
+    if (data.LLM_PROVIDER === 'gemini' && !data.GEMINI_API_KEY) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['GEMINI_API_KEY'],
+        message: 'GEMINI_API_KEY is required when LLM_PROVIDER="gemini"',
+      })
+    }
+  })
 
 export type Env = z.infer<typeof envSchema>
 

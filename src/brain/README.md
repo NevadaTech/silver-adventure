@@ -247,7 +247,7 @@ Seis contextos, cada uno con su propia carpeta `domain / application / infrastru
 
 ```
 src/brain/src/
-├── shared/                # Ports y adapters cross-cutting (Logger, GeminiPort, SupabaseClient, env, CsvLoader, DataPaths)
+├── shared/                # Ports y adapters cross-cutting (Logger, LlmPort, SupabaseClient, env, CsvLoader, DataPaths)
 ├── ciiu-taxonomy/         # Taxonomía oficial DIAN CIIU rev 4 — base de la jerarquía sección/división/grupo
 ├── companies/             # Empresas (entity + repo + CompanySource port + CsvCompanySource)
 ├── clusters/              # Generación de clusters (predefinidos + heurísticos en cascada)
@@ -255,14 +255,14 @@ src/brain/src/
 └── agent/                 # ScanRun, AgentEvent, OpportunityDetector, RunIncrementalScan, AgentScheduler @Cron
 ```
 
-| Contexto          | Spec                                                                     | Highlight                                                                      |
-| ----------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
-| `shared`          | [`docs/specs/01-shared/`](../../docs/specs/01-shared/)                   | `GeminiPort`, `Logger` port (Console/Null), `SupabaseClient`, `env.ts` con Zod |
-| `ciiu-taxonomy`   | [`docs/specs/02-ciiu-taxonomy/`](../../docs/specs/02-ciiu-taxonomy/)     | `findByDivision/findByGrupo` para el clusterer                                 |
-| `companies`       | [`docs/specs/03-companies/`](../../docs/specs/03-companies/)             | `CompanySource` port (BQ-ready), `EtapaCalculator`                             |
-| `clusters`        | [`docs/specs/04-clusters/`](../../docs/specs/04-clusters/)               | Cascada 2 niveles, una empresa en N clusters                                   |
-| `recommendations` | [`docs/specs/05-recommendations/`](../../docs/specs/05-recommendations/) | 18 archivos, AI engine + 3 fallbacks + cache + dedupe + scoring                |
-| `agent`           | [`docs/specs/06-agent/`](../../docs/specs/06-agent/)                     | Cron 60s, snapshot diff, eventos `new_high_score_match`, etc.                  |
+| Contexto          | Spec                                                                     | Highlight                                                                                                  |
+| ----------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `shared`          | [`docs/specs/01-shared/`](../../docs/specs/01-shared/)                   | `LlmPort` (Gemini + OpenRouter adapters), `Logger` port (Console/Null), `SupabaseClient`, `env.ts` con Zod |
+| `ciiu-taxonomy`   | [`docs/specs/02-ciiu-taxonomy/`](../../docs/specs/02-ciiu-taxonomy/)     | `findByDivision/findByGrupo` para el clusterer                                                             |
+| `companies`       | [`docs/specs/03-companies/`](../../docs/specs/03-companies/)             | `CompanySource` port (BQ-ready), `EtapaCalculator`                                                         |
+| `clusters`        | [`docs/specs/04-clusters/`](../../docs/specs/04-clusters/)               | Cascada 2 niveles, una empresa en N clusters                                                               |
+| `recommendations` | [`docs/specs/05-recommendations/`](../../docs/specs/05-recommendations/) | 18 archivos, AI engine + 3 fallbacks + cache + dedupe + scoring                                            |
+| `agent`           | [`docs/specs/06-agent/`](../../docs/specs/06-agent/)                     | Cron 60s, snapshot diff, eventos `new_high_score_match`, etc.                                              |
 
 ---
 
@@ -344,16 +344,16 @@ OpenAPI auto-generado vía `@nestjs/swagger`. Disponible en `http://localhost:30
 
 ## 8. Stack y dependencias clave
 
-| Bloque     | Pieza                                                        | Qué hace                                             |
-| ---------- | ------------------------------------------------------------ | ---------------------------------------------------- |
-| Framework  | `@nestjs/common`, `@nestjs/core`, `@nestjs/platform-express` | DI, controllers, lifecycle                           |
-| Cron       | `@nestjs/schedule`                                           | `@Cron(env.AGENT_CRON_SCHEDULE)` para el agente      |
-| OpenAPI    | `@nestjs/swagger`                                            | Docs auto-generadas en `/docs`                       |
-| IA         | `@google/generative-ai`                                      | Cliente oficial de Gemini (chat + structured output) |
-| BD         | `@supabase/postgrest-js`                                     | Cliente liviano (queries directas, sin auth)         |
-| CSV        | `papaparse`                                                  | Parsing del dataset Ruta C                           |
-| Validación | `zod`, `class-validator`, `class-transformer`                | Schemas de env, DTOs, output de Gemini               |
-| Tests      | `vitest`, `@vitest/coverage-v8`, `supertest`                 | Unit + integration. Coverage objetivo > 80%          |
+| Bloque     | Pieza                                                        | Qué hace                                                     |
+| ---------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Framework  | `@nestjs/common`, `@nestjs/core`, `@nestjs/platform-express` | DI, controllers, lifecycle                                   |
+| Cron       | `@nestjs/schedule`                                           | `@Cron(env.AGENT_CRON_SCHEDULE)` para el agente              |
+| OpenAPI    | `@nestjs/swagger`                                            | Docs auto-generadas en `/docs`                               |
+| IA         | `@google/generative-ai` + `fetch` (OpenRouter)               | `LlmPort` con dos adapters seleccionables por `LLM_PROVIDER` |
+| BD         | `@supabase/postgrest-js`                                     | Cliente liviano (queries directas, sin auth)                 |
+| CSV        | `papaparse`                                                  | Parsing del dataset Ruta C                                   |
+| Validación | `zod`, `class-validator`, `class-transformer`                | Schemas de env, DTOs, output de Gemini                       |
+| Tests      | `vitest`, `@vitest/coverage-v8`, `supertest`                 | Unit + integration. Coverage objetivo > 80%                  |
 
 ---
 
@@ -445,7 +445,7 @@ Los CSVs viven en [`docs/hackathon/DATA/`](../../docs/hackathon/DATA/) y se acce
 - **Use case tests:** inyectar `InMemory*Repository`. Sin Supabase ni Gemini.
 - **Adapter tests:** mockear el cliente externo (`SupabaseClient`, `GeminiAdapter`), validar mapeo.
 - **Controller tests:** `supertest` contra módulo aislado.
-- **Stub para Gemini:** `StubGeminiAdapter` para tests del motor sin tocar la AI real.
+- **Stub para LLM:** `StubLlmAdapter` para tests del motor sin tocar la AI real (sirve para Gemini y OpenRouter).
 
 Estructura de tests refleja la de `src/`:
 

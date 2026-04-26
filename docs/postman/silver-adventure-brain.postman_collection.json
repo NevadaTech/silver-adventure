@@ -34,6 +34,12 @@
       "value": "",
       "type": "string",
       "description": "UUID de un agent_event"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string",
+      "description": "UUID de un usuario (auth.users.id de Supabase). Se usa en POST /companies/onboard para asociar la company nueva al user."
     }
   ],
   "item": [
@@ -135,6 +141,48 @@
               ]
             },
             "description": "Lista las recomendaciones generadas para esta empresa, ordenadas por score desc.\n\nPara entender cómo se calcula el score ver `docs/scoring.md`."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /companies/:id/recommendations/grouped — agrupadas por relationType",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/companies/{{companyId}}/recommendations/grouped",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "companies",
+                "{{companyId}}",
+                "recommendations",
+                "grouped"
+              ]
+            },
+            "description": "Devuelve las recomendaciones de la empresa **agrupadas por tipo de relación**, con tope de 10 por tipo.\n\n**Response:**\n```json\n{\n  \"referente\":  [RecommendationView, ...],\n  \"cliente\":    [...],\n  \"proveedor\":  [...],\n  \"aliado\":     [...],\n  \"partial\":    boolean\n}\n```\n\n`partial: true` indica que algún tipo tiene menos de 3 recomendaciones (útil para que la UI muestre estado \"aún explorando...\").\n\nEs el endpoint que consume el front en `/api/me/recommendations/grouped` (BFF), que después mapea con `mapBrainGroupedToRecomendaciones` a la shape de UI."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /companies/onboard — onboarding desde signup (con IA)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"description\": \"Vendemos café de origen tostado artesanalmente. Compramos directo a productores del Magdalena y exportamos a Europa.\",\n  \"businessName\": \"Café Sierra Nevada SAS\",\n  \"municipio\": \"SANTA MARTA\",\n  \"yearsOfOperation\": \"3_5\",\n  \"hasChamber\": true,\n  \"nit\": \"900123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/companies/onboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["companies", "onboard"]
+            },
+            "description": "Onboarda una empresa desde el formulario de signup del front. Pipeline:\n\n1. **`ClassifyCompanyFromDescription`** — el LLM (OpenRouter o Gemini según `LLM_PROVIDER`) infiere el código CIIU a partir de la descripción del negocio en lenguaje natural. Devuelve `{ ciiu, ciiuTitulo, reasoning }`.\n2. **Persistencia** — crea la `Company` con un `id` derivado del `nit` (o `signup-{userId}` si no hay nit) y la asocia al `userId` en `users.company_id`.\n3. **`GenerateClusters`** parcial — calcula clusters predefinidos + heurísticos a los que pertenece la empresa nueva y registra las memberships.\n4. **`GenerateRecommendations`** parcial — produce recomendaciones para esta company (siempre con AI si está disponible).\n\n**Body:**\n```json\n{\n  \"userId\":           \"<uuid de auth.users>\",         // requerido\n  \"description\":      \"<texto libre del negocio>\",    // requerido\n  \"businessName\":     \"<razón social o nombre>\",       // requerido\n  \"municipio\":        \"<municipio>\",                   // requerido\n  \"yearsOfOperation\": \"menos_1|1_3|3_5|5_10|mas_10\",  // opcional\n  \"hasChamber\":       true,                            // opcional\n  \"nit\":              \"<NIT sin DV>\"                  // opcional\n}\n```\n\n**Response:** `{ company, classification, clusters[], recommendations: { proveedor, cliente, aliado, referente } }`.\n\n**400** si Zod rechaza el body. Si el LLM da un CIIU inválido, el use case reintenta hasta 3 veces antes de devolver fallback."
           },
           "response": []
         }

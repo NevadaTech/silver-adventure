@@ -326,7 +326,8 @@
     "registerLink": "Regístrate gratis",
     "errors": {
       "invalidEmail": "Email inválido. Revisa el formato.",
-      "minLength": "La contraseña debe tener al menos 6 caracteres."
+      "minLength": "La contraseña debe tener al menos 6 caracteres.",
+      "invalidCredentials": "Email o contraseña incorrectos."
     }
   },
   "App": {
@@ -392,6 +393,16 @@
       },
       "footerTemplate": "Mostrando {visible} de {total}",
       "cargarMas": "cargar más",
+      "loading": "Buscando recomendaciones...",
+      "empty": {
+        "title": "Aún no tenemos recomendaciones para ti",
+        "description": "Vuelve más tarde — el conector está procesando tu cluster.",
+        "noCompanyDescription": "Estamos clasificando tu negocio. En unos minutos verás aquí tus primeros aliados y clientes potenciales."
+      },
+      "errorState": {
+        "title": "No pudimos cargar tus recomendaciones",
+        "description": "Reintenta en unos segundos. Si el problema persiste, escríbenos por WhatsApp."
+      },
       "Detail": {
         "close": "Cerrar detalle",
         "match": "Match",

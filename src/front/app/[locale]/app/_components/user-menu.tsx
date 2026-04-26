@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { ChevronDown, LogOut, User } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useSWRConfig } from 'swr'
 
 import { useRouter } from '@/i18n/navigation'
+import { createSupabaseBrowserClient } from '@/core/shared/infrastructure/supabase/client'
 
 import type { CurrentUser } from '../_data/types'
 
@@ -15,8 +17,22 @@ type Props = {
 export function UserMenu({ currentUser }: Props) {
   const t = useTranslations('App.Header.userMenu')
   const router = useRouter()
+  const { mutate } = useSWRConfig()
   const [open, setOpen] = useState(false)
+  const [isSigningOut, startSignOut] = useTransition()
   const containerRef = useRef<HTMLDivElement>(null)
+
+  function handleSignOut() {
+    setOpen(false)
+    startSignOut(async () => {
+      const supabase = createSupabaseBrowserClient()
+      await supabase.auth.signOut()
+      // Limpiamos la cache de SWR para que /api/me y /api/me/recommendations/*
+      // no devuelvan datos del usuario anterior tras login con otra cuenta.
+      await mutate(() => true, undefined, { revalidate: false })
+      router.push('/')
+    })
+  }
 
   useEffect(() => {
     if (!open) return
@@ -75,11 +91,9 @@ export function UserMenu({ currentUser }: Props) {
           <button
             type="button"
             role="menuitem"
-            onClick={() => {
-              setOpen(false)
-              router.push('/')
-            }}
-            className="text-error hover:bg-error/5 flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium transition-colors"
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+            className="text-error hover:bg-error/5 flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60"
           >
             <LogOut className="h-4 w-4" />
             {t('logout')}

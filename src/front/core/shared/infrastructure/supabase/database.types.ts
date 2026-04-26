@@ -433,6 +433,7 @@ export type Database = {
       users: {
         Row: {
           barrio: string | null
+          company_id: string | null
           created_at: string
           email: string | null
           has_chamber: boolean | null
@@ -446,6 +447,7 @@ export type Database = {
         }
         Insert: {
           barrio?: string | null
+          company_id?: string | null
           created_at?: string
           email?: string | null
           has_chamber?: boolean | null
@@ -459,6 +461,7 @@ export type Database = {
         }
         Update: {
           barrio?: string | null
+          company_id?: string | null
           created_at?: string
           email?: string | null
           has_chamber?: boolean | null
@@ -470,7 +473,15 @@ export type Database = {
           whatsapp?: string | null
           years_of_operation?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'users_company_id_fkey'
+            columns: ['company_id']
+            isOneToOne: false
+            referencedRelation: 'companies'
+            referencedColumns: ['id']
+          },
+        ]
       }
     }
     Views: {

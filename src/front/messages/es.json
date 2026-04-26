@@ -105,6 +105,8 @@
       "pageSubtitle": "Tres pasos cortos. La Cámara de Comercio te contacta por WhatsApp en menos de 24 horas.",
       "back": "Atrás",
       "next": "Continuar",
+      "create": "Crear mi perfil",
+      "creating": "Creando...",
       "Steps": {
         "business": "Tu negocio",
         "contact": "Ubicación",
@@ -131,7 +133,7 @@
         "requirementNumber": "Número (0-9)"
       },
       "Business": {
-        "eyebrow": "Paso 1 de 3",
+        "eyebrow": "Paso 1 de 4",
         "title": "Tu negocio",
         "fields": {
           "nombre": {
@@ -189,7 +191,7 @@
         }
       },
       "Contact": {
-        "eyebrow": "Paso 2 de 3",
+        "eyebrow": "Paso 2 de 4",
         "title": "¿Dónde te encontramos?",
         "subtitle": "Esto nos ayuda a conectarte con clientes y aliados cerca de ti.",
         "fields": {
@@ -323,7 +325,7 @@
         }
       },
       "Confirm": {
-        "eyebrow": "Paso 3 de 3",
+        "eyebrow": "Paso 3 de 4",
         "title": "Revisa antes de enviar",
         "subtitle": "Verifica que todo esté correcto. Puedes editar cualquier sección.",
         "edit": "Editar",

@@ -2,6 +2,8 @@
 
 > Aplicación Next.js 16 que cumple el componente **"Entrega"** del sistema para el empresario formal. Es la cara pública del producto: landing, registro guiado, login y la app autenticada con cinco pantallas que consumen las recomendaciones, clusters y eventos del [brain](../brain/README.md).
 >
+> **Deploy en vivo:** https://silver-adventure-ecru.vercel.app/
+>
 > Para el contexto narrativo del producto completo ver el [README raíz](../../README.md). Para reglas y convenciones del monorepo ver [`AGENTS.md`](../../AGENTS.md).
 
 ---
@@ -145,7 +147,7 @@ Cuando el front necesita datos que produce el brain (recomendaciones, clusters, 
 Client Component
   └── SWR hook
         └── GET /api/recomendaciones      (Route Handler del front)
-              └── httpClient.get(`${BRAIN_URL}/api/recommendations/by-company/${id}`)
+              └── httpClient.get(`${BRAIN_URL}/api/companies/${id}/recommendations`)
                     └── brain (NestJS)
                           ├── consulta Supabase
                           ├── Gemini cache hit / lazy explain

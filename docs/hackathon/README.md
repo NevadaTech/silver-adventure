@@ -8,17 +8,19 @@
 
 ## Equipo
 
-**Nombre del equipo:** `escribe aquí`
+**Nombre del equipo:** `Nevada tech`
 
-| Nombre completo | Rol |
-| --------------- | --- |
-|                 |     |
-|                 |     |
-|                 |     |
+| Nombre completo | Rol           |
+| --------------- | ------------- |
+| Daniel Ramirez  | Diseñadora    |
+| Maria Romero    | Ingeniera Sis |
+| Cesar Ortiz     | Fullstack dev |
+| Marlon Ramirez  | Frontend dev  |
+| Camilo Santana  | Backend dev   |
 
 **Cómo idearon la solución:**
 
-> _(Escribe aquí un párrafo contando cómo llegaron a la idea: qué problema identificaron primero, qué enfoque eligieron y por qué.)_
+Llegamos a la idea siguiendo un proceso deliberadamente ordenado. Antes que nada, nos enfocamos en analizar el problema sin caer en la tentación de saltar a soluciones: queríamos entender realmente la causa raíz y por qué estaba ocurriendo. Una vez que tuvimos claridad sobre el "qué" y el "porqué", pasamos a explorar posibles soluciones desde una perspectiva no técnica, identificando primero quiénes eran los principales afectados y cuál sería nuestra propuesta de valor para ellos. Con esos cimientos definidos, recién entonces evaluamos el stack tecnológico, priorizando herramientas que aportaran agilidad al desarrollo y armonía en el flujo de trabajo del equipo. A partir de ahí, entramos en la fase de planificación: dividimos el alcance en tareas, establecimos checkpoints periódicos para validar avances y mantener la calidad, y finalmente ejecutamos el despliegue y la entrega del producto.
 
 ---
 

@@ -3,7 +3,8 @@
 > **Spec-driven development** del `brain` (NestJS) para el reto Hackathon Samatech "Ruta C Conecta".
 >
 > Esta carpeta contiene la **definición funcional y técnica** organizada por bounded context.
-> El **plan de implementación detallado** vive en `docs/2026-04-25-brain-clustering-engine-implementation.md` (ese plan es el "design" + "tasks" en formato accionable).
+>
+> **Nota sobre rutas REST.** Algunos requirements / scenarios de la era pre-build mencionan rutas que durante la implementación se renombraron por cohesión (p. ej. `GET /api/recommendations/by-company/:id` quedó como `GET /api/companies/:id/recommendations`). La fuente de verdad de los endpoints reales son los controllers en `src/brain/src/**/infrastructure/http/` y la sección 4.5 de [`docs/documentacion.md`](../documentacion.md). La colección [Postman](../postman/) está alineada con los endpoints actuales.
 
 ---
 

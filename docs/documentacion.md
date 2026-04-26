@@ -1,196 +1,378 @@
 # Documentación técnica · Ruta C Conecta
 
-> Documento técnico requerido por el reto del Hackathon Samatech.
-> Este archivo se completa progresivamente a medida que el sistema se construye.
-> La planeación detallada vive en [`docs/planeacion/`](planeacion/).
+> Documento técnico requerido por el reto del Hackathon Samatech (sección "Qué debe contener la documentación técnica" del [`README` del reto](hackathon/README.md)).
+>
+> Este archivo describe la **solución entregada**. Para la narrativa de producto y el "por qué" del enfoque ver el [README raíz](../README.md). Para el detalle por servicio ver [`src/front/README.md`](../src/front/README.md) y [`src/brain/README.md`](../src/brain/README.md). Para los specs de cada bounded context ver [`docs/specs/`](specs/).
 
 ---
 
 ## 1. Cómo funciona la solución
 
-> _Por completar al cierre del hackathon — descripción del flujo end-to-end con datos reales._
+Ruta C Conecta es un sistema en tres capas: **captura → inteligencia → entrega**. Implementado como un monorepo Bun con dos servicios HTTP independientes que se comunican vía REST.
 
-### Flujo del empresario formal (web)
+```
+┌─────────────────────────────────────────────────────────────┐
+│  CAPTURA          │   INTELIGENCIA       │   ENTREGA        │
+├───────────────────┼──────────────────────┼──────────────────┤
+│  src/front (Next) │   src/brain (Nest)   │  src/front (Next)│
+│  Landing pública  │   Clusters           │  App autenticada │
+│  Wizard registro  │   Recomendaciones    │  5 pantallas     │
+│  Onboarding API   │   Agente Conector    │  SWR + polling   │
+└───────────────────┴──────────────────────┴──────────────────┘
+                          ▲
+                          │ ports & adapters
+                          ▼
+                 ┌───────────────────┐
+                 │  Supabase (PG)    │  ← persistencia
+                 │  Gemini 2.5 Flash │  ← inferencia + texto
+                 │  CSV (BQ-ready)   │  ← fuente de empresas
+                 └───────────────────┘
+```
 
-1. El empresario inicia sesión en la web de Ruta C Conecta.
-2. La home le muestra **3 a 5 recomendaciones priorizadas** generadas por el motor: cada una con tipo de relación (`cliente potencial`, `proveedor`, `aliado estratégico`, `referente`), score y razón en lenguaje natural.
-3. Puede filtrar por tipo de relación y abrir el detalle de cada recomendación.
-4. Acciones disponibles por recomendación: **marcar conexión**, **guardar**, **simular contacto**.
-5. La sección "Mi cluster" muestra empresas afines en mapa o grafo.
+### 1.1. Flujo end-to-end de un scan del agente
 
-### Flujo del comerciante informal (WhatsApp)
+El componente agéntico exigido por el reto vive en `src/brain/src/agent/`. Su `AgentScheduler` corre un cron (default cada 60s; configurable vía `AGENT_CRON_SCHEDULE`) y ejecuta `RunIncrementalScan`:
 
-1. El comerciante recibe un mensaje del bot oficial con una oportunidad concreta (cliente cercano, proveedor disponible, programa de la Cámara).
-2. El mensaje incluye contexto verificable (distancia, sector, número de pares conectados).
-3. El comerciante responde con uno de los botones interactivos: **me interesa**, **ahora no**, **cuéntame más**.
-4. Si responde "me interesa", el sistema notifica al otro extremo y registra la conexión.
+1. **Crea `ScanRun`** con `trigger: 'cron'` y lo persiste en la tabla `scan_runs`.
+2. **Calcula la ventana incremental** `since = lastCompletedRun?.completedAt ?? new Date(0)`.
+3. **Sincroniza empresas** desde `CompanySource` (port). Hoy `CsvCompanySource` lee `docs/hackathon/DATA/REGISTRADOS_SII.csv`. El día que lleguen las credenciales BigQuery del reto se sustituye por `BigQueryCompanySource` cambiando una sola línea en `companies.module.ts`.
+4. **Snapshot del estado anterior** — claves de recomendaciones y memberships de clusters (para el diff posterior).
+5. **Regenera clusters** vía `GenerateClusters.execute()`:
+   - **Capa A — Predefinidos**: 8 clusters estratégicos de la Cámara (BANANO, MANGO, YUCA, CACAO, PALMA, CAFÉ, LOGÍSTICA, TURISMO) asignados por mapping `cluster_ciiu_mapping`.
+   - **Capa B — Heurísticos en cascada**:
+     - Pase 1: `(ciiu_division, municipio)` con umbral ≥ 5 empresas.
+     - Pase 2: `(ciiu_grupo, municipio)` con umbral ≥ 10 empresas.
+   - Una empresa puede estar en N clusters al mismo tiempo (relación N:M en `cluster_members`).
+6. **Regenera recomendaciones** vía `GenerateRecommendations.execute()` — estrategia AI-first con tres fallbacks (ver §1.2).
+7. **Detecta oportunidades** comparando snapshot previo vs. nuevo:
+   - `new_high_score_match` — recomendación con `score ≥ 0.8` que no existía antes.
+   - `new_value_chain_partner` — recomendación de tipo `cliente` o `proveedor` nueva.
+   - `new_cluster_member` — empresa que entró a un cluster en el que no estaba.
+8. **Persiste eventos** en `agent_events` (consumibles por el front vía `GET /api/agent/events`).
+9. **Marca `ScanRun.complete(stats)`** con totales.
 
-### Flujo del agente Conector
+Concurrencia: si un scan está corriendo, el siguiente tick lo skippea. `AGENT_ENABLED='false'` apaga el cron sin tocar código. Trigger manual vía `POST /api/agent/scan` para demos.
 
-- **5:00 AM** (cron nocturno): recalcula clusters, genera recomendaciones nuevas, envía notificaciones.
-- **Por evento**: cuando se registra un comerciante nuevo o cambia de etapa, dispara recomendaciones inmediatas.
-- **Por priorización**: marca empresarios que necesitan intervención humana y los envía al panel admin.
+### 1.2. Cómo se generan las recomendaciones — AI primero
 
-### Flujo del panel administrativo
+Cada recomendación tiene cuatro campos no negociables:
 
-1. La coordinación de la Cámara entra al panel.
-2. Ve métricas del día: conexiones generadas, clusters más activos, territorios subatendidos, empresarios priorizados por el agente.
-3. Puede explorar cualquier cluster, ver la trazabilidad de cada recomendación y exportar reportes.
+| Campo          | Tipo                                                          | Notas                                            |
+| -------------- | ------------------------------------------------------------- | ------------------------------------------------ |
+| `relationType` | `'referente' \| 'cliente' \| 'proveedor' \| 'aliado'`         | Cerrado en compile-time                          |
+| `score`        | número en `[0, 1]`                                            | Validado en el factory `Recommendation.create()` |
+| `reasons[]`    | JSONB estructurado `{ feature, weight, value?, confidence? }` | No texto libre                                   |
+| `source`       | `'ai-inferred' \| 'cosine' \| 'rule' \| 'ecosystem'`          | Quién la generó                                  |
+
+**Estrategia en cascada (en orden):**
+
+1. **AI (PRINCIPAL)** — `AiMatchEngine` con Gemini. Para cada par `(ciiu_origen, ciiu_destino)` Gemini decide si hay relación de negocio, qué tipo y con qué confianza. Resultado cacheado en `ai_match_cache`.
+2. **Fallback 1 — `PeerMatcher`** (cosine similarity sobre feature vectors) → recs de tipo `referente` con `cosine ≥ 0.7`.
+3. **Fallback 2 — `ValueChainMatcher`** (24 reglas hardcoded de cadena de valor de la Cámara) → recs de tipo `cliente` o `proveedor`.
+4. **Fallback 3 — `AllianceMatcher`** (6 ecosistemas predefinidos) → recs de tipo `aliado`.
+
+**Fórmula del scoring (matcher AI):**
+
+```
+score = ai_confidence × (0.6 + 0.4 × proximity)
+```
+
+- `ai_confidence ∈ [0, 1]` — lo que devuelve Gemini para el par CIIU.
+- `proximity ∈ [0, 1]` — calculado por `ProximityCalculator`:
+  - 40% mismo municipio
+  - 30% misma etapa de crecimiento (con bonus parcial para etapas adyacentes)
+  - 30% similitud log-scale de tamaño (`personal × ingreso`)
+
+El 60% del score es semántico (lo que la AI dice del par CIIU). El 40% modula por proximidad. Garantía: dos targets nunca empatan al azar.
+
+**Dedupe.** Si AI y un fallback (o dos fallbacks) generan la misma terna `(source, target, type)`, gana la rec con mayor score. Las `reasons` son las del matcher ganador, no se mergean.
+
+> Detalle completo del scoring (cada peso, cada threshold, ejemplos numéricos, divergencias con el spec) en [`docs/scoring.md`](scoring.md).
+
+### 1.3. Lazy enrichment — explicaciones en lenguaje natural
+
+Cuando un usuario hace click en una recomendación en el front, el use case `ExplainRecommendation` ejecuta:
+
+1. Si `recommendation.explanation != null` → devolver el cached.
+2. Sino → invocar Gemini con contexto (`source`, `target`, `relationType`, `reasons`) → texto natural.
+3. Persistir en `recommendations.explanation` y `explanation_cached_at`.
+4. Devolver el texto.
+
+**Lazy** porque generar 10k explicaciones por scan sería caro. **Cached** porque una vez generada, no cambia mientras la rec exista.
+
+### 1.4. Flujo del empresario formal (web)
+
+1. El empresario inicia sesión en la web (`src/front`, Next.js 16).
+2. La home (`/app/inicio`) muestra KPIs del día, hero del agente Conector, mini-cluster, timeline de actividad y quick actions.
+3. `/app/recomendaciones` lista recomendaciones priorizadas con tabla, filtros por tipo de relación, drawer de detalle y pills de tipo/estado.
+4. `/app/mi-cluster` muestra el cluster del usuario, miembros (cards), traits y cadenas de valor.
+5. `/app/mi-negocio` permite ver el perfil de la empresa con tabs (general, productos, programas, visibilidad).
+6. `/app/conexiones` lista conexiones realizadas/aceptadas con stats y filtros por estado.
+
+Las pantallas consumen al brain a través de Route Handlers locales del front (`src/front/app/api/...`) que actúan de proxy/composition root y nunca exponen la URL del brain al cliente.
+
+### 1.5. Flujo del registro asistido / onboarding
+
+`POST /api/companies/onboard` (en el brain) recibe un payload mínimo, lo valida, deriva los campos faltantes (CIIU sanitizado, división, grupo, sección, etapa de crecimiento) y persiste la empresa. Esto habilita que el front tenga una pantalla de wizard guiado sin que el cliente arme el payload completo.
 
 ---
 
 ## 2. Stack tecnológico
 
-> _Por confirmar al cierre del Día 2 — la decisión motor Python vs motor Node se documenta en [`docs/planeacion/04-arquitectura.md`](planeacion/04-arquitectura.md)._
+### 2.1. Estructura del monorepo
 
-### Frontend
+Bun workspaces con dos servicios independientes:
 
-- **Next.js 16** (App Router, React Compiler activado)
-- **TypeScript 6** strict mode
-- **Tailwind CSS 4** + design system propio
-- **next-intl** para i18n
-- **SWR** para data fetching client-side
-- **Leaflet.js** o **D3.js** para visualización de clusters
-- **Bun** como runtime de desarrollo
+```
+silver-adventure/
+├── src/
+│   ├── front/      # Web Next.js 16 (App Router) — "captura" + "entrega"
+│   └── brain/      # Servicio NestJS — "inteligencia"
+├── docs/           # Documentación funcional, planeación y specs
+├── supabase/       # Schema y migraciones de la base
+└── .env            # Single source of truth (symlinks por workspace)
+```
 
-### Backend / API
+### 2.2. Stack global
 
-- **NestJS** (TypeScript) en [`src/brain/`](../src/brain/) como BFF y orquestador
-- **Supabase / Postgres** para persistencia de clusters, recomendaciones, conexiones y eventos
-- **Zod** para validación de contratos
+| Capa       | Tecnología                                                                           |
+| ---------- | ------------------------------------------------------------------------------------ |
+| Runtime    | **Bun** 1.x para dev y scripts; Node 24 LTS para prod                                |
+| Lenguaje   | **TypeScript 6** strict mode en ambos workspaces                                     |
+| Front      | **Next.js 16.2** (App Router, React 19 + React Compiler), Tailwind 4, next-intl, SWR |
+| Brain      | **NestJS 11**, `@nestjs/schedule` (cron), `@nestjs/swagger` (OpenAPI), Zod           |
+| Datos      | **Supabase / Postgres** (cloud)                                                      |
+| IA         | **Google Gemini 2.5 Flash** (chat + structured output) y `text-embedding-004`        |
+| Validación | **Zod 4** en front, brain y env vars (fail-fast en startup)                          |
+| Tests      | **Vitest 4** en ambos workspaces (RED → GREEN → REFACTOR estricto)                   |
+| Calidad    | ESLint 10, Prettier 3, Husky + lint-staged + commitlint, conventional commits        |
 
-### Motor inteligente
+### 2.3. Front (`src/front`)
 
-- **Python 3.11** + **FastAPI** _(opción A — recomendada por el reto)_
-  - **scikit-learn** para K-means, DBSCAN, clustering jerárquico, cosine similarity
-  - **pandas / numpy** para feature engineering
-  - **sentence-transformers** para embeddings semánticos locales
-  - **NetworkX** para grafos de relaciones
-- **NestJS** reusando [`src/brain/`](../src/brain/) _(opción B — un solo lenguaje)_
-  - **@xenova/transformers** o llamadas directas a la API de embeddings de Vertex AI
-  - Implementación propia de cosine similarity y K-means
-- La decisión final se documenta en [`docs/planeacion/04-arquitectura.md`](planeacion/04-arquitectura.md).
+| Bloque        | Pieza                                           |
+| ------------- | ----------------------------------------------- |
+| Framework     | `next` 16.2.4 (App Router + React Compiler)     |
+| UI            | `react` 19.2, `tailwindcss` 4, `lucide-react`   |
+| Animación     | `motion`                                        |
+| Data fetching | `swr` + `axios` (singleton con interceptors)    |
+| i18n          | `next-intl` 4.x (locales `es` default, `en`)    |
+| Theme         | `next-themes` (light/dark/system)               |
+| Supabase      | `@supabase/ssr`, `@supabase/supabase-js`        |
+| Validación    | `zod` 4 (env + schemas del wizard)              |
+| Tests         | `vitest` 4 + `@testing-library/react` + `jsdom` |
 
-### Inteligencia artificial
+### 2.4. Brain (`src/brain`)
 
-- **Google Vertex AI** — plataforma de modelos
-- **Gemini 2.x Flash / Pro** — clasificación del tipo de relación y generación de explicaciones en lenguaje natural
-- **text-embedding-gecko** (o equivalente local con `sentence-transformers`) — vectorización de perfiles textuales
-
-### Canal WhatsApp
-
-- **WhatsApp Business Cloud API** (Meta) para mensajería con comerciantes informales
-- Plantillas de mensaje aprobadas para notificaciones outbound
-- Webhooks de respuesta procesados por [`src/brain/`](../src/brain/)
-
-### Infraestructura
-
-- **Google Cloud Run** para desplegar el motor inteligente como servicio sin servidor
-- **Google Cloud Scheduler** para el cron nocturno del agente Conector
-- **Google Cloud Pub/Sub** para triggers por evento (registro de comerciante nuevo, cambio de etapa)
-- **Vercel** para el frontend Next.js
-
-### Calidad y procesos
-
-- **Vitest 4** + **React Testing Library** para tests
-- **ESLint 10** + **Prettier 3** para linting y formato
-- **Husky** + **lint-staged** + **commitlint** para hooks de Git
+| Bloque     | Pieza                                                        |
+| ---------- | ------------------------------------------------------------ |
+| Framework  | `@nestjs/common`, `@nestjs/core`, `@nestjs/platform-express` |
+| Cron       | `@nestjs/schedule` para el `AgentScheduler`                  |
+| OpenAPI    | `@nestjs/swagger` (docs en `/docs`)                          |
+| IA         | `@google/generative-ai` + adapter alternativo OpenRouter     |
+| BD         | `@supabase/postgrest-js` (cliente liviano server-only)       |
+| CSV        | `papaparse` (parsing del dataset Ruta C)                     |
+| Validación | `zod`, `class-validator`, `class-transformer`                |
+| Tests      | `vitest`, `@vitest/coverage-v8`, `supertest` (>80% coverage) |
 
 ---
 
 ## 3. Herramientas de terceros
 
-| Herramienta                 | Para qué se usa                                                     | Estado      |
-| --------------------------- | ------------------------------------------------------------------- | ----------- |
-| **Google BigQuery**         | Fuente principal de datos del dataset Ruta C provisto por la Cámara | Por definir |
-| **Vertex AI**               | Plataforma de IA — modelos administrados                            | Por definir |
-| **Gemini Flash / Pro**      | Clasificación de tipo de relación y generación de explicaciones     | Por definir |
-| **text-embedding-gecko**    | Embeddings semánticos de perfiles de empresa                        | Por definir |
-| **WhatsApp Business Cloud** | Canal de entrega para comerciantes informales                       | Por definir |
-| **Google Cloud Run**        | Hosting serverless del motor inteligente                            | Por definir |
-| **Google Cloud Scheduler**  | Disparo del agente Conector cada noche                              | Por definir |
-| **Google Cloud Pub/Sub**    | Triggers por evento dentro del agente Conector                      | Por definir |
-| **Supabase**                | Postgres administrado + auth para web del formal                    | Por definir |
-| **Vercel**                  | Hosting del frontend Next.js                                        | Por definir |
-| **Looker Studio**           | Dashboard inicial de exploración de datos (entregado por la Cámara) | Insumo      |
+| Herramienta                 | Para qué se usa                                                                               | Estado en el MVP                                                              |
+| --------------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| **Supabase / Postgres**     | Persistencia de empresas, clusters, recomendaciones, eventos del agente, cache estructural AI | Integrado y operativo                                                         |
+| **Google Gemini 2.5 Flash** | Matcher principal (par CIIU → relación + confianza) y generación de explicaciones lazy        | Integrado y operativo                                                         |
+| **`text-embedding-004`**    | Modelo de embeddings de Gemini (uso futuro para enriquecer perfiles)                          | Configurado, no usado en runtime aún                                          |
+| **OpenRouter**              | Adapter alternativo del `LlmPort` (hot-swap de modelo sin tocar código de dominio)            | Adapter implementado, switch vía `LLM_PROVIDER`                               |
+| **Google BigQuery**         | Fuente principal de empresas — el reto promete credenciales en sobre cerrado al inicio        | **BigQuery-ready** vía port `CompanySource`. Hoy lee CSV; switch en una línea |
+| **Vercel**                  | Hosting del front Next.js                                                                     | Proyecto linkeado                                                             |
+| **Looker Studio**           | Dashboard de exploración entregado por la Cámara como insumo                                  | Insumo (no se modifica)                                                       |
+
+> El stack del reto sugería Vertex AI + Cloud Run + FastAPI + Pub/Sub. Decidimos consolidar en Gemini directo + NestJS + Supabase porque (1) el reto permite "cualquier lenguaje, framework o herramienta open source", (2) ahorra ~3 servicios cloud sin perder ninguna capacidad funcional, y (3) la BFF discipline + el port `CompanySource` mantiene la solución integrable con Laravel vía REST cuando la Cámara la conecte a su backend existente.
 
 ---
 
 ## 4. Arquitectura
 
-### Diagrama de alto nivel
+### 4.1. Hexagonal estricta (Ports & Adapters) en ambos workspaces
+
+```
+infrastructure → application → domain
+```
+
+Cada bounded context tiene tres capas:
+
+| Capa              | Qué vive                                                          | Qué puede importar            |
+| ----------------- | ----------------------------------------------------------------- | ----------------------------- |
+| `domain/`         | Entities, value objects, ports (interfaces), domain services      | NADA externo. TypeScript puro |
+| `application/`    | Use cases, application services                                   | Solo `domain/`                |
+| `infrastructure/` | Adapters (Supabase, Gemini, CSV), controllers, modules, scheduler | `domain/` + `application/`    |
+
+Los `*.module.ts` de NestJS son **el composition root** del brain — el único lugar donde se cablea qué adapter implementa qué port. Los Route Handlers del front (`src/front/app/api/*/route.ts`) son el composition root del front.
+
+### 4.2. Diagrama de alto nivel
 
 ```mermaid
-flowchart TB
-    subgraph captura ["Capa 1 · Captura"]
-        webPub["Página pública<br/>(autorregistro informal)"]
-        appProm["App promotor<br/>(captura por voz)"]
-        webForm["Web Ruta C<br/>(empresario formal)"]
-        descub["Descubrimiento<br/>por menciones"]
+flowchart LR
+    subgraph "src/front (Next.js 16)"
+        WEB[Pantallas SWR]
+        RH[Route Handlers BFF]
+        WEB --> RH
     end
 
-    subgraph inteligencia ["Capa 2 · Inteligencia"]
-        clustering["Clustering<br/>K-means / DBSCAN"]
-        matching["Matching<br/>peer + cadena de valor"]
-        explainer["Explainer<br/>Gemini"]
-        conector["Agente Conector<br/>cron + eventos"]
+    subgraph "src/brain (NestJS)"
+        CTRL[Controllers REST]
+        UC[Use Cases]
+        AGT[AgentScheduler @Cron]
+        CTRL --> UC
+        AGT --> UC
     end
 
-    subgraph entrega ["Capa 3 · Entrega"]
-        webRec["Web del formal<br/>recomendaciones"]
-        bot["Bot WhatsApp<br/>informal"]
-        admin["Panel admin<br/>coordinación"]
+    subgraph "Externos"
+        SB[(Supabase Postgres)]
+        GEM[Gemini 2.5 Flash]
+        CSV[(CSV / BigQuery)]
     end
 
-    db[("Postgres / Supabase<br/>entidad_economica<br/>clusters · recomendaciones")]
-    bq[("BigQuery<br/>dataset Ruta C")]
-
-    captura --> db
-    bq --> inteligencia
-    db <--> inteligencia
-    inteligencia --> entrega
-    conector -.-> entrega
+    RH -->|HTTP REST| CTRL
+    UC --> SB
+    UC --> GEM
+    UC --> CSV
 ```
 
-### Las tres capas
+**Comunicación entre los dos servicios.** El front NUNCA habla con Supabase ni con Gemini directamente. Sus Route Handlers consumen al brain por REST. Esto preserva el patrón **BFF estricto** y permite que el brain se reemplace sin tocar UI.
 
-- **Captura** — múltiples puertas de entrada para reducir fricción según alfabetización digital del usuario.
-- **Inteligencia** — una sola lógica de matching que opera sobre la tabla unificada `entidad_economica` (formales e informales en el mismo modelo).
-- **Entrega** — el canal correcto para cada persona: web, WhatsApp, app móvil, panel.
+### 4.3. Bounded contexts del brain
 
-### Contratos REST principales
+Seis contextos, cada uno con su propia carpeta `domain / application / infrastructure` y su propio `*.module.ts`:
 
-```http
-GET  /api/recommendations?entity_id={id}&type={tipo}&limit=5
-POST /api/connections    { from, to, status, source_recommendation_id }
-GET  /api/clusters/{id}
-POST /api/entities       { ... }   # registro de comerciante (formal o informal)
-POST /api/agent/recompute              # disparo manual del agente
-POST /api/webhooks/whatsapp            # callback de Meta
-POST /api/webhooks/entity-registered   # Pub/Sub trigger
+```
+src/brain/src/
+├── shared/             # Logger, LlmPort, SupabaseClient, env, CsvLoader, DataPaths
+├── ciiu-taxonomy/      # Taxonomía oficial DIAN CIIU rev 4
+├── companies/          # Empresas + CompanySource port (BQ-ready)
+├── clusters/           # Predefinidos + heurísticos en cascada
+├── recommendations/    # AI-first: AiMatchEngine + 3 fallbacks + cache + scoring + lazy explain
+└── agent/              # ScanRun, AgentEvent, OpportunityDetector, AgentScheduler @Cron
 ```
 
-Detalle completo del modelo de datos, contratos y triggers en [`docs/planeacion/04-arquitectura.md`](planeacion/04-arquitectura.md).
+Specs detallados por contexto en [`docs/specs/`](specs/).
+
+### 4.4. Persistencia — Supabase
+
+| Bounded context   | Tablas                                                |
+| ----------------- | ----------------------------------------------------- |
+| `ciiu-taxonomy`   | `ciiu_taxonomy`                                       |
+| `companies`       | `companies`                                           |
+| `clusters`        | `clusters`, `cluster_members`, `cluster_ciiu_mapping` |
+| `recommendations` | `recommendations`, `ai_match_cache`                   |
+| `agent`           | `scan_runs`, `agent_events`                           |
+
+Tipos auto-generados via `bun --filter front supabase:types`. El brain lee el archivo de tipos vía symlink.
+
+### 4.5. Endpoints REST del brain
+
+OpenAPI auto-generado disponible en `http://localhost:3001/docs` cuando el server está arriba. Todas las rutas tienen prefix global `/api`.
+
+#### Health
+
+- `GET /api/health` — health check.
+
+#### Companies
+
+- `GET /api/companies` — lista paginable (`?limit=N`).
+- `GET /api/companies/:id` — detalle (404 si no existe).
+- `POST /api/companies/onboard` — registro asistido (deriva CIIU, división, etapa).
+- `GET /api/companies/:id/clusters` — clusters de una empresa.
+- `GET /api/companies/:id/recommendations` — recs ordenadas por score (`?type=...&limit=...`).
+- `GET /api/companies/:id/recommendations/grouped` — recs agrupadas por tipo de relación.
+
+#### Clusters
+
+- `POST /api/clusters/generate` — dispara `GenerateClusters` (admin / demo).
+- `GET /api/clusters/:id/explain` — explicación en lenguaje natural del cluster.
+
+#### Recommendations
+
+- `POST /api/recommendations/generate` — dispara `GenerateRecommendations` (admin / demo). Body: `{ "enableAi": true | false }`.
+- `POST /api/recommendations/:id/explain` — texto natural lazy + cached.
+
+#### Agent
+
+- `POST /api/agent/scan` — fuerza un `RunIncrementalScan({ trigger: 'manual' })`.
+- `GET /api/agent/status` — estado del agente y últimos runs.
+- `GET /api/agent/events?companyId=...&unread=true` — eventos para el usuario.
+- `POST /api/agent/events/:id/read` — marca como leído.
+
+> Colección Postman / Insomnia importable en [`docs/postman/`](postman/) con todas las rutas, variables y bodies de ejemplo.
+
+### 4.6. BigQuery-readiness
+
+El reto promete acceso a BigQuery con el dataset real, "en sobre cerrado al inicio del hackathon". Hoy trabajamos con el CSV `REGISTRADOS_SII.csv` como mock.
+
+El port `CompanySource` permite que el día que lleguen las creds, el switch sea esta sola línea en `companies.module.ts`:
+
+```ts
+{ provide: COMPANY_SOURCE, useClass: CsvCompanySource }      // hoy
+{ provide: COMPANY_SOURCE, useClass: BigQueryCompanySource } // mañana
+```
+
+Cero impacto en domain, use cases, agent, recommendations, clusters.
+
+### 4.7. Decisiones arquitectónicas
+
+Las decisiones cross-cutting están versionadas como ARQ-001 a ARQ-010 en [`docs/specs/00-arquitectura.md`](specs/00-arquitectura.md). Las más relevantes:
+
+- **ARQ-001** — Hexagonal estricta como contrato no negociable.
+- **ARQ-005** — Heurísticos de clusters en cascada de 2 niveles (división MIN=5, grupo MIN=10).
+- **ARQ-007** — TDD obligatorio (RED → GREEN → REFACTOR), coverage > 80% en `src/`.
+- **ARQ-010** — Single source of truth de `.env` + symlinks por workspace.
 
 ---
 
-## 5. Cómo correr el proyecto localmente
+## 5. Despliegues en vivo
 
-> _Por completar al cierre del Día 2 cuando el esqueleto del motor esté funcionando._
+El sistema está desplegado y disponible públicamente para que el jurado pueda probarlo sin clonar el repo.
 
-### Requisitos previos
+| Servicio             | URL                                                                  | Hosting                             |
+| -------------------- | -------------------------------------------------------------------- | ----------------------------------- |
+| **Front (Next.js)**  | https://silver-adventure-ecru.vercel.app/                            | Vercel                              |
+| **Brain (NestJS)**   | https://silver-adventure-9f6p.onrender.com                           | Render (free tier)                  |
+| Health check         | https://silver-adventure-9f6p.onrender.com/api/health                | —                                   |
+| OpenAPI / Swagger    | https://silver-adventure-9f6p.onrender.com/docs                      | Auto-generado por `@nestjs/swagger` |
+| Presentación (Canva) | https://www.canva.com/design/DAHH-MPDRUw/qlkiz3qZdDTMThPTEIY8aw/view | Canva                               |
+| Presentación (PDF)   | [`presentacion/presentacion.pdf`](../presentacion/presentacion.pdf)  | Repo                                |
+
+> ⚠️ **Importante para la evaluación.** El brain está en el plan gratuito de Render: si pasan más de 15 minutos sin tráfico, el contenedor se duerme y el primer request tarda **30–60 segundos** en despertar. Cargar primero el health check y esperar el `200 OK` antes de probar la web.
+
+### Probar la API en vivo
+
+```bash
+# Health check (despierta el contenedor)
+curl https://silver-adventure-9f6p.onrender.com/api/health
+
+# Listar empresas
+curl 'https://silver-adventure-9f6p.onrender.com/api/companies?limit=10'
+
+# Ver eventos del agente para una empresa
+curl 'https://silver-adventure-9f6p.onrender.com/api/agent/events?companyId=<ID>'
+```
+
+O importar la colección Postman desde [`docs/postman/`](postman/) y cambiar la variable `baseUrl` a `https://silver-adventure-9f6p.onrender.com/api`.
+
+---
+
+## 6. Cómo correr el proyecto localmente
+
+### 6.1. Requisitos previos
 
 - **Bun** 1.x (`curl -fsSL https://bun.sh/install | bash`)
-- **Node.js** 22+
-- **Python** 3.11+ (solo si se elige el motor en Python)
-- **Docker** (opcional, para Postgres local)
-- Credenciales de acceso a:
-  - Supabase (URL + anon key + service role)
-  - Vertex AI (cuenta de servicio)
-  - WhatsApp Business Cloud (token + phone number ID)
-  - BigQuery (cuenta de servicio con permisos sobre el dataset Ruta C)
+- **Node.js** 22+ (Bun lo necesita para algunas tools)
+- Credenciales:
+  - Supabase (URL + publishable key + service role key)
+  - Google Gemini API key (desde Google AI Studio)
 
-### Instalación
+### 6.2. Instalación
 
 ```bash
 # 1. Clonar e instalar dependencias del monorepo
@@ -200,57 +382,136 @@ bun install
 
 # 2. Configurar variables de entorno
 cp .env.example .env
-# Editar .env con las credenciales de cada servicio
+# Editar .env con SUPABASE_*, GEMINI_API_KEY, etc.
+# (los workspaces ven el .env vía symlinks relativos)
 
-# 3. (Si motor en Python) crear venv e instalar
-cd src/brain
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+# 3. Generar tipos de Supabase (opcional, ya commiteados)
+bun --filter front supabase:types
 ```
 
-### Comandos principales
+### 6.3. Seed inicial — cargar datos
+
+Los seeds son scripts independientes que llaman use cases reales (no duplican lógica de mapeo) y son **idempotentes** (upsert por id):
 
 ```bash
-# Frontend
-cd src/front
-bun dev                 # http://localhost:3000
+# Bootstrap todo en orden correcto
+bun --filter brain seed
 
-# Backend (NestJS)
-cd src/brain
-bun dev                 # http://localhost:4000
-
-# Motor en Python (si aplica)
-cd src/brain
-uvicorn app.main:app --reload --port 8000
-
-# Tests
-bun test                # corre toda la suite
+# O paso a paso
+bun --filter brain seed:ciiu              # taxonomía DIAN (CIIU_DIAN.csv)
+bun --filter brain seed:companies         # empresas (REGISTRADOS_SII.csv)
+bun --filter brain seed:clusters          # 8 clusters predefinidos (CLUSTERS.csv)
+bun --filter brain seed:cluster-mappings  # mapeo cluster → CIIU
 ```
 
-### Variables de entorno
+> **Nota costo IA.** Después de seedear, el primer arranque del agente disparará `CiiuPairEvaluator.evaluateAll()`, que llena `ai_match_cache` con ~25k pares (~$1–3 USD con `gemini-2.5-flash`). Las siguientes corridas son casi gratis. Para evitarlo en CI / E2E → `AI_MATCH_INFERENCE_ENABLED=false`.
 
-| Variable                         | Descripción                                        |
-| -------------------------------- | -------------------------------------------------- |
-| `NEXT_PUBLIC_API_URL`            | URL del backend BFF                                |
-| `SUPABASE_URL`                   | URL del proyecto Supabase                          |
-| `SUPABASE_ANON_KEY`              | Anon key de Supabase                               |
-| `SUPABASE_SERVICE_ROLE_KEY`      | Service role key de Supabase (solo server-side)    |
-| `GOOGLE_APPLICATION_CREDENTIALS` | Ruta al JSON de cuenta de servicio de Google Cloud |
-| `VERTEX_AI_PROJECT_ID`           | Project ID en Google Cloud                         |
-| `VERTEX_AI_LOCATION`             | Región (ej. `us-central1`)                         |
-| `WHATSAPP_TOKEN`                 | Token de Meta WhatsApp Business                    |
-| `WHATSAPP_PHONE_NUMBER_ID`       | ID del número aprobado para envío                  |
-| `BIGQUERY_DATASET`               | Nombre del dataset Ruta C                          |
+### 6.4. Levantar los servicios
 
-### Datos de prueba
+```bash
+# Desde la raíz, en terminales separadas:
+bun dev:front        # http://localhost:3000  (Next.js)
+bun dev:brain        # http://localhost:3001  (NestJS, OpenAPI en /docs)
 
-Mientras se obtiene acceso a BigQuery, el motor lee de los CSVs locales en [`docs/hackathon/DATA/`](hackathon/DATA/):
+# O filtrando manualmente:
+bun --filter front dev
+bun --filter brain start:dev
+```
 
-- `REGISTRADOS_SII.csv` — universo de empresas formales
-- `CLUSTERS.csv` — clusters predefinidos por la Cámara (referencia)
-- `CLUSTERS_POSIBLES_MIEMBROS_POR_ACTIVIDAD_PRINCIPAL_DATOS.csv` — empresas candidatas con cluster sugerido
-- `CLUSTERS_ACTIVIDADESECONOMICAS.csv` — mapeo cluster → CIIU
-- `CLUSTERS_SECTORES_SECCIONES_ACTIVIDADES.csv` — taxonomía sector → sección → actividad
+### 6.5. Tests
 
-Para informales se genera un dataset semilla en `seed/informales.json` con ~50 perfiles representativos del Magdalena (ver [`docs/planeacion/05-motor-recomendaciones.md`](planeacion/05-motor-recomendaciones.md)).
+```bash
+bun test                            # corre vitest en front y brain
+bun --filter brain test:run         # solo brain
+bun --filter front test:run         # solo front
+bun --filter brain test:coverage    # coverage report
+```
+
+Pre-push hook corre `bun test` automáticamente. Si falla algún test, el push se rechaza.
+
+### 6.6. Format y lint
+
+```bash
+bun lint              # ESLint en ambos workspaces
+bun format            # Prettier en todo el repo
+bun format:check      # CI mode (sin escribir)
+```
+
+### 6.7. Variables de entorno
+
+Hay **un solo `.env` real** en la raíz del monorepo. Cada workspace lo ve a través de un **symlink relativo** (`src/front/.env -> ../../.env`, idem brain). El archivo es shared, pero cada workspace declara qué variables consume vía Zod schema independiente, que falla rápido al startup si falta algo. Detalle en [`AGENTS.md`](../AGENTS.md) §8.
+
+| Categoría     | Variables principales                                                                           |
+| ------------- | ----------------------------------------------------------------------------------------------- |
+| Supabase      | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`                         |
+| Gemini        | `GEMINI_API_KEY`, `GEMINI_CHAT_MODEL` (default `gemini-2.5-flash`), `GEMINI_EMBEDDING_MODEL`    |
+| LLM provider  | `LLM_PROVIDER` (`gemini` \| `openrouter`), `OPENROUTER_API_KEY`                                 |
+| Agente        | `AGENT_CRON_SCHEDULE` (default `*/60 * * * * *`), `AGENT_ENABLED`, `AI_MATCH_INFERENCE_ENABLED` |
+| GCP / BQ      | `GCP_PROJECT_ID`, `GCP_LOCATION`, `BIGQUERY_DATASET` (uso futuro)                               |
+| Front público | `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_DEBUG_ENABLED`                                              |
+| Debug         | `DEBUG_ENABLED` (server)                                                                        |
+
+Plantilla completa en [`.env.example`](../.env.example).
+
+### 6.8. Datos de prueba incluidos
+
+El dataset de la Cámara entregado con el reto vive en [`docs/hackathon/DATA/`](hackathon/DATA/):
+
+- `CIIU_DIAN.csv` — taxonomía oficial CIIU rev 4 de la DIAN.
+- `REGISTRADOS_SII.csv` — universo de empresas registradas.
+- `CLUSTERS.csv` — 8 clusters predefinidos por la Cámara.
+- `CLUSTERS_ACTIVIDADESECONOMICAS.csv` — mapeo cluster → CIIU.
+- `CLUSTERS_POSIBLES_MIEMBROS_POR_ACTIVIDAD_PRINCIPAL_DATOS.csv` — empresas candidatas con cluster sugerido.
+- `CLUSTERS_SECTORES_SECCIONES_ACTIVIDADES.csv` — taxonomía sector → sección → actividad.
+
+### 6.9. Probar la API rápido
+
+```bash
+# Health check
+curl http://localhost:3001/api/health
+
+# Listar empresas
+curl 'http://localhost:3001/api/companies?limit=10'
+
+# Generar clusters (sin AI, rápido)
+curl -X POST http://localhost:3001/api/clusters/generate
+
+# Generar recomendaciones SIN AI (usa solo fallbacks heurísticos)
+curl -X POST http://localhost:3001/api/recommendations/generate \
+  -H 'Content-Type: application/json' \
+  -d '{"enableAi": false}'
+
+# Disparar scan manual del agente
+curl -X POST http://localhost:3001/api/agent/scan
+
+# Ver eventos generados por el agente
+curl 'http://localhost:3001/api/agent/events?companyId=<ID>'
+```
+
+O importar la colección Postman desde [`docs/postman/`](postman/).
+
+---
+
+## 7. Roadmap pos-hackathon
+
+Lo siguiente NO está en el MVP entregado pero sí está diseñado y documentado para la siguiente iteración:
+
+- **Switch a BigQuery real** cuando lleguen credenciales — un PR mínimo en `companies.module.ts` (port ya existe).
+- **Canal WhatsApp Business Cloud API** para comerciantes informales — diseñado en [`docs/planeacion/03-personas-y-canales.md`](planeacion/03-personas-y-canales.md).
+- **App móvil para promotores de la Cámara** con captura por voz — diseñada en la misma planeación.
+- **Panel administrativo extendido** con métricas de impacto y trazabilidad de decisiones del modelo.
+- **Embeddings semánticos** del perfil textual (modelo ya configurado, integración pendiente).
+
+---
+
+## 8. Referencias
+
+- [`README.md`](../README.md) — narrativa de producto, problema, solución, equipo.
+- [`AGENTS.md`](../AGENTS.md) — convenciones del repo, BFF, hooks, path aliases, env strategy.
+- [`src/front/README.md`](../src/front/README.md) — detalle del front (pantallas, providers, hooks).
+- [`src/brain/README.md`](../src/brain/README.md) — detalle del brain (motor IA, agente, clusters).
+- [`docs/scoring.md`](scoring.md) — sistema de scoring (fórmulas, pesos, thresholds).
+- [`docs/specs/`](specs/) — specs por bounded context (requirements + scenarios).
+- [`docs/postman/`](postman/) — colección Postman v2.1 con todas las rutas.
+- [`docs/hackathon/`](hackathon/) — bases del reto, dataset y documentación de clustering.
+- OpenAPI live: `http://localhost:3001/docs` con el brain corriendo.

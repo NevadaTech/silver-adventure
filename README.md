@@ -7,6 +7,21 @@
 
 ---
 
+## 🚀 Demo en vivo
+
+| Servicio                 | URL                                                                  |
+| ------------------------ | -------------------------------------------------------------------- |
+| **Web (front)**          | https://silver-adventure-ecru.vercel.app/                            |
+| **API (brain)**          | https://silver-adventure-9f6p.onrender.com                           |
+| **Health check**         | https://silver-adventure-9f6p.onrender.com/api/health                |
+| **OpenAPI / Swagger**    | https://silver-adventure-9f6p.onrender.com/docs                      |
+| **Presentación (Canva)** | https://www.canva.com/design/DAHH-MPDRUw/qlkiz3qZdDTMThPTEIY8aw/view |
+| **Presentación (PDF)**   | [`presentacion/presentacion.pdf`](presentacion/presentacion.pdf)     |
+
+> ⚠️ **El backend está en Render free tier** — si lleva más de 15 min sin tráfico, el primer request despierta el contenedor y puede tardar **30–60 segundos**. A partir de ahí responde inmediato. Para "despertarlo" antes de la demo, cargar [el health check](https://silver-adventure-9f6p.onrender.com/api/health) y esperar el `200 OK`.
+
+---
+
 ## La idea
 
 Santa Marta tiene una economía mucho más grande de lo que cualquier base de datos refleja hoy. Por cada empresario formalmente registrado en Ruta C, hay decenas de comerciantes informales que mueven la economía real todos los días: vendedoras de mercado, pescadores en Taganga, artesanas en Bastidas, mototaxistas en Pescaíto, cocineras de almuerzos ejecutivos, tenderos de barrio.
@@ -115,7 +130,7 @@ silver-adventure/
 
 - **`src/brain/`** ([README](src/brain/README.md)) — Servicio NestJS que cumple el componente "Inteligencia" del sistema. Genera clusters (predefinidos + heurísticos en cascada), produce recomendaciones AI-first con Gemini y orquesta el agente Conector que corre en cron. Arquitectura hexagonal estricta, port `CompanySource` para ser BigQuery-ready cuando lleguen las credenciales del reto.
 
-**Comunicación entre los dos.** El front NUNCA habla con Supabase ni con Gemini directamente. Sus Route Handlers consumen al brain por REST (`GET /api/recommendations/by-company/...`, `GET /api/clusters/by-company/...`, etc.). Esto preserva el patrón BFF y permite que el brain se reemplace sin tocar UI.
+**Comunicación entre los dos.** El front NUNCA habla con Supabase ni con Gemini directamente. Sus Route Handlers consumen al brain por REST (`GET /api/companies/:id/recommendations`, `GET /api/companies/:id/clusters`, `GET /api/agent/events?companyId=...`, etc.). Esto preserva el patrón BFF y permite que el brain se reemplace sin tocar UI.
 
 ### Stack global
 
@@ -179,25 +194,24 @@ Este repositorio contiene el prototipo desarrollado durante el Hackathon Samatec
 - **Planeación del equipo**: [`docs/planeacion/`](docs/planeacion/) — alcance del MVP, roles, personas, motor de recomendaciones, cronograma y riesgos.
 - **Specs por bounded context**: [`docs/specs/`](docs/specs/) — requirements y scenarios de cada contexto del brain.
 - **Reto y datos de partida**: [`docs/hackathon/`](docs/hackathon/) — bases del reto, dataset y documentación de clustering provista por la Cámara.
-- **Plan de implementación del motor**: [`docs/2026-04-25-brain-clustering-engine-implementation.md`](docs/2026-04-25-brain-clustering-engine-implementation.md) — fases, tasks y división de trabajo.
 
 ---
 
 ## Equipo
 
-**Nombre del equipo:** _por definir_
+**Nombre del equipo:** NevadaTech
 
-| Nombre | Rol          |
-| ------ | ------------ |
-|        | PM / Lead    |
-|        | Backend / IA |
-|        | Frontend     |
-|        | Data / ML    |
-|        | Diseño / UX  |
+| Nombre completo | Rol                   |
+| --------------- | --------------------- |
+| Daniel Ramirez  | Diseñadora            |
+| Maria Romero    | Ingeniera de Sistemas |
+| Cesar Ortiz     | Fullstack Developer   |
+| Marlon Ramirez  | Frontend Developer    |
+| Camilo Santana  | Backend Developer     |
 
 **Cómo llegamos a esta idea**
 
-> Empezamos analizando el reto y nos dimos cuenta de que el problema real no era construir un recomendador para los empresarios registrados, sino reconocer que la economía de Santa Marta es mucho más grande que los registros formales. Decidimos que la solución tenía que abrir una puerta nueva: la del comerciante informal, que mueve la economía real del territorio pero hoy es invisible para el sistema. A partir de ahí diseñamos cuatro experiencias específicas — una por persona — y un agente que las conecta todas.
+> Llegamos a la idea siguiendo un proceso deliberadamente ordenado. Antes que nada, nos enfocamos en analizar el problema sin caer en la tentación de saltar a soluciones: queríamos entender realmente la causa raíz y por qué estaba ocurriendo. Una vez que tuvimos claridad sobre el "qué" y el "porqué", pasamos a explorar posibles soluciones desde una perspectiva no técnica, identificando primero quiénes eran los principales afectados y cuál sería nuestra propuesta de valor para ellos. Con esos cimientos definidos, recién entonces evaluamos el stack tecnológico, priorizando herramientas que aportaran agilidad al desarrollo y armonía en el flujo de trabajo del equipo. A partir de ahí, entramos en la fase de planificación: dividimos el alcance en tareas, establecimos checkpoints periódicos para validar avances y mantener la calidad, y finalmente ejecutamos el despliegue y la entrega del producto.
 
 ---
 

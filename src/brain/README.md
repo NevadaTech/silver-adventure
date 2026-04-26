@@ -110,7 +110,7 @@ El componente agéntico exigido por el reto. Vive en el bounded context `agent`.
 9. Persiste eventos en `agent_events` (consumibles por el front).
 10. Marca `ScanRun.complete(stats)`.
 
-**Concurrencia:** si un scan está corriendo, el siguiente tick lo skippea (no se solapan). `AGENT_ENABLED='false'` apaga el cron sin tocar código. Manual trigger vía `POST /api/agent/scan/trigger` para demos.
+**Concurrencia:** si un scan está corriendo, el siguiente tick lo skippea (no se solapan). `AGENT_ENABLED='false'` apaga el cron sin tocar código. Manual trigger vía `POST /api/agent/scan` para demos.
 
 ---
 
@@ -300,16 +300,18 @@ src/brain/src/
    └───────────────────────────────────────────────────────────────────────┘
                                            │
                                            ▼
-                          Front (SWR poll) → /api/agent/events/:companyId
+                          Front (SWR poll) → /api/agent/events?companyId=...
 ```
 
 ---
 
 ## 7. Endpoints REST
 
-OpenAPI auto-generado vía `@nestjs/swagger`. Disponible en `http://localhost:3001/docs` cuando el server está arriba.
+OpenAPI auto-generado vía `@nestjs/swagger`. Disponible en `http://localhost:3001/docs` (local) o https://silver-adventure-9f6p.onrender.com/docs (deploy en Render).
 
-> **Postman / Insomnia:** colección importable en [`docs/postman/`](../../docs/postman/) con todas las rutas, variables (`baseUrl`, `companyId`, `clusterId`, `recommendationId`, `eventId`) y ejemplos de body.
+> **Postman / Insomnia:** colección importable en [`docs/postman/`](../../docs/postman/) con todas las rutas, variables (`baseUrl`, `companyId`, `clusterId`, `recommendationId`, `eventId`) y ejemplos de body. Para apuntar al deploy cambiar `baseUrl` a `https://silver-adventure-9f6p.onrender.com/api`.
+>
+> ⚠️ **Render free tier.** Si el contenedor lleva >15 min sin tráfico, el primer request despierta el servicio y tarda 30–60s. Cargar primero `/api/health` antes de probar.
 
 ### Health
 
@@ -319,26 +321,27 @@ OpenAPI auto-generado vía `@nestjs/swagger`. Disponible en `http://localhost:30
 
 - `GET /api/companies?limit=50` — lista con DTO sanitizado.
 - `GET /api/companies/:id` — detalle (404 si no existe).
+- `POST /api/companies/onboard` — registro asistido (deriva CIIU, división, grupo, sección, etapa).
+- `GET /api/companies/:id/clusters` — clusters de una empresa.
+- `GET /api/companies/:id/recommendations?type=...&limit=...` — recs ordenadas por score.
+- `GET /api/companies/:id/recommendations/grouped` — recs agrupadas por tipo de relación.
 
 ### Clusters
 
-- `GET /api/clusters?tipo=...` — lista filtrable.
-- `GET /api/clusters/:id` — detalle + miembros.
-- `GET /api/clusters/by-company/:companyId` — clusters de una empresa.
-- `POST /api/clusters/generate` — dispara `GenerateClusters` (admin).
+- `POST /api/clusters/generate` — dispara `GenerateClusters` (admin / demo).
+- `GET /api/clusters/:id/explain` — explicación en lenguaje natural del cluster.
 
 ### Recommendations
 
-- `GET /api/recommendations/by-company/:companyId?type=...&limit=...` — recs ordenadas por score.
-- `GET /api/recommendations/:id/explanation` — texto natural lazy (Gemini + cached).
-- `POST /api/recommendations/generate` — dispara `GenerateRecommendations` (admin).
+- `POST /api/recommendations/generate` — dispara `GenerateRecommendations` (body `{ "enableAi": true | false }`).
+- `POST /api/recommendations/:id/explain` — texto natural lazy (Gemini + cached).
 
 ### Agent
 
-- `GET /api/agent/events/:companyId?unread=true` — eventos para el usuario.
-- `POST /api/agent/events/:eventId/read` — marca como leído.
-- `POST /api/agent/scan/trigger` — fuerza un `RunIncrementalScan({ trigger: 'manual' })`.
-- `GET /api/agent/scans/recent?limit=10` — últimos runs (observabilidad).
+- `POST /api/agent/scan` — fuerza un `RunIncrementalScan({ trigger: 'manual' })`.
+- `GET /api/agent/status` — estado del agente y últimos runs.
+- `GET /api/agent/events?companyId=...&unread=true` — eventos para el usuario.
+- `POST /api/agent/events/:id/read` — marca como leído.
 
 ---
 
@@ -491,7 +494,6 @@ Ver [`AGENTS.md`](../../AGENTS.md) (raíz) para el detalle. Resumen de lo que ap
 
 ## 15. Referencias
 
-- **Plan de implementación:** [`docs/2026-04-25-brain-clustering-engine-implementation.md`](../../docs/2026-04-25-brain-clustering-engine-implementation.md) — 7 fases, ~50 tasks, división Dev A / Dev B.
 - **Decisiones cross-cutting:** [`docs/specs/00-arquitectura.md`](../../docs/specs/00-arquitectura.md) — ARQ-001 a ARQ-010.
 - **Specs por contexto:** [`docs/specs/`](../../docs/specs/).
 - **Reto original:** [`docs/hackathon/`](../../docs/hackathon/) — README, RETO.pdf, dataset.

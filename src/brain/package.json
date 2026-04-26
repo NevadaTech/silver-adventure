@@ -16,7 +16,8 @@
     "seed:ciiu": "bun run src/seeds/seed-ciiu-taxonomy.ts",
     "seed:companies": "bun run src/seeds/seed-companies.ts",
     "seed:clusters": "bun run src/seeds/seed-predefined-clusters.ts",
-    "seed:cluster-mappings": "bun run src/seeds/seed-cluster-mappings.ts"
+    "seed:cluster-mappings": "bun run src/seeds/seed-cluster-mappings.ts",
+    "seed": "bun run src/seeds/bootstrap-all.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

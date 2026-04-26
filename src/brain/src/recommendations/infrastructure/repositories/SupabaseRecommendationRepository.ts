@@ -60,6 +60,30 @@ export class SupabaseRecommendationRepository implements RecommendationRepositor
     return data ? this.toEntity(data as RecommendationRow) : null
   }
 
+  async findAll(): Promise<Recommendation[]> {
+    const { data, error } = await this.db.from(TABLE).select('*')
+    if (error) throw error
+    return ((data ?? []) as RecommendationRow[]).map((r) => this.toEntity(r))
+  }
+
+  async snapshotKeys(): Promise<Set<string>> {
+    const { data, error } = await this.db
+      .from(TABLE)
+      .select('source_company_id, target_company_id, relation_type')
+    if (error) throw error
+    const keys = new Set<string>()
+    for (const row of (data ?? []) as Array<{
+      source_company_id: string
+      target_company_id: string
+      relation_type: string
+    }>) {
+      keys.add(
+        `${row.source_company_id}|${row.target_company_id}|${row.relation_type}`,
+      )
+    }
+    return keys
+  }
+
   async findBySource(
     sourceId: string,
     limit?: number,

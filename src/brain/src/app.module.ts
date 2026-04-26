@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { ScheduleModule } from '@nestjs/schedule'
+import { AgentModule } from './agent/agent.module'
 import { SharedModule } from './shared/shared.module'
 import { CiiuTaxonomyModule } from './ciiu-taxonomy/ciiu-taxonomy.module'
 import { ClustersModule } from './clusters/clusters.module'
@@ -15,6 +16,7 @@ import { HealthController } from './shared/infrastructure/health/health.controll
     CompaniesModule,
     ClustersModule,
     RecommendationsModule,
+    AgentModule,
   ],
   controllers: [HealthController],
 })

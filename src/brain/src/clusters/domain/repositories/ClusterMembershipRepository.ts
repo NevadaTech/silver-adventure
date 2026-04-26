@@ -13,4 +13,9 @@ export interface ClusterMembershipRepository {
   findCompanyIdsByCluster(clusterId: string): Promise<string[]>
   deleteAll(): Promise<void>
   count(): Promise<number>
+  /**
+   * Returns a Map of `clusterId -> companyIds` for every stored membership.
+   * Used by the agent to detect new cluster members between scans.
+   */
+  snapshot(): Promise<Map<string, string[]>>
 }

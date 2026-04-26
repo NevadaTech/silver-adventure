@@ -257,4 +257,69 @@ describe('SupabaseRecommendationRepository', () => {
       await expect(repo.deleteAll()).rejects.toThrow(/boom/)
     })
   })
+
+  describe('findAll', () => {
+    it('selects all rows and maps them to entities', async () => {
+      fake.setNext({ data: [validRow], error: null })
+      const all = await repo.findAll()
+
+      expect(fake.spies.from).toHaveBeenCalledWith('recommendations')
+      expect(fake.spies.select).toHaveBeenCalledWith('*')
+      expect(all).toHaveLength(1)
+      expect(all[0]).toBeInstanceOf(Recommendation)
+      expect(all[0]!.id).toBe('rec-1')
+    })
+
+    it('returns empty array when no rows', async () => {
+      fake.setNext({ data: [], error: null })
+      expect(await repo.findAll()).toEqual([])
+    })
+
+    it('throws on error', async () => {
+      fake.setNext({ data: null, error: new Error('boom') })
+      await expect(repo.findAll()).rejects.toThrow(/boom/)
+    })
+  })
+
+  describe('snapshotKeys', () => {
+    it('selects only key columns and builds source|target|type keys', async () => {
+      fake.setNext({
+        data: [
+          {
+            source_company_id: 'a',
+            target_company_id: 'b',
+            relation_type: 'cliente',
+          },
+          {
+            source_company_id: 'x',
+            target_company_id: 'y',
+            relation_type: 'aliado',
+          },
+        ],
+        error: null,
+      })
+
+      const keys = await repo.snapshotKeys()
+
+      expect(fake.spies.from).toHaveBeenCalledWith('recommendations')
+      expect(fake.spies.select).toHaveBeenCalledWith(
+        'source_company_id, target_company_id, relation_type',
+      )
+      expect(keys).toBeInstanceOf(Set)
+      expect(keys.size).toBe(2)
+      expect(keys.has('a|b|cliente')).toBe(true)
+      expect(keys.has('x|y|aliado')).toBe(true)
+    })
+
+    it('returns empty Set when no rows', async () => {
+      fake.setNext({ data: [], error: null })
+      const keys = await repo.snapshotKeys()
+      expect(keys.size).toBe(0)
+    })
+
+    it('throws on error', async () => {
+      fake.setNext({ data: null, error: new Error('boom') })
+      await expect(repo.snapshotKeys()).rejects.toThrow(/boom/)
+    })
+  })
 })

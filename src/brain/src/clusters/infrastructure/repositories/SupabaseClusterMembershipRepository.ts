@@ -65,4 +65,21 @@ export class SupabaseClusterMembershipRepository implements ClusterMembershipRep
     if (error) throw error
     return count ?? 0
   }
+
+  async snapshot(): Promise<Map<string, string[]>> {
+    const { data, error } = await this.db
+      .from(TABLE)
+      .select('cluster_id, company_id')
+    if (error) throw error
+    const result = new Map<string, string[]>()
+    for (const row of (data ?? []) as MembershipRow[]) {
+      const list = result.get(row.cluster_id)
+      if (list) {
+        list.push(row.company_id)
+      } else {
+        result.set(row.cluster_id, [row.company_id])
+      }
+    }
+    return result
+  }
 }

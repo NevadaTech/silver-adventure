@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Recommendation } from '@/recommendations/domain/entities/Recommendation'
+import type { Recommendation } from '@/recommendations/domain/entities/Recommendation'
 import type { RecommendationRepository } from '@/recommendations/domain/repositories/RecommendationRepository'
 import type { RelationType } from '@/recommendations/domain/value-objects/RelationType'
 
@@ -15,6 +15,18 @@ export class InMemoryRecommendationRepository implements RecommendationRepositor
 
   async findById(id: string): Promise<Recommendation | null> {
     return this.store.get(id) ?? null
+  }
+
+  async findAll(): Promise<Recommendation[]> {
+    return Array.from(this.store.values())
+  }
+
+  async snapshotKeys(): Promise<Set<string>> {
+    const keys = new Set<string>()
+    for (const r of this.store.values()) {
+      keys.add(`${r.sourceCompanyId}|${r.targetCompanyId}|${r.relationType}`)
+    }
+    return keys
   }
 
   async findBySource(

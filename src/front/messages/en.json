@@ -1,0 +1,366 @@
+{
+  "Common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "noResults": "No results found"
+  },
+  "Theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "toggle": "Toggle theme"
+  },
+  "HomePage": {
+    "title": "Users from Supabase",
+    "subtitle": "Hexagonal Architecture • BFF Pattern • SWR • Supabase Cloud"
+  },
+  "UserList": {
+    "loading": "Loading users...",
+    "error": "Error loading users: {message}",
+    "empty": "No users found. Insert one in your Supabase dashboard.",
+    "createdAt": "Created {date}"
+  },
+  "Landing": {
+    "Header": {
+      "logoLabel": "Go to Ruta C Conecta home",
+      "navLabel": "Main navigation",
+      "navAudiences": "Audiences",
+      "navHow": "How it works",
+      "navTeam": "Team"
+    },
+    "Hero": {
+      "eyebrow": "We connect the Magdalena",
+      "titleStart": "Connect your business with more customers in",
+      "titleHighlight": "Santa Marta",
+      "titleEnd": "",
+      "description": "Free, easy and in less than 5 minutes. Join the largest business network in the city.",
+      "ctaPrimary": "Register for free",
+      "ctaSecondary": "Learn more",
+      "badge1": "100% free",
+      "badge2": "No complicated procedures",
+      "badge3": "Made for local entrepreneurs"
+    },
+    "Segments": {
+      "title": "A space for everyone",
+      "subtitle": "We find the perfect place for you to grow based on your profile.",
+      "vendors": {
+        "title": "Vendors",
+        "description": "Offer your products to the entire city and increase your daily sales."
+      },
+      "suppliers": {
+        "title": "Suppliers",
+        "description": "Connect with businesses that need your supplies and services."
+      },
+      "clients": {
+        "title": "Customers",
+        "description": "Find the best local products with a Santa Marta seal."
+      },
+      "allies": {
+        "title": "Allies",
+        "description": "Institutions and guilds supporting the local ecosystem."
+      }
+    },
+    "Steps": {
+      "eyebrow": "In 3 steps",
+      "title": "How does Ruta C work?",
+      "subtitle": "No downloads, no long forms. All you need to get started is WhatsApp.",
+      "register": {
+        "title": "Register (5 min)",
+        "description": "Create your business profile with basic contact information."
+      },
+      "connect": {
+        "title": "We connect you",
+        "description": "Our algorithm shows you to the profiles that need you."
+      },
+      "whatsapp": {
+        "title": "Talk via WhatsApp",
+        "description": "Close deals directly by chat, without intermediaries."
+      }
+    },
+    "Camara": {
+      "eyebrow": "Institutional backing",
+      "title": "Need help registering?",
+      "description": "We have the backing of the Chamber of Commerce. Our advisors will guide you step by step for free.",
+      "cta": "Talk to an advisor",
+      "statValue": "100%",
+      "statLabel": "Free assistance",
+      "quote": "Certified Chamber advisors guide your registration step by step, at no cost and in your own language."
+    },
+    "FinalCta": {
+      "title": "Join more than 5,000 businesses already on Ruta C",
+      "subtitle": "Don't miss more sales opportunities. Your competition is already here.",
+      "cta": "I want to start for free"
+    },
+    "Footer": {
+      "tagline": "Connecting our community",
+      "linkPrivacy": "Privacy",
+      "linkTerms": "Terms",
+      "linkSupport": "Support",
+      "copyright": "© 2026 Ruta C Santa Marta — Connecting our community",
+      "credits": "Samatech Hackathon · Chamber of Commerce of Santa Marta"
+    },
+    "Registro": {
+      "eyebrow": "Free registration",
+      "pageTitle": "Tell us about your business",
+      "pageSubtitle": "Three short steps. The Chamber of Commerce will contact you via WhatsApp in less than 24 hours.",
+      "back": "Back",
+      "next": "Next",
+      "create": "Create account",
+      "creating": "Creating account...",
+      "Steps": {
+        "business": "Your business",
+        "contact": "Location",
+        "password": "Password",
+        "confirm": "Confirmation"
+      },
+      "Password": {
+        "eyebrow": "Step 4 of 4",
+        "title": "Create your password",
+        "subtitle": "Choose a strong password to secure your account",
+        "passwordLabel": "Password",
+        "passwordConfirmLabel": "Confirm password",
+        "passwordRequirements": "Requirements",
+        "passwordMin8": "Password must be at least 8 characters",
+        "passwordNeedsUppercase": "Password must contain an uppercase letter",
+        "passwordNeedsLowercase": "Password must contain a lowercase letter",
+        "passwordNeedsNumber": "Password must contain a number",
+        "passwordMismatch": "Passwords do not match",
+        "passwordPlaceholder": "Secure password",
+        "passwordConfirmPlaceholder": "Confirm your password",
+        "requirement8Plus": "8+ characters",
+        "requirementUppercase": "Uppercase letter (A-Z)",
+        "requirementLowercase": "Lowercase letter (a-z)",
+        "requirementNumber": "Number (0-9)"
+      },
+      "Business": {
+        "eyebrow": "Step 1 of 4",
+        "title": "Your business",
+        "fields": {
+          "nombre": {
+            "label": "Business name",
+            "placeholder": "Empanadas Doña Marleny",
+            "hint": "How your customers know you"
+          },
+          "registradoCamara": {
+            "label": "Are you registered at the Chamber of Commerce?",
+            "si": {
+              "title": "Yes, I'm already registered",
+              "description": "I have a NIT and valid commercial registration."
+            },
+            "no": {
+              "title": "Not yet",
+              "description": "I'm an informal business or just starting out."
+            }
+          },
+          "nit": {
+            "label": "NIT",
+            "placeholder": "900.123.456-7",
+            "hint": "No spaces. Accepts dots and dash for check digit."
+          },
+          "sector": {
+            "label": "Sector",
+            "placeholder": "Select a sector"
+          },
+          "tiempoOperando": {
+            "label": "How long have you been operating?",
+            "placeholder": "Select a range"
+          },
+          "descripcion": {
+            "label": "Tell us what you do",
+            "placeholder": "I sell empanadas in front of the Bavaria building, open from 7 am to 3 pm. I make chicken, beef and cheese.",
+            "warning": "You have {remaining} characters left"
+          }
+        },
+        "sectores": {
+          "comercio": "Commerce",
+          "gastronomia": "Gastronomy",
+          "servicios": "Services",
+          "turismo": "Tourism",
+          "pesca": "Fishing and seafood",
+          "agricultura": "Agriculture",
+          "artesania": "Crafts",
+          "transporte": "Transportation",
+          "otros": "Other"
+        },
+        "tiemposOperando": {
+          "menos_1": "Less than 1 year",
+          "1_3": "1 to 3 years",
+          "3_5": "3 to 5 years",
+          "5_10": "5 to 10 years",
+          "mas_10": "More than 10 years"
+        }
+      },
+      "Contact": {
+        "eyebrow": "Step 2 of 4",
+        "title": "Where do we find you?",
+        "subtitle": "This helps us connect you with customers and allies near you.",
+        "fields": {
+          "municipio": {
+            "label": "Municipality",
+            "placeholder": "Select a municipality",
+            "hint": "Magdalena"
+          },
+          "barrio": {
+            "label": "Neighborhood or village",
+            "placeholder": "Pescaíto, La Concepción village...",
+            "placeholderSelect": "Select your neighborhood",
+            "hint": "Where your business is located"
+          },
+          "whatsapp": {
+            "label": "WhatsApp",
+            "placeholder": "300 123 4567",
+            "hint": "We'll write to you here"
+          },
+          "email": {
+            "label": "Email",
+            "placeholder": "yourbusiness@gmail.com",
+            "hint": "Optional. We'll send you resources and updates."
+          }
+        },
+        "municipios": {
+          "Santa Marta": "Santa Marta",
+          "Cienaga": "Ciénaga",
+          "Aracataca": "Aracataca",
+          "Fundacion": "Fundación",
+          "El Banco": "El Banco",
+          "Plato": "Plato",
+          "Pivijay": "Pivijay",
+          "Sitionuevo": "Sitionuevo",
+          "Pueblo Viejo": "Pueblo Viejo",
+          "Zona Bananera": "Zona Bananera",
+          "Algarrobo": "Algarrobo",
+          "Ariguani": "Ariguaní",
+          "Cerro de San Antonio": "Cerro de San Antonio",
+          "Chibolo": "Chibolo",
+          "Concordia": "Concordia",
+          "El Pinon": "El Piñón",
+          "El Reten": "El Retén",
+          "Guamal": "Guamal",
+          "Nueva Granada": "Nueva Granada",
+          "Pedraza": "Pedraza",
+          "Pijino del Carmen": "Pijiño del Carmen",
+          "Remolino": "Remolino",
+          "Sabanas de San Angel": "Sabanas de San Ángel",
+          "Salamina": "Salamina",
+          "San Sebastian de Buenavista": "San Sebastián de Buenavista",
+          "San Zenon": "San Zenón",
+          "Santa Ana": "Santa Ana",
+          "Santa Barbara de Pinto": "Santa Bárbara de Pinto",
+          "Tenerife": "Tenerife",
+          "Zapayan": "Zapayán"
+        },
+        "barrios": {
+          "1 de Mayo": "1 de Mayo",
+          "11 de Noviembre": "11 de Noviembre",
+          "17 de Diciembre": "17 de Diciembre",
+          "20 de Julio": "20 de Julio",
+          "20 de Octubre": "20 de Octubre",
+          "Alfonso Lopez": "Alfonso López",
+          "Bastidas": "Bastidas",
+          "Bavaria": "Bavaria",
+          "Bello Horizonte": "Bello Horizonte",
+          "Bolivar": "Bolívar",
+          "Bolivariana": "Bolivariana",
+          "Bonda": "Bonda",
+          "Boston": "Boston",
+          "Bureche": "Bureche",
+          "Centro": "Centro",
+          "Centro Historico": "Centro Histórico",
+          "Concepcion": "Concepción",
+          "Don Jaca": "Don Jaca",
+          "El Bosque": "El Bosque",
+          "El Carmen": "El Carmen",
+          "El Chico": "El Chicó",
+          "El Jardin": "El Jardín",
+          "El Pando": "El Pando",
+          "El Parque": "El Parque",
+          "El Reposo": "El Reposo",
+          "El Rosario": "El Rosario",
+          "Gaira": "Gaira",
+          "Gairamar": "Gairamar",
+          "Galicia": "Galicia",
+          "Garagoa": "Garagoa",
+          "Goenaga": "Goenaga",
+          "Guachaca": "Guachaca",
+          "Juan XXIII": "Juan XXIII",
+          "La Esperanza": "La Esperanza",
+          "La Estrella": "La Estrella",
+          "La Magdalena": "La Magdalena",
+          "Las Acacias": "Las Acacias",
+          "Las Americas": "Las Américas",
+          "Las Delicias": "Las Delicias",
+          "Las Malvinas": "Las Malvinas",
+          "Loma Fresca": "Loma Fresca",
+          "Los Alcazares": "Los Alcázares",
+          "Los Naranjos": "Los Naranjos",
+          "Mamatoco": "Mamatoco",
+          "Manga": "Manga",
+          "Manguitos": "Manguitos",
+          "Manzanares": "Manzanares",
+          "Maria Eugenia": "María Eugenia",
+          "Martinete": "Martinete",
+          "Minca": "Minca",
+          "Miramar": "Miramar",
+          "Modelo": "Modelo",
+          "Nueva Colombia": "Nueva Colombia",
+          "Nueva Galicia": "Nueva Galicia",
+          "Ondas del Caribe": "Ondas del Caribe",
+          "Paraiso": "Paraíso",
+          "Pastrana": "Pastrana",
+          "Pescaito": "Pescaíto",
+          "Polideportivo": "Polideportivo",
+          "Pozos Colorados": "Pozos Colorados",
+          "Rodadero": "Rodadero",
+          "Salamanca": "Salamanca",
+          "San Martin": "San Martín",
+          "Santa Lucia": "Santa Lucía",
+          "Santafe": "Santafé",
+          "Taganga": "Taganga",
+          "Tairona": "Tairona",
+          "Tamaca": "Tamacá",
+          "Villa Berlin": "Villa Berlín",
+          "Villa Toledo": "Villa Toledo",
+          "Villa Universitaria": "Villa Universitaria",
+          "Otro": "Other neighborhood or village"
+        }
+      },
+      "Confirm": {
+        "eyebrow": "Step 3 of 4",
+        "title": "Review before sending",
+        "subtitle": "Verify that everything is correct. You can edit any section.",
+        "edit": "Edit",
+        "terms": "I accept the <link>terms and privacy policies</link> of the Chamber of Commerce of Santa Marta.",
+        "cta": "Create my profile",
+        "sending": "Sending..."
+      },
+      "Otp": {
+        "eyebrow": "Verification",
+        "title": "Confirm your number",
+        "subtitle": "We sent a code to {whatsapp}. Enter the 6 digits to verify.",
+        "label": "6-digit code",
+        "verify": "Verify",
+        "resend": "Resend code"
+      },
+      "Success": {
+        "title": "Welcome to Ruta C!",
+        "body": "Your profile is in queue. The Chamber will contact you in less than 24 hours to confirm and start recommending opportunities to you.",
+        "ctaWhatsapp": "Open WhatsApp with the Chamber",
+        "ctaHome": "Back to home",
+        "whatsappPrefilled": "Hi, I'm {nombre} and I just registered on Ruta C. I want to confirm my profile."
+      },
+      "Errors": {
+        "minLength": "You need a little more information",
+        "maxLength": "You exceeded the maximum",
+        "invalidWhatsapp": "Invalid WhatsApp number",
+        "invalidNit": "Invalid NIT (9 to 15 digits, accepts dots and dash)",
+        "invalidEmail": "Invalid email. Check the format.",
+        "passwordMin8": "Password must be at least 8 characters",
+        "passwordNeedsUppercase": "Include an uppercase letter (A-Z)",
+        "passwordNeedsLowercase": "Include a lowercase letter (a-z)",
+        "passwordNeedsNumber": "Include a number (0-9)",
+        "passwordMismatch": "Passwords do not match",
+        "mustAccept": "You must accept the terms to continue"
+      }
+    }
+  }
+}

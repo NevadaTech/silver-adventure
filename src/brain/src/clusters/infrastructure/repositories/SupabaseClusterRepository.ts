@@ -105,6 +105,11 @@ export class SupabaseClusterRepository implements ClusterRepository {
     return count ?? 0
   }
 
+  async deleteByType(tipo: ClusterType): Promise<void> {
+    const { error } = await this.db.from(TABLE).delete().eq('tipo', tipo)
+    if (error) throw error
+  }
+
   private toEntity(row: ClusterRow): Cluster {
     if (!isClusterType(row.tipo)) {
       throw new Error(`Unknown cluster tipo from DB: ${row.tipo}`)

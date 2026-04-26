@@ -11,9 +11,11 @@ import { OnboardCompanyFromSignup } from '@/companies/application/use-cases/Onbo
 import { CompanyOnboardingController } from '@/companies/infrastructure/http/company-onboarding.controller'
 import { InMemoryCompanyRepository } from '@/companies/infrastructure/repositories/InMemoryCompanyRepository'
 import { AllianceMatcher } from '@/recommendations/application/services/AllianceMatcher'
+import { DynamicValueChainRules } from '@/recommendations/application/services/DynamicValueChainRules'
 import { FeatureVectorBuilder } from '@/recommendations/application/services/FeatureVectorBuilder'
 import { PeerMatcher } from '@/recommendations/application/services/PeerMatcher'
 import { ValueChainMatcher } from '@/recommendations/application/services/ValueChainMatcher'
+import { InMemoryCiiuGraphRepository } from '@/recommendations/infrastructure/repositories/InMemoryCiiuGraphRepository'
 import { InMemoryRecommendationRepository } from '@/recommendations/infrastructure/repositories/InMemoryRecommendationRepository'
 import type { LlmPort } from '@/shared/domain/LlmPort'
 
@@ -79,8 +81,14 @@ describe('CompanyOnboardingController', () => {
       membershipRepo,
       recRepo,
       new PeerMatcher(featureBuilder),
-      new ValueChainMatcher(),
-      new AllianceMatcher(),
+      new ValueChainMatcher(
+        new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+        false,
+      ),
+      new AllianceMatcher(
+        new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+        false,
+      ),
     )
     controller = new CompanyOnboardingController(onboard)
   })

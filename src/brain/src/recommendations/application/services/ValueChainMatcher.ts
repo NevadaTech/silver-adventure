@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { randomUUID } from 'node:crypto'
 import type { Company } from '@/companies/domain/entities/Company'
-import { VALUE_CHAIN_RULES } from '@/recommendations/application/services/ValueChainRules'
+import { DynamicValueChainRules } from '@/recommendations/application/services/DynamicValueChainRules'
+import { AI_DRIVEN_RULES_FLAG } from '@/recommendations/application/tokens'
 import { Recommendation } from '@/recommendations/domain/entities/Recommendation'
 import { Reasons } from '@/recommendations/domain/value-objects/Reason'
 
@@ -10,7 +11,14 @@ const DIFF_MUNICIPIO_FACTOR = 0.85
 
 @Injectable()
 export class ValueChainMatcher {
-  match(companies: Company[]): Map<string, Recommendation[]> {
+  constructor(
+    private readonly dynamicRules: DynamicValueChainRules,
+    @Inject(AI_DRIVEN_RULES_FLAG) private readonly aiEnabled: boolean,
+  ) {}
+
+  async match(companies: Company[]): Promise<Map<string, Recommendation[]>> {
+    const rules = await this.dynamicRules.getValueChainRules(this.aiEnabled)
+
     const byCiiu = new Map<string, Company[]>()
     for (const c of companies) {
       const arr = byCiiu.get(c.ciiu) ?? []
@@ -19,7 +27,7 @@ export class ValueChainMatcher {
     }
 
     const out = new Map<string, Recommendation[]>()
-    for (const rule of VALUE_CHAIN_RULES) {
+    for (const rule of rules) {
       const sources = byCiiu.get(rule.ciiuOrigen) ?? []
       const targets =
         rule.ciiuDestino === '*'

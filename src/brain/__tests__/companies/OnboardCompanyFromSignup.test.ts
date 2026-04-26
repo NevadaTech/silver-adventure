@@ -10,9 +10,11 @@ import { InMemoryCompanyRepository } from '@/companies/infrastructure/repositori
 import { ClassifyCompanyFromDescription } from '@/companies/application/use-cases/ClassifyCompanyFromDescription'
 import { OnboardCompanyFromSignup } from '@/companies/application/use-cases/OnboardCompanyFromSignup'
 import { AllianceMatcher } from '@/recommendations/application/services/AllianceMatcher'
+import { DynamicValueChainRules } from '@/recommendations/application/services/DynamicValueChainRules'
 import { FeatureVectorBuilder } from '@/recommendations/application/services/FeatureVectorBuilder'
 import { PeerMatcher } from '@/recommendations/application/services/PeerMatcher'
 import { ValueChainMatcher } from '@/recommendations/application/services/ValueChainMatcher'
+import { InMemoryCiiuGraphRepository } from '@/recommendations/infrastructure/repositories/InMemoryCiiuGraphRepository'
 import { InMemoryRecommendationRepository } from '@/recommendations/infrastructure/repositories/InMemoryRecommendationRepository'
 import type { LlmPort } from '@/shared/domain/LlmPort'
 
@@ -103,8 +105,14 @@ async function buildUseCase(
     f.membershipRepo,
     f.recRepo,
     new PeerMatcher(f.featureBuilder),
-    new ValueChainMatcher(),
-    new AllianceMatcher(),
+    new ValueChainMatcher(
+      new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+      false,
+    ),
+    new AllianceMatcher(
+      new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+      false,
+    ),
   )
   return { useCase, ...f }
 }
@@ -234,8 +242,14 @@ describe('OnboardCompanyFromSignup', () => {
       f.membershipRepo,
       f.recRepo,
       new PeerMatcher(f.featureBuilder),
-      new ValueChainMatcher(),
-      new AllianceMatcher(),
+      new ValueChainMatcher(
+        new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+        false,
+      ),
+      new AllianceMatcher(
+        new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+        false,
+      ),
     )
 
     const result = await useCase.execute({
@@ -282,8 +296,14 @@ describe('OnboardCompanyFromSignup', () => {
       f.membershipRepo,
       f.recRepo,
       new PeerMatcher(f.featureBuilder),
-      new ValueChainMatcher(),
-      new AllianceMatcher(),
+      new ValueChainMatcher(
+        new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+        false,
+      ),
+      new AllianceMatcher(
+        new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+        false,
+      ),
     )
 
     const result = await useCase.execute({

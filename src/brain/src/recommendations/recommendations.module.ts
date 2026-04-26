@@ -1,6 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common'
 import { CiiuTaxonomyModule } from '@/ciiu-taxonomy/ciiu-taxonomy.module'
 import { CompaniesModule } from '@/companies/companies.module'
+import { DynamicValueChainRules } from './application/services/DynamicValueChainRules'
 import { AiMatchEngine } from './application/services/AiMatchEngine'
 import { AllianceMatcher } from './application/services/AllianceMatcher'
 import { CandidateSelector } from './application/services/CandidateSelector'
@@ -13,10 +14,14 @@ import { GenerateRecommendations } from './application/use-cases/GenerateRecomme
 import { GetCompanyRecommendations } from './application/use-cases/GetCompanyRecommendations'
 import { GetGroupedCompanyRecommendations } from './application/use-cases/GetGroupedCompanyRecommendations'
 import { AI_MATCH_CACHE_REPOSITORY } from './domain/repositories/AiMatchCacheRepository'
+import { CIIU_GRAPH_PORT } from './domain/ports/CiiuGraphPort'
+import { AI_DRIVEN_RULES_FLAG } from './application/tokens'
+import { env } from '@/shared/infrastructure/env'
 import { RECOMMENDATION_REPOSITORY } from './domain/repositories/RecommendationRepository'
 import { CompanyRecommendationsController } from './infrastructure/http/company-recommendations.controller'
 import { RecommendationsController } from './infrastructure/http/recommendations.controller'
 import { SupabaseAiMatchCacheRepository } from './infrastructure/repositories/SupabaseAiMatchCacheRepository'
+import { SupabaseCiiuGraphRepository } from './infrastructure/repositories/SupabaseCiiuGraphRepository'
 import { SupabaseRecommendationRepository } from './infrastructure/repositories/SupabaseRecommendationRepository'
 
 @Module({
@@ -31,6 +36,15 @@ import { SupabaseRecommendationRepository } from './infrastructure/repositories/
       provide: AI_MATCH_CACHE_REPOSITORY,
       useClass: SupabaseAiMatchCacheRepository,
     },
+    {
+      provide: CIIU_GRAPH_PORT,
+      useClass: SupabaseCiiuGraphRepository,
+    },
+    {
+      provide: AI_DRIVEN_RULES_FLAG,
+      useFactory: () => env.AI_DRIVEN_RULES_ENABLED === 'true',
+    },
+    DynamicValueChainRules,
     AiMatchEngine,
     AllianceMatcher,
     CandidateSelector,
@@ -46,6 +60,8 @@ import { SupabaseRecommendationRepository } from './infrastructure/repositories/
   exports: [
     RECOMMENDATION_REPOSITORY,
     AI_MATCH_CACHE_REPOSITORY,
+    CIIU_GRAPH_PORT,
+    AI_DRIVEN_RULES_FLAG,
     PeerMatcher,
     ValueChainMatcher,
     AllianceMatcher,

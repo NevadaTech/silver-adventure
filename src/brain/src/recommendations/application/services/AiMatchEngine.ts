@@ -14,6 +14,7 @@ import {
 } from '@/recommendations/application/services/ValueChainRules'
 import { LLM_PORT } from '@/shared/shared.module'
 import type { LlmPort } from '@/shared/domain/LlmPort'
+import { env } from '@/shared/infrastructure/env'
 
 export interface InferredMatch {
   hasMatch: boolean
@@ -170,6 +171,7 @@ Responde SOLO con JSON, sin explicaciones adicionales, sin markdown:
         relationType: result.hasMatch ? result.relationType : null,
         confidence: result.hasMatch ? result.confidence : null,
         reason: result.reason || null,
+        modelVersion: env.GEMINI_CHAT_MODEL,
       }),
     )
   }

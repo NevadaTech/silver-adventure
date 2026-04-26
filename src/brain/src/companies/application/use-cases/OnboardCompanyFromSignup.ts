@@ -168,8 +168,8 @@ export class OnboardCompanyFromSignup implements UseCase<
     if (activeUniverse.length <= 1) return []
 
     const peerRecs = this.peer.match(activeUniverse, { topN: 20 })
-    const valueChainRecs = this.valueChain.match(activeUniverse)
-    const allianceRecs = this.alliance.match(activeUniverse)
+    const valueChainRecs = await this.valueChain.match(activeUniverse)
+    const allianceRecs = await this.alliance.match(activeUniverse)
 
     const fromNew = mergeFromSource(newCompany.id, [
       peerRecs,

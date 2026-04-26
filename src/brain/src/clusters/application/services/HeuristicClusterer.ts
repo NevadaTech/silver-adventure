@@ -27,7 +27,7 @@ export class HeuristicClusterer {
 
     const divGroups = groupBy(
       companies,
-      (c) => `${c.ciiuDivision}|${c.municipio}`,
+      (c) => `${c.ciiuDivision}|${slug(c.municipio)}`,
     )
     const eligibleDivisions = new Set<string>()
     for (const [key, members] of divGroups) {
@@ -39,17 +39,18 @@ export class HeuristicClusterer {
 
     for (const [key, members] of divGroups) {
       if (members.length < HeuristicClusterer.MIN_DIVISION_SIZE) continue
-      const [div, mun] = key.split('|')
+      const [div, munSlug] = key.split('|')
+      const munDisplay = members[0].municipio
       const titulo = divisionTitles.get(div) ?? `División ${div}`
       out.push({
         cluster: Cluster.create({
-          id: `div-${div}-${slug(mun)}`,
-          codigo: `${div}-${slug(mun)}`,
-          titulo: `${titulo} en ${mun}`,
-          descripcion: `Empresas con CIIU división ${div} ubicadas en ${mun}`,
+          id: `div-${div}-${munSlug}`,
+          codigo: `${div}-${munSlug}`,
+          titulo: `${titulo} en ${munDisplay}`,
+          descripcion: `Empresas con CIIU división ${div} ubicadas en ${munDisplay}`,
           tipo: 'heuristic-division',
           ciiuDivision: div,
-          municipio: mun,
+          municipio: munDisplay,
           memberCount: members.length,
         }),
         members,
@@ -58,7 +59,7 @@ export class HeuristicClusterer {
 
     const grpGroups = groupBy(
       companies,
-      (c) => `${c.ciiuGrupo}|${c.ciiuDivision}|${c.municipio}`,
+      (c) => `${c.ciiuGrupo}|${c.ciiuDivision}|${slug(c.municipio)}`,
     )
     const eligibleGrupos = new Set<string>()
     for (const [key, members] of grpGroups) {
@@ -70,18 +71,19 @@ export class HeuristicClusterer {
 
     for (const [key, members] of grpGroups) {
       if (members.length < HeuristicClusterer.MIN_GRUPO_SIZE) continue
-      const [grp, div, mun] = key.split('|')
+      const [grp, div, munSlug] = key.split('|')
+      const munDisplay = members[0].municipio
       const titulo = grupoTitles.get(grp) ?? `Grupo ${grp}`
       out.push({
         cluster: Cluster.create({
-          id: `grp-${grp}-${slug(mun)}`,
-          codigo: `${grp}-${slug(mun)}`,
-          titulo: `${titulo} en ${mun}`,
-          descripcion: `Empresas con CIIU grupo ${grp} ubicadas en ${mun}`,
+          id: `grp-${grp}-${munSlug}`,
+          codigo: `${grp}-${munSlug}`,
+          titulo: `${titulo} en ${munDisplay}`,
+          descripcion: `Empresas con CIIU grupo ${grp} ubicadas en ${munDisplay}`,
           tipo: 'heuristic-grupo',
           ciiuDivision: div,
           ciiuGrupo: grp,
-          municipio: mun,
+          municipio: munDisplay,
           memberCount: members.length,
         }),
         members,

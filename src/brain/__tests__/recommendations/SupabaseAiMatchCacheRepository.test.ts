@@ -42,6 +42,7 @@ const validRow = {
   confidence: 0.85,
   reason: 'Banano hacia mayoristas',
   cached_at: '2026-04-25T12:00:00Z',
+  model_version: 'gemini-2.5-flash',
 }
 
 describe('SupabaseAiMatchCacheRepository', () => {
@@ -65,6 +66,16 @@ describe('SupabaseAiMatchCacheRepository', () => {
       expect(entry).toBeInstanceOf(AiMatchCacheEntry)
       expect(entry!.relationType).toBe('cliente')
       expect(entry!.confidence).toBe(0.85)
+      expect(entry!.modelVersion).toBe('gemini-2.5-flash')
+    })
+
+    it('returns entry with null modelVersion for legacy rows', async () => {
+      fake.setNext({
+        data: { ...validRow, model_version: null },
+        error: null,
+      })
+      const entry = await repo.get('0122', '4631')
+      expect(entry!.modelVersion).toBeNull()
     })
 
     it('returns null when no row', async () => {
@@ -109,8 +120,27 @@ describe('SupabaseAiMatchCacheRepository', () => {
           has_match: true,
           relation_type: 'cliente',
           confidence: 0.85,
+          model_version: null,
         }),
         { onConflict: 'ciiu_origen,ciiu_destino' },
+      )
+    })
+
+    it('includes model_version in the upserted row when set', async () => {
+      fake.setNext({ data: null, error: null })
+      const entry = AiMatchCacheEntry.create({
+        ciiuOrigen: '0122',
+        ciiuDestino: '4631',
+        hasMatch: true,
+        relationType: 'cliente',
+        confidence: 0.85,
+        reason: 'r',
+        modelVersion: 'gemini-2.5-flash',
+      })
+      await repo.put(entry)
+      expect(fake.spies.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({ model_version: 'gemini-2.5-flash' }),
+        expect.anything(),
       )
     })
 

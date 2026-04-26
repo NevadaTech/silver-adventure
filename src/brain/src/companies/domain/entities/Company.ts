@@ -75,7 +75,7 @@ export class Company extends Entity<string> {
       ciiuSeccion: seccion,
       ciiuDivision: division,
       ciiuGrupo: grupo,
-      municipio: data.municipio,
+      municipio: data.municipio.trim().toUpperCase(),
       tipoOrganizacion: data.tipoOrganizacion ?? null,
       personal,
       ingresoOperacion: ingreso,

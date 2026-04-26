@@ -3,6 +3,7 @@ export const CLUSTER_TYPES = [
   'heuristic-division',
   'heuristic-grupo',
   'heuristic-municipio',
+  'heuristic-ecosistema',
 ] as const
 
 export type ClusterType = (typeof CLUSTER_TYPES)[number]

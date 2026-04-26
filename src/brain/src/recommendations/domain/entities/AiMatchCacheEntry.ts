@@ -8,6 +8,7 @@ interface AiMatchCacheEntryProps {
   confidence: number | null
   reason: string | null
   cachedAt: Date
+  modelVersion: string | null
 }
 
 export interface CreateAiMatchCacheEntryInput {
@@ -18,6 +19,7 @@ export interface CreateAiMatchCacheEntryInput {
   confidence?: number | null
   reason?: string | null
   cachedAt?: Date
+  modelVersion?: string | null
 }
 
 export class AiMatchCacheEntry {
@@ -57,6 +59,7 @@ export class AiMatchCacheEntry {
       confidence: data.confidence ?? null,
       reason: data.reason ?? null,
       cachedAt: data.cachedAt ?? new Date(),
+      modelVersion: data.modelVersion ?? null,
     })
   }
 
@@ -80,6 +83,10 @@ export class AiMatchCacheEntry {
   }
   get cachedAt(): Date {
     return this.props.cachedAt
+  }
+
+  get modelVersion(): string | null {
+    return this.props.modelVersion
   }
 
   get key(): string {

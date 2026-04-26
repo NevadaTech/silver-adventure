@@ -92,11 +92,11 @@ export class GenerateRecommendations implements UseCase<
         this.logger.error(
           `AI orchestration failed: ${message} — falling back to hardcoded matchers`,
         )
-        recsBySource = this.runFallback(companies)
+        recsBySource = await this.runFallback(companies)
       }
     } else {
       this.logger.log('AI disabled — using hardcoded matchers')
-      recsBySource = this.runFallback(companies)
+      recsBySource = await this.runFallback(companies)
     }
 
     const limited = this.limit(this.dedupe(recsBySource))
@@ -186,11 +186,13 @@ export class GenerateRecommendations implements UseCase<
     return out
   }
 
-  private runFallback(companies: Company[]): Map<string, Recommendation[]> {
+  private async runFallback(
+    companies: Company[],
+  ): Promise<Map<string, Recommendation[]>> {
     const out = new Map<string, Recommendation[]>()
     mergeInto(out, this.peer.match(companies, { topN: TOP_PER_TYPE }))
-    mergeInto(out, this.valueChain.match(companies))
-    mergeInto(out, this.alliance.match(companies))
+    mergeInto(out, await this.valueChain.match(companies))
+    mergeInto(out, await this.alliance.match(companies))
     return out
   }
 

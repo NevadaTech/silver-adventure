@@ -249,6 +249,29 @@ describe('SupabaseClusterRepository', () => {
     })
   })
 
+  describe('deleteByType', () => {
+    it('issues a DELETE with .eq("tipo", tipo)', async () => {
+      const deleteSpy = vi
+        .fn()
+        .mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) })
+      fake.spies.from.mockReturnValueOnce({ delete: deleteSpy })
+      await repo.deleteByType('heuristic-ecosistema')
+      expect(deleteSpy).toHaveBeenCalledTimes(1)
+      const eqSpy = deleteSpy.mock.results[0].value.eq
+      expect(eqSpy).toHaveBeenCalledWith('tipo', 'heuristic-ecosistema')
+    })
+
+    it('throws when supabase returns error', async () => {
+      const deleteSpy = vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ error: new Error('delete failed') }),
+      })
+      fake.spies.from.mockReturnValueOnce({ delete: deleteSpy })
+      await expect(repo.deleteByType('heuristic-ecosistema')).rejects.toThrow(
+        /delete failed/,
+      )
+    })
+  })
+
   describe('count', () => {
     it('returns the count from the head request', async () => {
       fake.setNext({ data: null, error: null, count: 42 })

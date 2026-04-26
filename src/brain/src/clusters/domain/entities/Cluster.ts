@@ -90,6 +90,30 @@ export class Cluster extends Entity<string> {
       )
     }
 
+    if (data.tipo === 'heuristic-ecosistema') {
+      if (!municipio) {
+        throw new Error(
+          "Cluster of type 'heuristic-ecosistema' requires municipio",
+        )
+      }
+      if (ciiuDivision !== null) {
+        throw new Error(
+          "Cluster of type 'heuristic-ecosistema' requires ciiuDivision to be null",
+        )
+      }
+      if (ciiuGrupo !== null) {
+        throw new Error(
+          "Cluster of type 'heuristic-ecosistema' requires ciiuGrupo to be null",
+        )
+      }
+      const ecoIdPattern = /^eco-[0-9a-f]{8}-[a-z0-9-]+$/
+      if (!ecoIdPattern.test(id)) {
+        throw new Error(
+          `Cluster 'heuristic-ecosistema' id must match eco pattern: eco-{8hex}-{slug}, got '${id}'`,
+        )
+      }
+    }
+
     return new Cluster(id, {
       codigo,
       titulo,

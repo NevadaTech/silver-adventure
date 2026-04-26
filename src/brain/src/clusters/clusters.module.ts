@@ -1,5 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common'
 import { CompaniesModule } from '@/companies/companies.module'
+import { RecommendationsModule } from '@/recommendations/recommendations.module'
+import { EcosystemDiscoverer } from './application/services/EcosystemDiscoverer'
 import { ExplainCluster } from './application/use-cases/ExplainCluster'
 import { GenerateClusters } from './application/use-cases/GenerateClusters'
 import { GetCompanyClusters } from './application/use-cases/GetCompanyClusters'
@@ -16,7 +18,11 @@ import { SupabaseClusterRepository } from './infrastructure/repositories/Supabas
 import { CiiuTaxonomyModule } from '@/ciiu-taxonomy/ciiu-taxonomy.module'
 
 @Module({
-  imports: [CiiuTaxonomyModule, forwardRef(() => CompaniesModule)],
+  imports: [
+    CiiuTaxonomyModule,
+    forwardRef(() => CompaniesModule),
+    RecommendationsModule,
+  ],
   controllers: [ClustersController, CompanyClustersController],
   providers: [
     {
@@ -31,6 +37,7 @@ import { CiiuTaxonomyModule } from '@/ciiu-taxonomy/ciiu-taxonomy.module'
       provide: CLUSTER_CIIU_MAPPING_REPOSITORY,
       useClass: SupabaseClusterCiiuMappingRepository,
     },
+    EcosystemDiscoverer,
     HeuristicClusterer,
     PredefinedClusterMatcher,
     GenerateClusters,

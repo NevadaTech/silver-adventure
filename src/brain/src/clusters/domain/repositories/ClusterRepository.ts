@@ -20,4 +20,9 @@ export interface ClusterRepository {
   saveMany(clusters: Cluster[]): Promise<void>
   updateDescripcion(id: string, descripcion: string): Promise<void>
   count(): Promise<number>
+  /**
+   * Deletes all clusters of the given tipo. Used to clean up
+   * heuristic-ecosistema clusters before regenerating them.
+   */
+  deleteByType(tipo: ClusterType): Promise<void>
 }

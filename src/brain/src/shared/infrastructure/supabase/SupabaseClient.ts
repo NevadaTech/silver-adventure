@@ -1,4 +1,4 @@
-import { Provider } from '@nestjs/common'
+import type { Provider } from '@nestjs/common'
 import { PostgrestClient } from '@supabase/postgrest-js'
 import { env } from '@/shared/infrastructure/env'
 import type { Database } from './database.types'

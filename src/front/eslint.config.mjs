@@ -25,6 +25,22 @@ const eslintConfig = defineConfig([
   {
     rules: {
       'no-console': 'error',
+      // Force `import type` for type-only symbols. Aligns with brain workspace
+      // (which needs it for Bun-run scripts) and prepares the front for any
+      // future strict-mode bundlers.
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'separate-type-imports' },
+      ],
+      // Honour the `_`-prefix convention for intentionally unused symbols.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
     },
   },
   // Override default ignores of eslint-config-next.

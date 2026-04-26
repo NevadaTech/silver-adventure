@@ -1,5 +1,5 @@
-import { CiiuActivity } from '@/ciiu-taxonomy/domain/entities/CiiuActivity'
-import { CiiuTaxonomyRepository } from '@/ciiu-taxonomy/domain/repositories/CiiuTaxonomyRepository'
+import type { CiiuActivity } from '@/ciiu-taxonomy/domain/entities/CiiuActivity'
+import type { CiiuTaxonomyRepository } from '@/ciiu-taxonomy/domain/repositories/CiiuTaxonomyRepository'
 
 export class InMemoryCiiuTaxonomyRepository implements CiiuTaxonomyRepository {
   private store = new Map<string, CiiuActivity>()

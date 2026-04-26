@@ -1,10 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { CiiuActivity } from '@/ciiu-taxonomy/domain/entities/CiiuActivity'
-import {
-  CIIU_TAXONOMY_REPOSITORY,
-  CiiuTaxonomyRepository,
-} from '@/ciiu-taxonomy/domain/repositories/CiiuTaxonomyRepository'
-import { UseCase } from '@/shared/domain/UseCase'
+import type { CiiuActivity } from '@/ciiu-taxonomy/domain/entities/CiiuActivity'
+import type { CiiuTaxonomyRepository } from '@/ciiu-taxonomy/domain/repositories/CiiuTaxonomyRepository'
+import { CIIU_TAXONOMY_REPOSITORY } from '@/ciiu-taxonomy/domain/repositories/CiiuTaxonomyRepository'
+import type { UseCase } from '@/shared/domain/UseCase'
 
 interface FindCiiuByCodeInput {
   code: string

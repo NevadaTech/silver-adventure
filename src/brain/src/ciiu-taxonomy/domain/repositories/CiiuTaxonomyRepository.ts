@@ -1,4 +1,4 @@
-import { CiiuActivity } from '@/ciiu-taxonomy/domain/entities/CiiuActivity'
+import type { CiiuActivity } from '@/ciiu-taxonomy/domain/entities/CiiuActivity'
 
 export const CIIU_TAXONOMY_REPOSITORY = Symbol('CIIU_TAXONOMY_REPOSITORY')
 

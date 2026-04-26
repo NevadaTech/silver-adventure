@@ -25,23 +25,17 @@ export function Field({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label
-        htmlFor={id}
-        className="text-text flex items-baseline justify-between gap-2 text-sm font-semibold"
-      >
-        <span>
-          {label}
-          {required ? <span className="text-error ml-1">*</span> : null}
-        </span>
-        {hint ? (
-          <span className="text-text-muted text-xs font-normal">{hint}</span>
-        ) : null}
+      <label htmlFor={id} className="text-text text-sm font-semibold">
+        {label}
+        {required ? <span className="text-error ml-1">*</span> : null}
       </label>
       {children(id, hasError)}
       {error ? (
         <p className="text-error text-xs font-medium" role="alert">
           {error}
         </p>
+      ) : hint ? (
+        <p className="text-text-muted text-xs">{hint}</p>
       ) : null}
     </div>
   )

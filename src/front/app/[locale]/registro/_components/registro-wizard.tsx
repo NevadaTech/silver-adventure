@@ -1,15 +1,21 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { ArrowLeft, ArrowRight, Loader2, Send } from 'lucide-react'
+import { useEffect, useState, useTransition } from 'react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Loader2,
+  Send,
+} from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import type { z } from 'zod'
 
-import { RegistroProgress } from './registro-progress'
+import { useRouter } from '@/i18n/navigation'
+
 import { RegistroStepBusiness } from './registro-step-business'
 import { RegistroStepConfirm } from './registro-step-confirm'
 import { RegistroStepContact } from './registro-step-contact'
-import { RegistroSuccess } from './registro-success'
 import {
   businessStepSchema,
   confirmStepSchema,
@@ -17,6 +23,9 @@ import {
   emptyRegistroData,
 } from './schema'
 import type { RegistroDataPartial } from './schema'
+
+const REDIRECT_DELAY_MS = 1500
+const REDIRECT_TARGET = '/app/recomendaciones'
 
 type Step = 1 | 2 | 3
 type StepErrors = Record<string, string>
@@ -27,22 +36,31 @@ const stepSchemas: Record<Step, z.ZodTypeAny> = {
   3: confirmStepSchema,
 }
 
-export function RegistroWizard() {
-  const t = useTranslations('Landing.Registro')
-  const tSteps = useTranslations('Landing.Registro.Steps')
-  const tConfirm = useTranslations('Landing.Registro.Confirm')
+type Props = {
+  step?: Step
+  onStepChange?: (next: Step) => void
+}
 
-  const [step, setStep] = useState<Step>(1)
+export function RegistroWizard({ step: stepProp, onStepChange }: Props = {}) {
+  const t = useTranslations('Landing.Registro')
+  const tConfirm = useTranslations('Landing.Registro.Confirm')
+  const tSuccess = useTranslations('Landing.Registro.Success')
+  const router = useRouter()
+
+  // Patrón controlled/uncontrolled: si el padre pasa `step`, esa es la fuente
+  // de verdad y `internalStep` queda dormido. Si no, gestionamos el paso aquí.
+  const [internalStep, setInternalStep] = useState<Step>(1)
+  const step = stepProp ?? internalStep
+
+  const setStep = (next: Step) => {
+    if (stepProp == null) setInternalStep(next)
+    onStepChange?.(next)
+  }
+
   const [data, setData] = useState<RegistroDataPartial>(emptyRegistroData)
   const [errors, setErrors] = useState<StepErrors>({})
   const [submitted, setSubmitted] = useState(false)
   const [isPending, startTransition] = useTransition()
-
-  const labels: readonly [string, string, string] = [
-    tSteps('business'),
-    tSteps('contact'),
-    tSteps('confirm'),
-  ]
 
   function patchData(patch: RegistroDataPartial) {
     setData((prev) => ({ ...prev, ...patch }))
@@ -73,12 +91,12 @@ export function RegistroWizard() {
 
   function handleNext() {
     if (!validateCurrentStep()) return
-    setStep((prev) => (prev < 3 ? ((prev + 1) as Step) : prev))
+    if (step < 3) setStep((step + 1) as Step)
   }
 
   function handleBack() {
     setErrors({})
-    setStep((prev) => (prev > 1 ? ((prev - 1) as Step) : prev))
+    if (step > 1) setStep((step - 1) as Step)
   }
 
   function handleSubmit() {
@@ -90,85 +108,98 @@ export function RegistroWizard() {
     })
   }
 
+  useEffect(() => {
+    if (!submitted) return
+    const timeoutId = setTimeout(() => {
+      router.push(REDIRECT_TARGET)
+    }, REDIRECT_DELAY_MS)
+    return () => clearTimeout(timeoutId)
+  }, [submitted, router])
+
   if (submitted) {
-    return <RegistroSuccess data={data} />
+    return (
+      <div className="bg-surface border-border-soft animate-fade-up rounded-2xl border p-8 text-center shadow-[0_8px_32px_rgba(0,172,193,0.08)] sm:p-10">
+        <div className="bg-primary-soft/40 text-primary mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full">
+          <CheckCircle2 className="h-9 w-9" strokeWidth={2.4} />
+        </div>
+        <h2 className="font-display text-text mb-2 text-2xl font-bold">
+          {tSuccess('title')}
+        </h2>
+        <p className="text-text-secondary mb-6 text-sm">
+          {tSuccess('redirecting')}
+        </p>
+        <Loader2 className="text-secondary mx-auto h-5 w-5 animate-spin" />
+      </div>
+    )
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <RegistroProgress currentStep={step} labels={labels} />
+    <div
+      key={step}
+      className="bg-surface border-border-soft animate-fade-up rounded-2xl border p-6 shadow-[0_8px_32px_rgba(0,172,193,0.08)] sm:p-8"
+    >
+      {step === 1 ? (
+        <RegistroStepBusiness
+          data={data}
+          errors={errors}
+          onChange={patchData}
+        />
+      ) : null}
+      {step === 2 ? (
+        <RegistroStepContact data={data} errors={errors} onChange={patchData} />
+      ) : null}
+      {step === 3 ? (
+        <RegistroStepConfirm
+          data={data}
+          errors={errors}
+          onChange={patchData}
+          onEdit={(target) => {
+            setErrors({})
+            setStep(target)
+          }}
+        />
+      ) : null}
 
-      <div
-        key={step}
-        className="bg-surface border-border-soft rounded-3xl border p-6 shadow-sm sm:p-10"
-      >
-        {step === 1 ? (
-          <RegistroStepBusiness
-            data={data}
-            errors={errors}
-            onChange={patchData}
-          />
-        ) : null}
-        {step === 2 ? (
-          <RegistroStepContact
-            data={data}
-            errors={errors}
-            onChange={patchData}
-          />
-        ) : null}
-        {step === 3 ? (
-          <RegistroStepConfirm
-            data={data}
-            errors={errors}
-            onChange={patchData}
-            onEdit={(target) => {
-              setErrors({})
-              setStep(target)
-            }}
-          />
-        ) : null}
+      <div className="border-border-soft mt-8 flex flex-col-reverse items-center justify-between gap-3 border-t pt-6 sm:flex-row">
+        <button
+          type="button"
+          onClick={handleBack}
+          disabled={step === 1 || isPending}
+          className="text-text-secondary hover:text-text inline-flex min-h-[48px] items-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t('back')}
+        </button>
 
-        <div className="border-border-soft mt-8 flex flex-col-reverse items-center justify-between gap-3 border-t pt-6 sm:flex-row">
+        {step < 3 ? (
           <button
             type="button"
-            onClick={handleBack}
-            disabled={step === 1 || isPending}
-            className="text-text-secondary hover:text-text inline-flex min-h-[48px] items-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+            onClick={handleNext}
+            className="bg-secondary text-secondary-text hover:bg-secondary-hover inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl px-8 font-semibold shadow-lg shadow-cyan-500/20 transition-all hover:shadow-xl active:scale-95 sm:w-auto"
           >
-            <ArrowLeft className="h-4 w-4" />
-            {t('back')}
+            {t('next')}
+            <ArrowRight className="h-4 w-4" />
           </button>
-
-          {step < 3 ? (
-            <button
-              type="button"
-              onClick={handleNext}
-              className="bg-primary text-primary-text hover:bg-primary-hover inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl px-8 font-semibold shadow-lg shadow-black/5 transition-all hover:shadow-xl active:scale-95 sm:w-auto"
-            >
-              {t('next')}
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isPending}
-              className="bg-accent text-accent-text hover:bg-accent-hover inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl px-8 font-bold shadow-xl shadow-black/10 transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100 sm:w-auto"
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {tConfirm('sending')}
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4" />
-                  {tConfirm('cta')}
-                </>
-              )}
-            </button>
-          )}
-        </div>
+        ) : (
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isPending}
+            className="bg-secondary text-secondary-text hover:bg-secondary-hover inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl px-8 font-bold shadow-lg shadow-cyan-500/30 transition-all hover:shadow-xl active:scale-95 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100 sm:w-auto"
+          >
+            {isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {tConfirm('sending')}
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4" />
+                {tConfirm('cta')}
+              </>
+            )}
+          </button>
+        )}
       </div>
     </div>
   )

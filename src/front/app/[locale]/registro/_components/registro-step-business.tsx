@@ -71,7 +71,7 @@ export function RegistroStepBusiness({ data, errors, onChange }: Props) {
   return (
     <div className="animate-fade-up flex flex-col gap-5">
       <header className="mb-2">
-        <span className="text-secondary text-xs font-bold uppercase tracking-wider">
+        <span className="text-secondary text-xs font-bold tracking-wider uppercase">
           {t('eyebrow')}
         </span>
         <h2 className="font-display text-text mt-1 text-2xl font-bold sm:text-3xl">
@@ -152,7 +152,7 @@ export function RegistroStepBusiness({ data, errors, onChange }: Props) {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-5 sm:grid-cols-2">
         <Field
           label={tFields('sector.label')}
           error={errors.sector ? tErrors(errors.sector) : undefined}

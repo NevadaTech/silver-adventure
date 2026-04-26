@@ -1,5 +1,7 @@
 import { useTranslations } from 'next-intl'
 
+import { Imagotipo } from '@/core/shared/infrastructure/brand/Imagotipo'
+
 export function LandingFooter() {
   const t = useTranslations('Landing.Footer')
 
@@ -9,9 +11,12 @@ export function LandingFooter() {
       className="border-border-soft bg-bg-secondary text-text-secondary border-t px-6 py-12"
     >
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-5 text-center">
-        <span className="font-display text-text text-lg font-extrabold">
-          Ruta C <span className="text-secondary">Conecta</span>
-        </span>
+        <div className="flex flex-col items-center gap-2">
+          <Imagotipo className="text-primary h-7 w-auto" />
+          <span className="font-display text-text text-lg font-extrabold">
+            Ruta C <span className="text-secondary">Conecta</span>
+          </span>
+        </div>
 
         <nav
           aria-label="Enlaces legales"

@@ -5,6 +5,7 @@ import {
   CLUSTER_TYPES,
   type ClusterType,
 } from '@/clusters/domain/value-objects/ClusterType'
+import { isEtapa, type Etapa } from '@/companies/domain/value-objects/Etapa'
 import { SUPABASE_CLIENT } from '@/shared/infrastructure/supabase/SupabaseClient'
 import type { BrainSupabaseClient } from '@/shared/infrastructure/supabase/SupabaseClient'
 
@@ -20,6 +21,7 @@ interface ClusterRow {
   ciiu_division: string | null
   ciiu_grupo: string | null
   municipio: string | null
+  etapa: string | null
   macro_sector: string | null
   member_count: number
 }
@@ -109,6 +111,8 @@ export class SupabaseClusterRepository implements ClusterRepository {
     if (!isClusterType(row.tipo)) {
       throw new Error(`Unknown cluster tipo from DB: ${row.tipo}`)
     }
+    const etapa: Etapa | null =
+      row.etapa && isEtapa(row.etapa) ? row.etapa : null
     return Cluster.create({
       id: row.id,
       codigo: row.codigo,
@@ -118,6 +122,7 @@ export class SupabaseClusterRepository implements ClusterRepository {
       ciiuDivision: row.ciiu_division,
       ciiuGrupo: row.ciiu_grupo,
       municipio: row.municipio,
+      etapa,
       macroSector: row.macro_sector,
       memberCount: row.member_count,
     })
@@ -133,6 +138,7 @@ export class SupabaseClusterRepository implements ClusterRepository {
       ciiu_division: c.ciiuDivision,
       ciiu_grupo: c.ciiuGrupo,
       municipio: c.municipio,
+      etapa: c.etapa,
       macro_sector: c.macroSector,
       member_count: c.memberCount,
     }

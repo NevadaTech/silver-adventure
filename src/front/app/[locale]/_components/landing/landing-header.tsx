@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 
+import { Imagotipo } from '@/core/shared/infrastructure/brand/Imagotipo'
 import { ThemeToggle } from '@/core/shared/infrastructure/theme/ThemeToggle'
 
 export function LandingHeader() {
@@ -11,12 +12,13 @@ export function LandingHeader() {
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6">
         <Link
           href="/"
-          className="flex items-center gap-2"
+          className="flex items-center gap-3"
           aria-label={t('logoLabel')}
         >
-          <span className="bg-primary text-primary-text font-display grid h-9 w-9 place-items-center rounded-lg text-sm font-extrabold shadow-sm">
-            C
-          </span>
+          <Imagotipo
+            title={t('logoLabel')}
+            className="text-primary h-8 w-auto"
+          />
           <span className="font-display text-text text-lg font-extrabold tracking-tight">
             Ruta C <span className="text-secondary">Conecta</span>
           </span>

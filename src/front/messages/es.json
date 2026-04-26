@@ -429,7 +429,8 @@
           "guardar": "Guardar",
           "guardada": "Guardada",
           "descartar": "Descartar",
-          "descartada": "Descartada"
+          "descartada": "Descartada",
+          "errorPersistencia": "No pudimos guardar la acción. Reintenta en unos segundos."
         },
         "whatsappPrefilledTemplate": "Hola {nombre}, te contacto desde Hotel Brisas Marinas. Vi tu perfil en Ruta C Conecta y me interesa conectar contigo."
       }
@@ -437,6 +438,15 @@
     "MiCluster": {
       "eyebrow": "Tu clúster",
       "etapaLabel": "Etapa",
+      "empty": {
+        "title": "Aún no perteneces a un clúster",
+        "description": "Necesitamos al menos 5 empresas similares en tu zona para abrir un clúster. Vuelve más tarde — el conector trabaja todo el día.",
+        "noCompanyDescription": "Estamos clasificando tu negocio. En unos minutos verás aquí tu clúster y los miembros más cercanos."
+      },
+      "errorState": {
+        "title": "No pudimos cargar tu clúster",
+        "description": "Reintenta en unos segundos. Si el problema persiste, escríbenos por WhatsApp."
+      },
       "stats": {
         "members": "Miembros del clúster",
         "activeConnections": "Conexiones activas",
@@ -478,6 +488,10 @@
         "ctaPrimary": "Ver recomendación",
         "ctaSecondary": "Más tarde"
       },
+      "heroEmpty": {
+        "title": "Aún no tenemos un match para mostrarte",
+        "description": "El Conector sigue trabajando — vuelve en unos minutos."
+      },
       "kpi": {
         "newRecos": "Recomendaciones nuevas",
         "activeConnections": "Conexiones activas",
@@ -488,12 +502,16 @@
       "activity": {
         "title": "Actividad reciente del Conector",
         "subtitle": "Lo que el agente ha hecho por tu negocio hoy.",
-        "viewAll": "Ver historial completo (próximamente)"
+        "viewAll": "Ver historial completo (próximamente)",
+        "emptyState": "Aún no hay movimientos. El agente está explorando tu red.",
+        "noCompany": "Estamos clasificando tu negocio. Pronto verás aquí lo que hace el conector.",
+        "errorState": "No pudimos cargar la actividad reciente."
       },
       "miniCluster": {
         "title": "Tu clúster",
         "viewAll": "Ver clúster completo",
-        "plusNTemplate": "+{count}"
+        "plusNTemplate": "+{count}",
+        "emptyState": "Aún no perteneces a un clúster. Vuelve más tarde."
       },
       "actions": {
         "recomendaciones": "Ver todas las recomendaciones",
@@ -508,6 +526,7 @@
       "title": "Mis conexiones",
       "subtitleTemplate": "{count, plural, one {# negocio en tu red} other {# negocios en tu red}}",
       "emptyState": "No tienes conexiones en este estado todavía.",
+      "errorState": "No pudimos cargar tus conexiones. Reintenta en unos segundos.",
       "lastInteractionLabel": "Última interacción",
       "conectorSuggests": "El Conector sugiere",
       "whatsappPrefilledTemplate": "Hola {nombre}, te escribo desde Hotel Brisas Marinas. Sigamos avanzando con lo que conversamos.",

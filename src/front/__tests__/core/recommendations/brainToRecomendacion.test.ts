@@ -95,6 +95,25 @@ describe('mapBrainViewToRecomendacion', () => {
     const b = mapBrainViewToRecomendacion(view())!
     expect(a.target.avatarColor).toBe(b.target.avatarColor)
   })
+
+  it('falls back to "CIIU {seccion}{ciiu}" when ciiuTitulo is missing', () => {
+    const result = mapBrainViewToRecomendacion(view())!
+    expect(result.target.sector).toBe('CIIU S9601')
+  })
+
+  it('uses the human-readable name with the code in parentheses when ciiuTitulo is provided', () => {
+    const result = mapBrainViewToRecomendacion(
+      view({
+        targetCompany: {
+          ...targetCompany,
+          ciiuTitulo: 'Lavado y limpieza de prendas de vestir',
+        },
+      }),
+    )!
+    expect(result.target.sector).toBe(
+      'Lavado y limpieza de prendas de vestir (CIIU S9601)',
+    )
+  })
 })
 
 describe('mapBrainGroupedToRecomendaciones', () => {

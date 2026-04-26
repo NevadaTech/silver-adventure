@@ -45,6 +45,15 @@ export class InMemoryClusterMembershipRepository implements ClusterMembershipRep
     this.store.clear()
   }
 
+  async deleteAllExceptPrefix(preservePrefix: string): Promise<void> {
+    for (const key of Array.from(this.store)) {
+      const m = this.parse(key)
+      if (!m.clusterId.startsWith(preservePrefix)) {
+        this.store.delete(key)
+      }
+    }
+  }
+
   async count(): Promise<number> {
     return this.store.size
   }

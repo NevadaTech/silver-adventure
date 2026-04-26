@@ -266,14 +266,80 @@ describe('RunIncrementalScan', () => {
 
       const result = await useCase.execute({ trigger: 'cron' })
 
-      const events = await stubs.eventRepo.findByCompany('a')
-      expect(events).toHaveLength(1)
-      expect(events[0]!.eventType).toBe('new_cluster_member')
-      expect(events[0]!.payload).toMatchObject({
+      const eventsForA = await stubs.eventRepo.findByCompany('a')
+      expect(eventsForA).toHaveLength(1)
+      expect(eventsForA[0]!.eventType).toBe('new_cluster_member')
+      expect(eventsForA[0]!.payload).toMatchObject({
         clusterId: 'cluster-1',
         newCompanyId: 'b',
       })
-      expect(result.eventsEmitted).toBe(1)
+
+      const eventsForB = await stubs.eventRepo.findByCompany('b')
+      expect(eventsForB.map((e) => e.eventType)).toContain('joined_new_cluster')
+
+      // Existing member 'a' + mirror for new member 'b'
+      expect(result.eventsEmitted).toBe(2)
+    })
+
+    it('emits etapa_changed when a company moves between stages between scans', async () => {
+      const useCase = buildUseCase(stubs)
+      // Seed a previous completed scan so etapa diff actually fires (the
+      // first run of the agent does not have a baseline).
+      await stubs.scanRepo.save(
+        ScanRun.start({
+          id: 'previous',
+          trigger: 'cron',
+          now: new Date('2026-04-25T00:00:00Z'),
+        }).complete(
+          {
+            companiesScanned: 1,
+            clustersGenerated: 0,
+            recommendationsGenerated: 0,
+            eventsEmitted: 0,
+          },
+          new Date('2026-04-25T00:01:00Z'),
+        ),
+      )
+
+      // Snapshot baseline: company X is in 'crecimiento'.
+      const before = Company.create({
+        id: 'X',
+        razonSocial: 'X',
+        ciiu: 'G4711',
+        municipio: 'SANTA MARTA',
+        personal: 0,
+        ingresoOperacion: 0,
+      })
+      await stubs.companyRepo.saveMany([before])
+
+      // After the sync step (which we stub), the same company exists with
+      // metrics that bump it to 'madurez'. We emulate this by overwriting
+      // the entity inside the syncCompanies stub.
+      stubs.syncCompanies.execute.mockImplementationOnce(async () => {
+        await stubs.companyRepo.saveMany([
+          Company.create({
+            id: 'X',
+            razonSocial: 'X',
+            ciiu: 'G4711',
+            municipio: 'SANTA MARTA',
+            personal: 100,
+            ingresoOperacion: 10_000_000_000,
+          }),
+        ])
+        return { synced: 1 }
+      })
+
+      await useCase.execute({ trigger: 'cron' })
+
+      const events = await stubs.eventRepo.findByCompany('X')
+      const etapaEvents = events.filter((e) => e.eventType === 'etapa_changed')
+      expect(etapaEvents).toHaveLength(1)
+      // Defaults (personal=0, ingreso=0, fechaMatricula=null) → 'nacimiento';
+      // post-sync (ingreso=10B) → 'madurez'.
+      expect(etapaEvents[0]!.payload).toMatchObject({
+        from: 'nacimiento',
+        to: 'madurez',
+      })
     })
   })
 

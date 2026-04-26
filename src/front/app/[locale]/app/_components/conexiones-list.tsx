@@ -3,7 +3,8 @@
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 
-import { mockConexiones } from '../_data/mock-conexiones'
+import { useUserConnections } from '@/core/connections/infrastructure/hooks/useUserConnections'
+
 import type {
   Ancla,
   Conexion,
@@ -58,17 +59,18 @@ function buildRecoFromConexion(
 export function ConexionesList() {
   const t = useTranslations('App.Conexiones')
 
+  const { data: live, isLoading, error } = useUserConnections()
+
   const [active, setActive] = useState<ConexionTabValue>('todas')
   const [overrides, setOverrides] = useState<Record<string, EstadoConexion>>({})
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
-  const data = useMemo(
-    () =>
-      mockConexiones.map((c) =>
-        overrides[c.id] ? { ...c, estado: overrides[c.id]! } : c,
-      ),
-    [overrides],
-  )
+  const data = useMemo(() => {
+    const source = live ?? []
+    return source.map((c) =>
+      overrides[c.id] ? { ...c, estado: overrides[c.id]! } : c,
+    )
+  }, [live, overrides])
 
   const counts = useMemo(() => {
     const base: Record<ConexionTabValue, number> = {
@@ -105,6 +107,35 @@ export function ConexionesList() {
     const next: EstadoConexion =
       conexion.estado === 'paused' ? 'active' : 'paused'
     setOverrides((prev) => ({ ...prev, [conexion.id]: next }))
+  }
+
+  if (isLoading && data.length === 0) {
+    return (
+      <div className="flex flex-col gap-6">
+        <ConexionesStats
+          counts={{ active: 0, pending: 0, paused: 0, archived: 0 }}
+        />
+        <ul aria-hidden className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <li
+              key={i}
+              className="bg-surface border-border-soft h-28 animate-pulse rounded-2xl border"
+            />
+          ))}
+        </ul>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <p
+        role="alert"
+        className="text-text-muted bg-surface border-border-soft rounded-2xl border p-10 text-center text-sm"
+      >
+        {t('errorState')}
+      </p>
+    )
   }
 
   return (

@@ -4,6 +4,7 @@ import {
   type BrainGroupedRecommendationsResponse,
 } from '@/core/shared/infrastructure/brain/brainClient'
 import { mapBrainGroupedToRecomendaciones } from '@/core/recommendations/infrastructure/adapters/brainToRecomendacion'
+import { enrichWithCiiuTitles } from '@/core/recommendations/infrastructure/adapters/enrichWithCiiuTitles'
 import { serverLogger } from '@/core/shared/infrastructure/logger/serverLogger'
 import { createSupabaseServerClient } from '@/core/shared/infrastructure/supabase/server'
 
@@ -41,10 +42,11 @@ export async function GET(request: Request) {
     const grouped = await brainClient.get<BrainGroupedRecommendationsResponse>(
       `/api/companies/${encodeURIComponent(profile.company_id)}/recommendations/grouped`,
     )
-    const recomendaciones = mapBrainGroupedToRecomendaciones(grouped)
+    const enriched = await enrichWithCiiuTitles(grouped, supabase)
+    const recomendaciones = mapBrainGroupedToRecomendaciones(enriched)
     return Response.json({
       recomendaciones,
-      partial: grouped.partial,
+      partial: enriched.partial,
       reason: null,
     })
   } catch (err) {

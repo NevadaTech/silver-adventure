@@ -151,7 +151,7 @@ describe('GenerateClusters', () => {
     expect(stats.totalMemberships).toBeGreaterThanOrEqual(5)
   })
 
-  it('wipes existing memberships before regenerating', async () => {
+  it('wipes existing agent-owned memberships before regenerating', async () => {
     await membershipRepo.saveMany([{ clusterId: 'stale', companyId: 'old' }])
     await companyRepo.saveMany(
       repeat(5, { idPrefix: 'c', ciiu: 'G4711', municipio: 'SANTA MARTA' }),
@@ -160,6 +160,32 @@ describe('GenerateClusters', () => {
     await useCase.execute()
 
     const staleResidue = await membershipRepo.findCompanyIdsByCluster('stale')
+    expect(staleResidue).toEqual([])
+  })
+
+  it('preserves memberships of clusters created by the signup flow (heur- prefix)', async () => {
+    // Pin a freshly-onboarded company to a signup-owned cluster.
+    await membershipRepo.saveMany([
+      { clusterId: 'heur-grupo-107-santa-marta', companyId: 'signup-user' },
+    ])
+    // Add another agent-owned membership that SHOULD be wiped.
+    await membershipRepo.saveMany([
+      { clusterId: 'pred-stale', companyId: 'old-co' },
+    ])
+    // Ensure the agent has at least 5 ACTIVO companies so the regen runs.
+    await companyRepo.saveMany(
+      repeat(5, { idPrefix: 'c', ciiu: 'G4711', municipio: 'SANTA MARTA' }),
+    )
+
+    await useCase.execute()
+
+    const signupSurvived = await membershipRepo.findCompanyIdsByCluster(
+      'heur-grupo-107-santa-marta',
+    )
+    expect(signupSurvived).toEqual(['signup-user'])
+
+    const staleResidue =
+      await membershipRepo.findCompanyIdsByCluster('pred-stale')
     expect(staleResidue).toEqual([])
   })
 

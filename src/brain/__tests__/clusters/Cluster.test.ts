@@ -6,18 +6,22 @@ import {
 } from '@/clusters/domain/value-objects/ClusterType'
 
 describe('ClusterType', () => {
-  it('exposes the 4 valid types', () => {
+  it('exposes the canonical cluster types', () => {
     expect(CLUSTER_TYPES).toEqual([
       'predefined',
       'heuristic-division',
       'heuristic-grupo',
       'heuristic-municipio',
+      'heuristic-etapa',
+      'heuristic-hibrido',
     ])
   })
 
   it('isClusterType narrows valid values', () => {
     expect(isClusterType('predefined')).toBe(true)
     expect(isClusterType('heuristic-grupo')).toBe(true)
+    expect(isClusterType('heuristic-etapa')).toBe(true)
+    expect(isClusterType('heuristic-hibrido')).toBe(true)
     expect(isClusterType('foo')).toBe(false)
   })
 })

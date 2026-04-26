@@ -47,6 +47,13 @@ function buildRazon(view: BrainRecommendationView): string {
   return view.reasons.map((r) => r.description).join(' · ')
 }
 
+function buildSector(
+  company: NonNullable<BrainRecommendationView['targetCompany']>,
+): string {
+  const code = `CIIU ${company.ciiuSeccion}${company.ciiu}`
+  return company.ciiuTitulo ? `${company.ciiuTitulo} (${code})` : code
+}
+
 export function mapBrainViewToRecomendacion(
   view: BrainRecommendationView,
 ): Recomendacion | null {
@@ -58,7 +65,7 @@ export function mapBrainViewToRecomendacion(
       id: company.id,
       iniciales: buildIniciales(company.razonSocial),
       nombre: company.razonSocial,
-      sector: `CIIU ${company.ciiuSeccion}${company.ciiu}`,
+      sector: buildSector(company),
       barrio: company.municipio,
       origen: 'formal',
       avatarColor: pickAvatarColor(company.id),

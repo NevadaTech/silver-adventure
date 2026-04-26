@@ -1,5 +1,6 @@
 import { Entity } from '@/shared/domain/Entity'
 import type { ClusterType } from '@/clusters/domain/value-objects/ClusterType'
+import { ETAPAS, type Etapa } from '@/companies/domain/value-objects/Etapa'
 
 interface ClusterProps {
   codigo: string
@@ -9,6 +10,7 @@ interface ClusterProps {
   ciiuDivision: string | null
   ciiuGrupo: string | null
   municipio: string | null
+  etapa: Etapa | null
   macroSector: string | null
   memberCount: number
 }
@@ -22,6 +24,7 @@ export interface CreateClusterInput {
   ciiuDivision?: string | null
   ciiuGrupo?: string | null
   municipio?: string | null
+  etapa?: Etapa | null
   macroSector?: string | null
   memberCount?: number
 }
@@ -56,6 +59,11 @@ export class Cluster extends Entity<string> {
     const ciiuDivision = data.ciiuDivision ?? null
     const ciiuGrupo = data.ciiuGrupo ?? null
     const municipio = data.municipio ?? null
+    const etapa = data.etapa ?? null
+
+    if (etapa && !ETAPAS.includes(etapa)) {
+      throw new Error(`Cluster.etapa must be one of ${ETAPAS.join(', ')}`)
+    }
 
     if (data.tipo === 'heuristic-division') {
       if (!ciiuDivision) {
@@ -90,6 +98,31 @@ export class Cluster extends Entity<string> {
       )
     }
 
+    if (data.tipo === 'heuristic-etapa') {
+      if (!etapa) {
+        throw new Error("Cluster of type 'heuristic-etapa' requires etapa")
+      }
+      if (!municipio) {
+        throw new Error("Cluster of type 'heuristic-etapa' requires municipio")
+      }
+    }
+
+    if (data.tipo === 'heuristic-hibrido') {
+      if (!etapa) {
+        throw new Error("Cluster of type 'heuristic-hibrido' requires etapa")
+      }
+      if (!ciiuDivision) {
+        throw new Error(
+          "Cluster of type 'heuristic-hibrido' requires ciiuDivision",
+        )
+      }
+      if (!municipio) {
+        throw new Error(
+          "Cluster of type 'heuristic-hibrido' requires municipio",
+        )
+      }
+    }
+
     return new Cluster(id, {
       codigo,
       titulo,
@@ -98,6 +131,7 @@ export class Cluster extends Entity<string> {
       ciiuDivision,
       ciiuGrupo,
       municipio,
+      etapa,
       macroSector: data.macroSector ?? null,
       memberCount,
     })
@@ -123,6 +157,9 @@ export class Cluster extends Entity<string> {
   }
   get municipio(): string | null {
     return this.props.municipio
+  }
+  get etapa(): Etapa | null {
+    return this.props.etapa
   }
   get macroSector(): string | null {
     return this.props.macroSector

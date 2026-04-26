@@ -75,6 +75,23 @@ export class OpportunityDetector {
           )
         }
       }
+
+      // Mirror event to the new member: "te uniste a un cluster". Cubre el
+      // caso "Unirse al cluster Y" del reto.
+      for (const newMember of newMembers) {
+        events.push(
+          AgentEvent.create({
+            id: randomUUID(),
+            companyId: newMember,
+            eventType: 'joined_new_cluster',
+            payload: {
+              clusterId,
+              similarMembersCount: existingMembers.length,
+            },
+            now: input.now,
+          }),
+        )
+      }
     }
 
     return events

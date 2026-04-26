@@ -5,11 +5,13 @@ import {
 } from '@/agent/domain/value-objects/EventType'
 
 describe('EventType', () => {
-  it('exposes the three event type literals', () => {
+  it('exposes the canonical event type literals', () => {
     expect(EVENT_TYPES).toEqual([
       'new_high_score_match',
       'new_value_chain_partner',
       'new_cluster_member',
+      'joined_new_cluster',
+      'etapa_changed',
     ])
   })
 
@@ -17,6 +19,8 @@ describe('EventType', () => {
     expect(isEventType('new_high_score_match')).toBe(true)
     expect(isEventType('new_value_chain_partner')).toBe(true)
     expect(isEventType('new_cluster_member')).toBe(true)
+    expect(isEventType('joined_new_cluster')).toBe(true)
+    expect(isEventType('etapa_changed')).toBe(true)
   })
 
   it('isEventType returns false for unknown values', () => {

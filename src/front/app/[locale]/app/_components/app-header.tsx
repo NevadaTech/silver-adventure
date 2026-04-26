@@ -2,6 +2,7 @@ import { Bell } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 import { Link } from '@/i18n/navigation'
+import { Imagotipo } from '@/core/shared/infrastructure/brand/Imagotipo'
 
 import { AppNavLink } from './app-nav-link'
 import { UserMenuLoader } from './user-menu-loader'
@@ -22,9 +23,10 @@ export function AppHeader() {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6">
         <Link
           href="/app/recomendaciones"
-          className="flex items-center"
+          className="flex items-center gap-3"
           aria-label={t('logo')}
         >
+          <Imagotipo title={t('logo')} className="text-primary h-7 w-auto" />
           <span className="font-display text-text text-lg font-light tracking-tight">
             ruta <span className="text-secondary font-extrabold">· c ·</span>{' '}
             conecta

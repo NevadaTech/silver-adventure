@@ -190,6 +190,7 @@ describe('SupabaseClusterRepository', () => {
         ciiu_division: null,
         ciiu_grupo: null,
         municipio: null,
+        etapa: null,
         macro_sector: null,
         member_count: 12,
       })

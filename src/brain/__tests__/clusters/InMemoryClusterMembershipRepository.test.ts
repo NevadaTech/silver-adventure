@@ -44,6 +44,41 @@ describe('InMemoryClusterMembershipRepository', () => {
     expect(await repo.findClusterIdsByCompany('c-1')).toEqual([])
   })
 
+  describe('deleteAllExceptPrefix', () => {
+    it('removes only memberships whose cluster_id does not start with the prefix', async () => {
+      await repo.saveMany([
+        { clusterId: 'pred-1', companyId: 'c-1' },
+        { clusterId: 'div-47-SANTA_MARTA', companyId: 'c-2' },
+        { clusterId: 'heur-grupo-107-santa-marta', companyId: 'c-3' },
+        { clusterId: 'heur-grupo-108-santa-marta', companyId: 'c-4' },
+      ])
+
+      await repo.deleteAllExceptPrefix('heur-')
+
+      expect(await repo.count()).toBe(2)
+      const remaining = await repo.snapshot()
+      expect(Array.from(remaining.keys()).sort()).toEqual([
+        'heur-grupo-107-santa-marta',
+        'heur-grupo-108-santa-marta',
+      ])
+    })
+
+    it('is a no-op when nothing matches the prefix', async () => {
+      await repo.saveMany([{ clusterId: 'pred-1', companyId: 'c-1' }])
+      await repo.deleteAllExceptPrefix('heur-')
+      expect(await repo.count()).toBe(0)
+    })
+
+    it('preserves everything when ALL ids match the prefix', async () => {
+      await repo.saveMany([
+        { clusterId: 'heur-a', companyId: 'c-1' },
+        { clusterId: 'heur-b', companyId: 'c-2' },
+      ])
+      await repo.deleteAllExceptPrefix('heur-')
+      expect(await repo.count()).toBe(2)
+    })
+  })
+
   it('returns empty arrays for unknown ids', async () => {
     expect(await repo.findClusterIdsByCompany('missing')).toEqual([])
     expect(await repo.findCompanyIdsByCluster('missing')).toEqual([])

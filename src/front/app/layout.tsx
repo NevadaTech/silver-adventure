@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Plus_Jakarta_Sans } from 'next/font/google'
 
+import { env } from '@/core/shared/infrastructure/env'
+
 import './globals.css'
 
 const geistSans = Geist({
@@ -20,10 +22,27 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   weight: ['400', '500', '600', '700', '800'],
 })
 
+const APP_TITLE = 'Ruta C Conecta — Cámara de Comercio de Santa Marta'
+const APP_DESCRIPTION =
+  'Motor inteligente de clusters empresariales y recomendaciones accionables para Santa Marta.'
+
 export const metadata: Metadata = {
-  title: 'Ruta C Conecta — Cámara de Comercio de Santa Marta',
-  description:
-    'Motor inteligente de clusters empresariales y recomendaciones accionables para Santa Marta.',
+  metadataBase: new URL(env.NEXT_PUBLIC_APP_URL),
+  title: APP_TITLE,
+  description: APP_DESCRIPTION,
+  applicationName: 'Ruta C Conecta',
+  openGraph: {
+    type: 'website',
+    locale: 'es_CO',
+    siteName: 'Ruta C Conecta',
+    title: APP_TITLE,
+    description: APP_DESCRIPTION,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: APP_TITLE,
+    description: APP_DESCRIPTION,
+  },
 }
 
 /**

@@ -12,6 +12,7 @@ function createFakeDb() {
     select: vi.fn(),
     eq: vi.fn(),
     neq: vi.fn(),
+    not: vi.fn(),
     upsert: vi.fn(),
     delete: vi.fn(),
     then: (
@@ -25,6 +26,7 @@ function createFakeDb() {
     'select',
     'eq',
     'neq',
+    'not',
     'upsert',
     'delete',
   ] as const) {
@@ -130,6 +132,27 @@ describe('SupabaseClusterMembershipRepository', () => {
     it('throws on error', async () => {
       fake.setNext({ data: null, error: new Error('forbidden') })
       await expect(repo.deleteAll()).rejects.toThrow(/forbidden/)
+    })
+  })
+
+  describe('deleteAllExceptPrefix', () => {
+    it('deletes rows whose cluster_id does NOT start with the given prefix', async () => {
+      fake.setNext({ data: null, error: null })
+      await repo.deleteAllExceptPrefix('heur-')
+
+      expect(fake.spies.delete).toHaveBeenCalledTimes(1)
+      expect(fake.spies.not).toHaveBeenCalledWith(
+        'cluster_id',
+        'like',
+        'heur-%',
+      )
+    })
+
+    it('throws on supabase error', async () => {
+      fake.setNext({ data: null, error: new Error('forbidden') })
+      await expect(repo.deleteAllExceptPrefix('heur-')).rejects.toThrow(
+        /forbidden/,
+      )
     })
   })
 

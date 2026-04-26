@@ -49,6 +49,15 @@ export const envSchema = z.object({
     .url({ error: 'BRAIN_API_URL must be a valid URL' })
     .optional()
     .default('http://localhost:3001'),
+  /**
+   * URL pública de la app — usada por `metadataBase` para resolver
+   * URLs absolutas en OpenGraph/Twitter cards, robots, sitemaps, etc.
+   * Default razonable para dev local; en prod debe venir del entorno.
+   */
+  NEXT_PUBLIC_APP_URL: z
+    .url({ error: 'NEXT_PUBLIC_APP_URL must be a valid URL' })
+    .optional()
+    .default('http://localhost:3000'),
 })
 
 export type Env = z.infer<typeof envSchema>

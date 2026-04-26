@@ -6,6 +6,7 @@ import {
   BookmarkPlus,
   Calendar,
   Clock,
+  Loader2,
   MapPin,
   MessageCircle,
   Phone,
@@ -15,6 +16,9 @@ import {
   X,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+
+import { useRecommendationAction } from '@/core/connections/infrastructure/hooks/useRecommendationAction'
+import { useUserConnections } from '@/core/connections/infrastructure/hooks/useUserConnections'
 
 import type {
   Ancla,
@@ -87,10 +91,14 @@ function DrawerContent({
   const tParent = useTranslations('App.Recomendaciones')
   const tAnclas = useTranslations('App.Recomendaciones.Detail.anclasLabels')
 
+  const { apply, remove, isPending, error } = useRecommendationAction()
+  const { isApplied } = useUserConnections()
+
   const target = reco.target
   const isDescubierto = target.origen === 'informal_descubierto'
-  const isGuardada = reco.estado === 'guardada'
-  const isDescartada = reco.estado === 'descartada'
+  const isGuardada = reco.estado === 'guardada' || isApplied(reco.id, 'saved')
+  const isDescartada =
+    reco.estado === 'descartada' || isApplied(reco.id, 'dismissed')
 
   const whatsappNumber = target.whatsapp
     ? `57${target.whatsapp.replace(/\D/g, '')}`
@@ -100,8 +108,39 @@ function DrawerContent({
   )
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${prefilled}`
 
-  function toggleEstado(target: 'guardada' | 'descartada') {
-    onUpdateEstado(reco.id, reco.estado === target ? 'nueva' : target)
+  async function toggleSaved() {
+    const next: EstadoReco = isGuardada ? 'nueva' : 'guardada'
+    onUpdateEstado(reco.id, next)
+    try {
+      if (isGuardada) {
+        await remove(reco.id, 'saved')
+      } else {
+        await apply(reco.id, 'saved')
+      }
+    } catch {
+      onUpdateEstado(reco.id, isGuardada ? 'guardada' : 'nueva')
+    }
+  }
+
+  async function toggleDismissed() {
+    const next: EstadoReco = isDescartada ? 'nueva' : 'descartada'
+    onUpdateEstado(reco.id, next)
+    try {
+      if (isDescartada) {
+        await remove(reco.id, 'dismissed')
+      } else {
+        await apply(reco.id, 'dismissed')
+      }
+    } catch {
+      onUpdateEstado(reco.id, isDescartada ? 'descartada' : 'nueva')
+    }
+  }
+
+  function trackSimulatedContact() {
+    void apply(reco.id, 'simulated_contact').catch(() => {
+      // El contacto vía WhatsApp ya se abrió (target=_blank). Si la
+      // persistencia falla, no bloqueamos al usuario — solo lo logueamos.
+    })
   }
 
   return (
@@ -264,42 +303,65 @@ function DrawerContent({
           </Section>
         </div>
 
-        <footer className="bg-bg-secondary border-border-soft flex items-center gap-2 border-t px-6 py-4">
-          <button
-            type="button"
-            onClick={() => toggleEstado('descartada')}
-            aria-pressed={isDescartada}
-            className={`inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl border-2 text-sm font-semibold transition-colors ${
-              isDescartada
-                ? 'bg-error/10 border-error text-error'
-                : 'border-border text-text-secondary hover:border-error/50 hover:text-error'
-            }`}
-          >
-            <Trash2 className="h-4 w-4" />
-            {isDescartada ? t('acciones.descartada') : t('acciones.descartar')}
-          </button>
-          <button
-            type="button"
-            onClick={() => toggleEstado('guardada')}
-            aria-pressed={isGuardada}
-            className={`inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl border-2 text-sm font-semibold transition-colors ${
-              isGuardada
-                ? 'bg-secondary-soft/30 border-secondary text-secondary-hover'
-                : 'border-border text-text-secondary hover:border-secondary/50 hover:text-secondary-hover'
-            }`}
-          >
-            <BookmarkPlus className="h-4 w-4" />
-            {isGuardada ? t('acciones.guardada') : t('acciones.guardar')}
-          </button>
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-primary text-primary-text hover:bg-primary-hover inline-flex min-h-[48px] flex-[1.4] items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold shadow-lg shadow-black/5 transition-all hover:shadow-xl active:scale-95"
-          >
-            <MessageCircle className="h-4 w-4" />
-            {t('acciones.aceptar')}
-          </a>
+        <footer className="bg-bg-secondary border-border-soft flex flex-col gap-2 border-t px-6 py-4">
+          {error ? (
+            <p
+              role="alert"
+              className="bg-error/10 text-error -mb-1 rounded-md px-3 py-1.5 text-xs"
+            >
+              {t('acciones.errorPersistencia')}
+            </p>
+          ) : null}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleDismissed}
+              disabled={isPending}
+              aria-pressed={isDescartada}
+              className={`inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl border-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                isDescartada
+                  ? 'bg-error/10 border-error text-error'
+                  : 'border-border text-text-secondary hover:border-error/50 hover:text-error'
+              }`}
+            >
+              {isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+              {isDescartada
+                ? t('acciones.descartada')
+                : t('acciones.descartar')}
+            </button>
+            <button
+              type="button"
+              onClick={toggleSaved}
+              disabled={isPending}
+              aria-pressed={isGuardada}
+              className={`inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl border-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                isGuardada
+                  ? 'bg-secondary-soft/30 border-secondary text-secondary-hover'
+                  : 'border-border text-text-secondary hover:border-secondary/50 hover:text-secondary-hover'
+              }`}
+            >
+              {isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <BookmarkPlus className="h-4 w-4" />
+              )}
+              {isGuardada ? t('acciones.guardada') : t('acciones.guardar')}
+            </button>
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={trackSimulatedContact}
+              className="bg-primary text-primary-text hover:bg-primary-hover inline-flex min-h-[48px] flex-[1.4] items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold shadow-lg shadow-black/5 transition-all hover:shadow-xl active:scale-95"
+            >
+              <MessageCircle className="h-4 w-4" />
+              {t('acciones.aceptar')}
+            </a>
+          </div>
         </footer>
       </aside>
     </div>

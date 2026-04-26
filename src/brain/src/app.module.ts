@@ -5,6 +5,7 @@ import { SharedModule } from './shared/shared.module'
 import { CiiuTaxonomyModule } from './ciiu-taxonomy/ciiu-taxonomy.module'
 import { ClustersModule } from './clusters/clusters.module'
 import { CompaniesModule } from './companies/companies.module'
+import { ConnectionsModule } from './connections/connections.module'
 import { RecommendationsModule } from './recommendations/recommendations.module'
 import { HealthController } from './shared/infrastructure/health/health.controller'
 
@@ -16,6 +17,7 @@ import { HealthController } from './shared/infrastructure/health/health.controll
     CompaniesModule,
     ClustersModule,
     RecommendationsModule,
+    ConnectionsModule,
     AgentModule,
   ],
   controllers: [HealthController],

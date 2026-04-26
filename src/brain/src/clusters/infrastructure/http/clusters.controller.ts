@@ -1,12 +1,23 @@
-import { Controller, Get, NotFoundException, Param, Post } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Inject,
+  NotFoundException,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
 import { ExplainCluster } from '@/clusters/application/use-cases/ExplainCluster'
 import { GenerateClusters } from '@/clusters/application/use-cases/GenerateClusters'
 import {
+  GetClusterMembers,
+  type GetClusterMembersResult,
+} from '@/clusters/application/use-cases/GetClusterMembers'
+import {
   CLUSTER_REPOSITORY,
   type ClusterRepository,
 } from '@/clusters/domain/repositories/ClusterRepository'
-import { Inject } from '@nestjs/common'
 import type { Cluster } from '@/clusters/domain/entities/Cluster'
 
 export interface ClusterDto {
@@ -27,6 +38,7 @@ export class ClustersController {
   constructor(
     private readonly generateClusters: GenerateClusters,
     private readonly explainCluster: ExplainCluster,
+    private readonly getClusterMembers: GetClusterMembers,
     @Inject(CLUSTER_REPOSITORY)
     private readonly clusterRepo: ClusterRepository,
   ) {}
@@ -47,6 +59,24 @@ export class ClustersController {
     const exists = await this.clusterRepo.findById(id)
     if (!exists) throw new NotFoundException(`Cluster ${id} not found`)
     return this.explainCluster.execute({ clusterId: id })
+  }
+
+  @Get(':id/members')
+  @ApiOperation({
+    summary:
+      'List enriched cluster members + value-chain edges for an optional perspective company',
+  })
+  async members(
+    @Param('id') id: string,
+    @Query('limit') limit?: string,
+    @Query('perspectiveCompanyId') perspectiveCompanyId?: string,
+  ): Promise<GetClusterMembersResult> {
+    const parsed = limit ? Number.parseInt(limit, 10) : undefined
+    return this.getClusterMembers.execute({
+      clusterId: id,
+      limit: parsed,
+      perspectiveCompanyId: perspectiveCompanyId?.trim() || undefined,
+    })
   }
 }
 

@@ -218,7 +218,7 @@ describe('OpportunityDetector', () => {
   })
 
   describe('new_cluster_member', () => {
-    it('emits one event per existing member when a new member joins their cluster', () => {
+    it('notifies existing members AND emits a joined_new_cluster for the newcomer', () => {
       const detector = new OpportunityDetector()
       const events = detector.detect({
         newRecs: [],
@@ -230,19 +230,31 @@ describe('OpportunityDetector', () => {
         now: T,
       })
 
-      expect(events).toHaveLength(2)
-      expect(events.map((e) => e.companyId).sort()).toEqual([
+      const memberEvents = events.filter(
+        (e) => e.eventType === 'new_cluster_member',
+      )
+      expect(memberEvents).toHaveLength(2)
+      expect(memberEvents.map((e) => e.companyId).sort()).toEqual([
         'c-existing-1',
         'c-existing-2',
       ])
-      expect(events[0]!.eventType).toBe('new_cluster_member')
-      expect(events[0]!.payload).toMatchObject({
+      expect(memberEvents[0]!.payload).toMatchObject({
         clusterId: 'cluster-1',
         newCompanyId: 'c-new',
       })
+
+      const joinedEvents = events.filter(
+        (e) => e.eventType === 'joined_new_cluster',
+      )
+      expect(joinedEvents).toHaveLength(1)
+      expect(joinedEvents[0]!.companyId).toBe('c-new')
+      expect(joinedEvents[0]!.payload).toEqual({
+        clusterId: 'cluster-1',
+        similarMembersCount: 2,
+      })
     })
 
-    it('emits multiple events when multiple new members join a cluster with multiple existing members', () => {
+    it('emits the right number of events when multiple new members join a cluster with multiple existing members', () => {
       const detector = new OpportunityDetector()
       const events = detector.detect({
         newRecs: [],
@@ -252,19 +264,19 @@ describe('OpportunityDetector', () => {
         now: T,
       })
 
-      expect(events).toHaveLength(2)
-      expect(
-        events.every(
-          (e) =>
-            e.eventType === 'new_cluster_member' &&
-            e.companyId === 'c-existing',
-        ),
-      ).toBe(true)
-      expect(
-        events
-          .map((e) => (e.payload as { newCompanyId: string }).newCompanyId)
-          .sort(),
-      ).toEqual(['c-new-1', 'c-new-2'])
+      const memberEvents = events.filter(
+        (e) => e.eventType === 'new_cluster_member',
+      )
+      expect(memberEvents).toHaveLength(2)
+      expect(memberEvents.every((e) => e.companyId === 'c-existing')).toBe(true)
+
+      const joinedEvents = events.filter(
+        (e) => e.eventType === 'joined_new_cluster',
+      )
+      expect(joinedEvents.map((e) => e.companyId).sort()).toEqual([
+        'c-new-1',
+        'c-new-2',
+      ])
     })
 
     it('does not notify a company about itself joining', () => {
@@ -277,10 +289,17 @@ describe('OpportunityDetector', () => {
         now: T,
       })
 
-      expect(events).toHaveLength(0)
+      // No `new_cluster_member` because c-1 was already there. The mirror
+      // `joined_new_cluster` STILL fires because the newMembers Map says
+      // c-1 was added. That's OK — it carries the history of "you joined
+      // this cluster" and is idempotent (events are deduped by (id) anyway).
+      const memberEvents = events.filter(
+        (e) => e.eventType === 'new_cluster_member',
+      )
+      expect(memberEvents).toEqual([])
     })
 
-    it('does not emit for clusters with no existing members', () => {
+    it('still emits the joined_new_cluster mirror when the cluster had no prior members', () => {
       const detector = new OpportunityDetector()
       const events = detector.detect({
         newRecs: [],
@@ -290,7 +309,22 @@ describe('OpportunityDetector', () => {
         now: T,
       })
 
-      expect(events).toHaveLength(0)
+      const memberEvents = events.filter(
+        (e) => e.eventType === 'new_cluster_member',
+      )
+      expect(memberEvents).toEqual([])
+
+      const joinedEvents = events.filter(
+        (e) => e.eventType === 'joined_new_cluster',
+      )
+      expect(joinedEvents.map((e) => e.companyId).sort()).toEqual([
+        'c-1',
+        'c-2',
+      ])
+      expect(joinedEvents[0]!.payload).toMatchObject({
+        clusterId: 'cluster-1',
+        similarMembersCount: 0,
+      })
     })
   })
 
@@ -320,9 +354,10 @@ describe('OpportunityDetector', () => {
         now: T,
       })
 
-      expect(events).toHaveLength(3)
+      expect(events).toHaveLength(4)
       const types = events.map((e) => e.eventType).sort()
       expect(types).toEqual([
+        'joined_new_cluster',
         'new_cluster_member',
         'new_high_score_match',
         'new_value_chain_partner',

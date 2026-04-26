@@ -62,6 +62,9 @@ export const brainClient = {
   get<T>(path: string): Promise<T> {
     return brainRequest<T>(path, { method: 'GET' })
   },
+  delete<T>(path: string): Promise<T> {
+    return brainRequest<T>(path, { method: 'DELETE' })
+  },
 }
 
 export interface BrainOnboardRequest {
@@ -125,6 +128,12 @@ export interface BrainRecommendationView {
     ciiu: string
     ciiuSeccion: string
     ciiuDivision: string
+    /**
+     * Human-readable name for `ciiu` (the 4-digit class). Optional because
+     * the brain itself doesn't return it — the BFF route handler enriches
+     * the response from `ciiu_taxonomy` before sending it to the client.
+     */
+    ciiuTitulo?: string
     municipio: string
     etapa: string
     personal: number
@@ -140,4 +149,101 @@ export interface BrainRecommendationView {
   }[]
   source: 'rule' | 'cosine' | 'ecosystem' | 'ai-inferred'
   explanation: string | null
+}
+
+export type BrainConnectionAction =
+  | 'marked'
+  | 'saved'
+  | 'dismissed'
+  | 'simulated_contact'
+
+export interface BrainRecordConnectionRequest {
+  userId: string
+  recommendationId: string
+  action: BrainConnectionAction
+  note?: string | null
+}
+
+export interface BrainConnectionView {
+  id: string
+  recommendationId: string
+  action: BrainConnectionAction
+  note: string | null
+  createdAt: string
+  relationType: 'proveedor' | 'cliente' | 'aliado' | 'referente' | null
+  score: number | null
+  targetCompany: {
+    id: string
+    razonSocial: string
+    ciiu: string
+    ciiuSeccion: string
+    municipio: string
+    etapa: string
+  } | null
+}
+
+export interface BrainRecordConnectionResponse {
+  connection: {
+    id: string
+    userId: string
+    recommendationId: string
+    action: BrainConnectionAction
+    note: string | null
+    createdAt: string
+  }
+}
+
+export interface BrainUserConnectionsResponse {
+  connections: BrainConnectionView[]
+}
+
+export interface BrainCompanyClusterDto {
+  id: string
+  codigo: string
+  titulo: string
+  descripcion: string | null
+  tipo: string
+  ciiuDivision: string | null
+  ciiuGrupo: string | null
+  municipio: string | null
+  /** Populated only for `heuristic-etapa` and `heuristic-hibrido` clusters. */
+  etapa?: string | null
+  memberCount: number
+}
+
+export interface BrainClusterMemberView {
+  id: string
+  razonSocial: string
+  ciiu: string
+  ciiuSeccion: string
+  ciiuDivision: string
+  municipio: string
+  etapa: string
+  isSelf: boolean
+}
+
+export interface BrainValueChainEdge {
+  relationType: 'proveedor' | 'cliente' | 'aliado' | 'referente'
+  count: number
+  topTargets: { id: string; razonSocial: string }[]
+}
+
+export interface BrainClusterMembersResponse {
+  cluster: BrainCompanyClusterDto
+  members: BrainClusterMemberView[]
+  valueChains: BrainValueChainEdge[]
+  partial: boolean
+}
+
+export interface BrainAgentEvent {
+  id: string
+  companyId: string
+  eventType: string
+  payload: Record<string, unknown>
+  read: boolean
+  createdAt: string
+}
+
+export interface BrainAgentEventsResponse {
+  events: BrainAgentEvent[]
 }

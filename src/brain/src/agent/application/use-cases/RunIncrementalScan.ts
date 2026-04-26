@@ -5,6 +5,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { randomUUID } from 'node:crypto'
 import { OpportunityDetector } from '@/agent/application/services/OpportunityDetector'
+import { AgentEvent } from '@/agent/domain/entities/AgentEvent'
 import {
   ScanRun,
   type ScanRunStatus,
@@ -27,6 +28,7 @@ import {
   COMPANY_REPOSITORY,
   type CompanyRepository,
 } from '@/companies/domain/repositories/CompanyRepository'
+import type { Etapa } from '@/companies/domain/value-objects/Etapa'
 import { SyncCompaniesFromSource } from '@/companies/application/use-cases/SyncCompaniesFromSource'
 import { GenerateRecommendations } from '@/recommendations/application/use-cases/GenerateRecommendations'
 import {
@@ -82,6 +84,10 @@ export class RunIncrementalScan implements UseCase<
       const last = await this.scanRepo.findLatestCompleted()
       const since = last?.completedAt ?? new Date(0)
 
+      // Snapshot etapas BEFORE the sync so we can diff against the new
+      // state once the source has applied incremental changes.
+      const previousEtapas = await this.snapshotEtapas()
+
       await this.syncCompanies.execute({ since })
 
       const updated = await this.companyRepo.findUpdatedSince(since)
@@ -120,13 +126,18 @@ export class RunIncrementalScan implements UseCase<
         previousMemberships,
       )
 
+      const now = new Date()
       const events = this.detector.detect({
         newRecs,
         previousRecKeys,
         newClusterMemberships,
         existingClusterMemberships: previousMemberships,
-        now: new Date(),
+        now,
       })
+
+      const etapaEvents = await this.detectEtapaChanges(previousEtapas, now)
+      events.push(...etapaEvents)
+
       await this.eventRepo.saveAll(events)
 
       const clustersGenerated =
@@ -158,6 +169,43 @@ export class RunIncrementalScan implements UseCase<
       this.logger.error(`Scan ${id} failed: ${message}`)
       throw e
     }
+  }
+
+  private async snapshotEtapas(): Promise<Map<string, Etapa>> {
+    const all = await this.companyRepo.findAll()
+    const map = new Map<string, Etapa>()
+    for (const company of all) {
+      map.set(company.id, company.etapa)
+    }
+    return map
+  }
+
+  private async detectEtapaChanges(
+    previous: Map<string, Etapa>,
+    now: Date,
+  ): Promise<AgentEvent[]> {
+    if (previous.size === 0) return []
+    const current = await this.companyRepo.findAll()
+    const events: AgentEvent[] = []
+    for (const company of current) {
+      const before = previous.get(company.id)
+      if (!before) continue
+      if (before === company.etapa) continue
+      events.push(
+        AgentEvent.create({
+          id: randomUUID(),
+          companyId: company.id,
+          eventType: 'etapa_changed',
+          payload: {
+            from: before,
+            to: company.etapa,
+            razonSocial: company.razonSocial,
+          },
+          now,
+        }),
+      )
+    }
+    return events
   }
 }
 

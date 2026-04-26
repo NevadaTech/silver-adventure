@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: '14.5'
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       agent_events: {
@@ -202,6 +177,7 @@ export type Database = {
           ciiu_grupo: string | null
           codigo: string
           descripcion: string | null
+          etapa: string | null
           generated_at: string
           id: string
           macro_sector: string | null
@@ -215,6 +191,7 @@ export type Database = {
           ciiu_grupo?: string | null
           codigo: string
           descripcion?: string | null
+          etapa?: string | null
           generated_at?: string
           id: string
           macro_sector?: string | null
@@ -228,6 +205,7 @@ export type Database = {
           ciiu_grupo?: string | null
           codigo?: string
           descripcion?: string | null
+          etapa?: string | null
           generated_at?: string
           id?: string
           macro_sector?: string | null
@@ -306,6 +284,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      connections: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          note: string | null
+          recommendation_id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          recommendation_id: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          recommendation_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'connections_recommendation_id_fkey'
+            columns: ['recommendation_id']
+            isOneToOne: false
+            referencedRelation: 'recommendations'
+            referencedColumns: ['id']
+          },
+        ]
       }
       otp_sessions: {
         Row: {
@@ -435,6 +448,7 @@ export type Database = {
           barrio: string | null
           company_id: string | null
           created_at: string
+          description: string | null
           email: string | null
           has_chamber: boolean | null
           id: string
@@ -449,6 +463,7 @@ export type Database = {
           barrio?: string | null
           company_id?: string | null
           created_at?: string
+          description?: string | null
           email?: string | null
           has_chamber?: boolean | null
           id?: string
@@ -463,6 +478,7 @@ export type Database = {
           barrio?: string | null
           company_id?: string | null
           created_at?: string
+          description?: string | null
           email?: string | null
           has_chamber?: boolean | null
           id?: string
@@ -617,9 +633,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

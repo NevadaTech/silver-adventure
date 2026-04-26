@@ -4,6 +4,7 @@ import { CiiuActivity } from '@/ciiu-taxonomy/domain/entities/CiiuActivity'
 import { InMemoryCiiuTaxonomyRepository } from '@/ciiu-taxonomy/infrastructure/repositories/InMemoryCiiuTaxonomyRepository'
 import { ExplainCluster } from '@/clusters/application/use-cases/ExplainCluster'
 import { GenerateClusters } from '@/clusters/application/use-cases/GenerateClusters'
+import { GetClusterMembers } from '@/clusters/application/use-cases/GetClusterMembers'
 import { GetCompanyClusters } from '@/clusters/application/use-cases/GetCompanyClusters'
 import { HeuristicClusterer } from '@/clusters/application/services/HeuristicClusterer'
 import { PredefinedClusterMatcher } from '@/clusters/application/services/PredefinedClusterMatcher'
@@ -15,6 +16,7 @@ import { ClustersController } from '@/clusters/infrastructure/http/clusters.cont
 import { CompanyClustersController } from '@/clusters/infrastructure/http/company-clusters.controller'
 import { Company } from '@/companies/domain/entities/Company'
 import { InMemoryCompanyRepository } from '@/companies/infrastructure/repositories/InMemoryCompanyRepository'
+import { InMemoryRecommendationRepository } from '@/recommendations/infrastructure/repositories/InMemoryRecommendationRepository'
 import { StubLlmAdapter } from '@/shared/infrastructure/llm/StubLlmAdapter'
 
 function makeCompany(id: string, ciiu = 'G4711'): Company {
@@ -71,7 +73,19 @@ describe('ClustersController', () => {
       companyRepo,
       new StubLlmAdapter('AI desc'),
     )
-    controller = new ClustersController(generate, explain, clusterRepo)
+    const recRepo = new InMemoryRecommendationRepository()
+    const getMembers = new GetClusterMembers(
+      clusterRepo,
+      membershipRepo,
+      companyRepo,
+      recRepo,
+    )
+    controller = new ClustersController(
+      generate,
+      explain,
+      getMembers,
+      clusterRepo,
+    )
   })
 
   describe('POST /clusters/generate', () => {

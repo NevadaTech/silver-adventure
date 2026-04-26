@@ -39,6 +39,26 @@ interface AgentStatus {
   counts: Record<ScanRunStatus, number>
 }
 
+interface AgentEventView {
+  id: string
+  companyId: string
+  eventType: string
+  payload: Record<string, unknown>
+  read: boolean
+  createdAt: string
+}
+
+function toAgentEventView(event: AgentEvent): AgentEventView {
+  return {
+    id: event.id,
+    companyId: event.companyId,
+    eventType: event.eventType,
+    payload: event.payload,
+    read: event.read,
+    createdAt: event.createdAt.toISOString(),
+  }
+}
+
 @ApiTags('agent')
 @Controller('agent')
 export class AgentController {
@@ -95,14 +115,15 @@ export class AgentController {
     @Query('companyId') companyId: string,
     @Query('unread') unread: string | undefined,
     @Query('limit') limit: string | undefined,
-  ): Promise<{ events: AgentEvent[] }> {
+  ): Promise<{ events: AgentEventView[] }> {
     const unreadOnly = unread === 'true'
     const parsedLimit = parseLimit(limit)
-    return this.getEventsUseCase.execute({
+    const result = await this.getEventsUseCase.execute({
       companyId,
       unreadOnly,
       limit: parsedLimit,
     })
+    return { events: result.events.map(toAgentEventView) }
   }
 
   @Post('events/:id/read')

@@ -58,6 +58,15 @@ export class SupabaseClusterMembershipRepository implements ClusterMembershipRep
     if (error) throw error
   }
 
+  async deleteAllExceptPrefix(preservePrefix: string): Promise<void> {
+    // Postgrest expresses NOT LIKE as `not.like` on the negation operator.
+    const { error } = await this.db
+      .from(TABLE)
+      .delete()
+      .not('cluster_id', 'like', `${preservePrefix}%`)
+    if (error) throw error
+  }
+
   async count(): Promise<number> {
     const { error, count } = await this.db
       .from(TABLE)

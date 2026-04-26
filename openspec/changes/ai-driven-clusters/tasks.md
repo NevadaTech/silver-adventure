@@ -631,15 +631,15 @@ E.4 ──► F.2 (docs AGENTS.md)
 
 ### Phase D (9 tasks)
 
-- [ ] D.1 — `ClusterType` + `Cluster.create()` `heuristic-ecosistema`
-- [ ] D.2 — `ClusterRepository` port `deleteByType`
-- [ ] D.3 — `InMemoryClusterRepository` `deleteByType`
-- [ ] D.4 — `SupabaseClusterRepository` `deleteByType`
-- [ ] D.5 — `LabelPropagation` algoritmo puro
-- [ ] D.6 — `EcosystemId` IDs determinísticos
-- [ ] D.7 — `EcosystemDiscoverer` servicio completo
-- [ ] D.8 — `GenerateClusters` tercer pase
-- [ ] D.9 — Regresión flag=false `GenerateClusters`
+- [x] D.1 — `ClusterType` + `Cluster.create()` `heuristic-ecosistema` (16af7d0)
+- [x] D.2 — `ClusterRepository` port `deleteByType` (26b1116)
+- [x] D.3 — `InMemoryClusterRepository` `deleteByType` (369c760)
+- [x] D.4 — `SupabaseClusterRepository` `deleteByType` (70d56f3)
+- [x] D.5 — `LabelPropagation` algoritmo puro (534150e)
+- [x] D.6 — `EcosystemId` IDs determinísticos (24084ce)
+- [x] D.7 — `EcosystemDiscoverer` servicio completo (c2f3cdc)
+- [x] D.8 — `GenerateClusters` tercer pase (dfb4360)
+- [x] D.9 — Regresión flag=false `GenerateClusters` (dfb4360)
 
 ### Phase E (4 tasks)
 

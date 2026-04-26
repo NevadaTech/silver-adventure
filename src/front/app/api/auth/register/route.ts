@@ -134,7 +134,12 @@ export async function POST(request: Request) {
     }
 
     // Create User entity
-    const typedData = data as any
+    const typedData = data as {
+      id: string
+      name: string
+      created_at: string
+      email: string
+    }
     const user = User.create(
       typedData.id,
       typedData.name,

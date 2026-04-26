@@ -17,94 +17,94 @@
  *   --color-{semantic-name}
  *   e.g. --color-bg, --color-text, --color-primary
  *
- * Brand palette (Material You inspired):
- *   primary    → azul marino profundo de la noche caribe (#001430)
- *   secondary  → cyan del mar de Santa Marta (#00687b)
- *   accent     → amarillo del sol samario, para CTAs vibrantes
+ * Brand palette ("Coastal Connectivity" — Stitch):
+ *   primary    → teal profundo del mar caribe (#006876)
+ *   secondary  → cyan brillante para CTAs y highlights (#00acc1)
+ *   accent     → modern cyan, sólo para "Nuevo"/success spots (#00ffd1)
  * ───────────────────────────────────────────── */
 
 :root {
   /* ── Base ── */
-  --color-bg: #f7f9fb;
-  --color-bg-secondary: #f2f4f6;
-  --color-bg-tertiary: #eceef0;
+  --color-bg: #f8f9ff; /* background / surface */
+  --color-bg-secondary: #eff4ff; /* surface-container-low */
+  --color-bg-tertiary: #e5eeff; /* surface-container */
 
   /* ── Text ── */
-  --color-text: #191c1e;
-  --color-text-secondary: #43474f;
-  --color-text-muted: #747780;
+  --color-text: #0b1c30; /* on-surface / on-background */
+  --color-text-secondary: #3d494b; /* on-surface-variant */
+  --color-text-muted: #6d797c; /* outline */
 
-  /* ── Primary (azul marino — brand principal) ── */
-  --color-primary: #001430;
-  --color-primary-hover: #002855;
-  --color-primary-soft: #d6e3ff;
-  --color-primary-text: #ffffff;
+  /* ── Primary (cyan brillante — todo el branding unificado) ── */
+  --color-primary: #00acc1; /* primary-container */
+  --color-primary-hover: #006876; /* primary (teal como hover oscuro) */
+  --color-primary-soft: #9eefff; /* primary-fixed */
+  --color-primary-text: #ffffff; /* on-primary */
 
-  /* ── Secondary (cyan — acentos, links, etiquetas) ── */
-  --color-secondary: #00687b;
-  --color-secondary-hover: #004e5d;
-  --color-secondary-soft: #66defe;
-  --color-secondary-text: #ffffff;
+  /* ── Secondary (cyan brillante — CTAs, highlights, links) ── */
+  --color-secondary: #00acc1; /* primary-container */
+  --color-secondary-hover: #006876; /* primary (teal como hover) */
+  --color-secondary-soft: #dae2fd; /* secondary-container */
+  --color-secondary-text: #ffffff; /* on-primary-container source */
 
-  /* ── Accent (amarillo solar — CTAs alta atención) ── */
-  --color-accent: #f9b300;
-  --color-accent-hover: #d99a00;
-  --color-accent-text: #001430;
+  /* ── Accent (cyan claro — chips "Nuevo", badges) ── */
+  --color-accent: #55d7ed; /* inverse-primary */
+  --color-accent-hover: #00acc1; /* primary-container */
+  --color-accent-text: #003a42; /* on-primary-container */
 
   /* ── Borders & Surfaces ── */
-  --color-border: #c4c6d0;
-  --color-border-soft: #e0e3e5;
-  --color-surface: #ffffff;
-  --color-surface-hover: #f2f4f6;
-  --color-surface-elevated: #ffffff;
+  --color-border: #bcc9cc; /* outline-variant */
+  --color-border-soft: #d3e4fe; /* surface-variant */
+  --color-surface: #ffffff; /* surface-container-lowest */
+  --color-surface-hover: #eff4ff; /* surface-container-low */
+  --color-surface-elevated: #ffffff; /* surface-container-lowest */
 
   /* ── Semantic ── */
-  --color-success: #16a34a;
-  --color-warning: #d97706;
-  --color-error: #ba1a1a;
-  --color-info: #00687b;
+  --color-success: #16a34a; /* (no en HTML — verde estándar) */
+  --color-warning: #d97706; /* (no en HTML — ámbar estándar) */
+  --color-error: #ba1a1a; /* error */
+  --color-info: #00acc1; /* primary-container */
 }
 
 .dark {
   /* ── Base ── */
-  --color-bg: #0a0f1a;
-  --color-bg-secondary: #111827;
-  --color-bg-tertiary: #1a2332;
+  --color-bg: #0b1c30; /* on-surface light → bg dark */
+  --color-bg-secondary: #213145; /* inverse-surface */
+  --color-bg-tertiary: #2d3f56; /* derivado, ladder visual */
 
   /* ── Text ── */
-  --color-text: #e0e3e5;
-  --color-text-secondary: #a3a3a3;
-  --color-text-muted: #737373;
+  --color-text: #eaf1ff; /* inverse-on-surface */
+  --color-text-secondary: #bcc9cc; /* outline-variant */
+  --color-text-muted: #8aa0a3; /* tertiary-container */
 
   /* ── Primary (clarea para legibilidad en oscuro) ── */
-  --color-primary: #aac7fd;
-  --color-primary-hover: #d6e3ff;
-  --color-primary-soft: #284775;
-  --color-primary-text: #001430;
+  --color-primary: #55d7ed; /* inverse-primary */
+  --color-primary-hover: #9eefff; /* primary-fixed */
+  --color-primary-soft: #004e59; /* on-primary-fixed-variant */
+  --color-primary-text: #001f24; /* on-primary-fixed */
 
   /* ── Secondary ── */
-  --color-secondary: #5dd5f5;
-  --color-secondary-hover: #afecff;
-  --color-secondary-soft: #004e5d;
-  --color-secondary-text: #001f27;
+  --color-secondary: #55d7ed; /* inverse-primary */
+  --color-secondary-hover: #9eefff; /* primary-fixed */
+  --color-secondary-soft: #004e59; /* on-primary-fixed-variant */
+  --color-secondary-text: #001f24; /* on-primary-fixed */
 
   /* ── Accent ── */
-  --color-accent: #ffc940;
-  --color-accent-hover: #f9b300;
-  --color-accent-text: #001430;
+  --color-accent: #b4cbce; /* tertiary-fixed-dim */
+  --color-accent-hover: #d0e7ea; /* tertiary-fixed */
+  --color-accent-text: #091f21; /* on-tertiary-fixed */
 
   /* ── Borders & Surfaces ── */
-  --color-border: #2e2e2e;
-  --color-border-soft: #1f2937;
-  --color-surface: #111827;
-  --color-surface-hover: #1a2332;
-  --color-surface-elevated: #1a2332;
+  --color-border: #3d494b; /* on-surface-variant */
+  --color-border-soft: #213145; /* inverse-surface */
+  --color-surface: #213145; /* inverse-surface */
+  --color-surface-hover: #2d3f56; /* derivado */
+  --color-surface-elevated: #2d3f56; /* derivado */
 
   /* ── Semantic ── */
   --color-success: #22c55e;
   --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #5dd5f5;
+  --color-error: #ffdad6; /* error-container (sobre dark) */
+  --color-info: #55d7ed; /* inverse-primary */
 }
 
 /*
@@ -116,7 +116,7 @@
  *   <button className="bg-primary text-primary-text hover:bg-primary-hover">
  *
  * Fonts:
- *   font-sans     → Inter (body por defecto)
+ *   font-sans     → Plus Jakarta Sans (única fuente del sistema)
  *   font-display  → Plus Jakarta Sans (headings, hero, marca)
  *   font-mono     → Geist Mono (código)
  */
@@ -154,7 +154,7 @@
   --color-error: var(--color-error);
   --color-info: var(--color-info);
 
-  --font-sans: var(--font-inter), var(--font-geist-sans);
+  --font-sans: var(--font-display), var(--font-geist-sans);
   --font-display: var(--font-display);
   --font-mono: var(--font-geist-mono);
 }

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock server-only — en vitest no existe el bundler de Next.js
 vi.mock('server-only', () => ({}))
@@ -725,7 +725,7 @@ describe('POST /api/auth/register', () => {
 
   describe('Integration Scenarios', () => {
     it('calls Supabase methods in correct order', async () => {
-      const callOrder = []
+      const callOrder: string[] = []
 
       mockSignUp.mockImplementation(() => {
         callOrder.push('signUp')

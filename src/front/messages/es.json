@@ -23,74 +23,19 @@
   "Landing": {
     "Header": {
       "logoLabel": "Ir al inicio de Ruta C Conecta",
-      "navLabel": "Navegación principal",
-      "navAudiences": "Audiencias",
-      "navHow": "Cómo funciona",
-      "navTeam": "Equipo",
-      "login": "Entrar"
+      "login": "Iniciar sesión"
     },
     "Hero": {
-      "eyebrow": "Conectamos el Magdalena",
-      "titleStart": "Conecta tu negocio con más clientes en",
-      "titleHighlight": "Santa Marta",
-      "titleEnd": "",
-      "description": "Gratis, fácil y en menos de 5 minutos. Únete a la red empresarial más grande de la ciudad.",
-      "ctaPrimary": "Registrarme gratis",
-      "ctaSecondary": "Conocer más",
-      "badge1": "100% gratis",
-      "badge2": "Sin trámites complicados",
-      "badge3": "Hecho para emprendedores locales"
-    },
-    "Segments": {
-      "title": "Un espacio para todos",
-      "subtitle": "Encontramos el lugar perfecto para que crezcas según tu perfil.",
-      "vendors": {
-        "title": "Vendedores",
-        "description": "Ofrece tus productos a toda la ciudad y aumenta tus ventas diarias."
-      },
-      "suppliers": {
-        "title": "Proveedores",
-        "description": "Conecta con negocios que necesitan tus insumos y servicios."
-      },
-      "clients": {
-        "title": "Clientes",
-        "description": "Encuentra los mejores productos locales con sello samario."
-      },
-      "allies": {
-        "title": "Aliados",
-        "description": "Instituciones y gremios apoyando el ecosistema local."
-      }
-    },
-    "Steps": {
-      "eyebrow": "En 3 pasos",
-      "title": "¿Cómo funciona Ruta C?",
-      "subtitle": "Sin descargas, sin formularios largos. Lo único que necesitas para empezar es WhatsApp.",
-      "register": {
-        "title": "Regístrate (5 min)",
-        "description": "Crea tu perfil empresarial con datos básicos de contacto."
-      },
-      "connect": {
-        "title": "Te conectamos",
-        "description": "Nuestro algoritmo te muestra ante los perfiles que necesitan de ti."
-      },
-      "whatsapp": {
-        "title": "Habla vía WhatsApp",
-        "description": "Cierra negocios directamente por chat, sin intermediarios."
-      }
-    },
-    "Camara": {
-      "eyebrow": "Respaldo institucional",
-      "title": "¿Necesitas ayuda para registrarte?",
-      "description": "Contamos con el respaldo de la Cámara de Comercio. Nuestros asesores te guiarán paso a paso de forma gratuita.",
-      "cta": "Hablar con un asesor",
-      "statValue": "100%",
-      "statLabel": "Acompañamiento gratuito",
-      "quote": "Asesores certificados de la Cámara guían tu registro paso a paso, sin costo y en tu propio idioma."
-    },
-    "FinalCta": {
-      "title": "Únete a los más de 5,000 negocios que ya están en Ruta C",
-      "subtitle": "No pierdas más oportunidades de venta. Tu competencia ya está aquí.",
-      "cta": "Quiero empezar gratis"
+      "eyebrow": "¡Bienvenido a tu ruta!",
+      "titleStart": "Conecta tu negocio con más clientes en Santa Marta",
+      "titleHighlight": "100% gratis",
+      "description": "Únete a la red que está transformando la economía local. Posiciona tu negocio, gestiona pedidos y conecta con la comunidad samaria.",
+      "socialProof": "+500 negocios ya confían en Ruta C",
+      "stepIndicator": "Paso {current} de {total}",
+      "visualEyebrow": "Hecho para emprendedores",
+      "visualTitle": "Tu negocio, en el mapa de Santa Marta",
+      "visualSubtitle": "La Cámara de Comercio te conecta con clientes, aliados y proveedores cerca de ti.",
+      "visualAlt": "Emprendedora samaria sonriendo en su tienda de artesanías locales"
     },
     "Footer": {
       "tagline": "Conectando nuestra comunidad",
@@ -344,10 +289,7 @@
       },
       "Success": {
         "title": "¡Bienvenido a Ruta C!",
-        "body": "Tu perfil está en cola. La Cámara te contactará en menos de 24 horas para confirmar y empezar a recomendarte oportunidades.",
-        "ctaWhatsapp": "Abrir WhatsApp con la Cámara",
-        "ctaHome": "Volver al inicio",
-        "whatsappPrefilled": "Hola, soy {nombre} y acabo de registrarme en Ruta C. Quiero confirmar mi perfil."
+        "redirecting": "Te llevamos a tus recomendaciones..."
       },
       "Errors": {
         "minLength": "Te falta un poquito más de información",

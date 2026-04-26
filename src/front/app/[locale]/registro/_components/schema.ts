@@ -138,8 +138,6 @@ export const barriosSantaMarta = [
 ] as const
 export type BarrioSantaMarta = (typeof barriosSantaMarta)[number]
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 /**
  * Per-step slices of the schema. Used to validate progressively without
  * touching fields the user hasn't reached yet.

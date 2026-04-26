@@ -27,22 +27,42 @@ export class SupabaseAuthRepository implements AuthRepository {
       throw new Error(`Failed to register user: ${authError?.message}`)
     }
 
+    type UserRowInsert = {
+      id: string
+      email: string
+      name: string
+      whatsapp: string
+      sector: string
+      years_of_operation?: string
+      municipio: string
+      barrio: string
+      has_chamber: boolean
+      nit: string | null
+      created_at: string
+    }
+    type UserRowSelected = Pick<
+      UserRowInsert,
+      'id' | 'name' | 'email' | 'created_at'
+    >
+
+    const insertRow: UserRowInsert = {
+      id: authData.user.id,
+      email,
+      name: businessName,
+      whatsapp,
+      sector: businessProfile.sector,
+      years_of_operation: businessProfile.yearsOfOperation,
+      municipio: businessProfile.municipio,
+      barrio: businessProfile.barrio,
+      has_chamber: businessProfile.hasChamber,
+      nit: businessProfile.nit || null,
+      created_at: new Date().toISOString(),
+    }
+
     const { data, error } = await this.client
       .from('users')
       .insert([
-        {
-          id: authData.user.id,
-          email,
-          name: businessName,
-          whatsapp,
-          sector: businessProfile.sector,
-          years_of_operation: businessProfile.yearsOfOperation,
-          municipio: businessProfile.municipio,
-          barrio: businessProfile.barrio,
-          has_chamber: businessProfile.hasChamber,
-          nit: businessProfile.nit || null,
-          created_at: new Date().toISOString(),
-        } as any,
+        insertRow as unknown as Database['public']['Tables']['users']['Insert'],
       ])
       .select('id, name, email, created_at')
       .single()
@@ -51,7 +71,7 @@ export class SupabaseAuthRepository implements AuthRepository {
       throw new Error(`Failed to create user profile: ${error?.message}`)
     }
 
-    const typedData = data as any
+    const typedData = data as unknown as UserRowSelected
     const user = User.create(
       typedData.id,
       typedData.name,

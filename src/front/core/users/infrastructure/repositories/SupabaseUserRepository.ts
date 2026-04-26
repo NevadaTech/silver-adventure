@@ -20,7 +20,7 @@ export class SupabaseUserRepository implements UserRepository {
   async findAll(): Promise<User[]> {
     const { data, error } = await this.client
       .from('users')
-      .select('id, name, created_at')
+      .select('id, name, email, created_at')
       .order('created_at', { ascending: true })
 
     if (error) {
@@ -28,14 +28,14 @@ export class SupabaseUserRepository implements UserRepository {
     }
 
     return data.map((row) =>
-      User.create(row.id, row.name, new Date(row.created_at)),
+      User.create(row.id, row.name, row.email, new Date(row.created_at)),
     )
   }
 
   async findById(id: string): Promise<User | null> {
     const { data, error } = await this.client
       .from('users')
-      .select('id, name, created_at')
+      .select('id, name, email, created_at')
       .eq('id', id)
       .single()
 
@@ -44,6 +44,11 @@ export class SupabaseUserRepository implements UserRepository {
       throw new Error(`Failed to fetch user: ${error.message}`)
     }
 
-    return User.create(data.id, data.name, new Date(data.created_at))
+    return User.create(
+      data.id,
+      data.name,
+      data.email,
+      new Date(data.created_at),
+    )
   }
 }

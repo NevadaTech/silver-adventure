@@ -224,7 +224,7 @@ describe('OnboardCompanyFromSignup', () => {
     expect(persisted.length).toBe(result.recommendations.length)
   })
 
-  it('does not crash when no clusters map to the classified CIIU', async () => {
+  it('auto-creates a heuristic-grupo cluster when no predefined mapping exists', async () => {
     const f = buildFixtures()
     const useCase = new OnboardCompanyFromSignup(
       f.classify,
@@ -245,11 +245,57 @@ describe('OnboardCompanyFromSignup', () => {
       municipio: 'SANTA MARTA',
     })
 
-    expect(result.clusters).toEqual([])
+    expect(result.clusters).toHaveLength(1)
+    const created = result.clusters[0]
+    expect(created.tipo).toBe('heuristic-grupo')
+    expect(created.ciiuGrupo).toBe('561')
+    expect(created.ciiuDivision).toBe('56')
+    expect(created.municipio).toBe('SANTA MARTA')
+
+    const persisted = await f.clusterRepo.findById(created.id)
+    expect(persisted).not.toBeNull()
+
     const memberships = await f.membershipRepo.findClusterIdsByCompany(
       result.company.id,
     )
-    expect(memberships).toEqual([])
+    expect(memberships).toEqual([created.id])
+  })
+
+  it('reuses an existing heuristic-grupo cluster instead of creating a duplicate', async () => {
+    const f = buildFixtures()
+    const existing = Cluster.create({
+      id: 'heur-grupo-561-santa-marta',
+      codigo: 'H-561-SANTA-MARTA',
+      titulo: 'Grupo 561 en SANTA MARTA',
+      tipo: 'heuristic-grupo',
+      ciiuDivision: '56',
+      ciiuGrupo: '561',
+      municipio: 'SANTA MARTA',
+    })
+    await f.clusterRepo.saveMany([existing])
+
+    const useCase = new OnboardCompanyFromSignup(
+      f.classify,
+      f.companyRepo,
+      f.clusterRepo,
+      f.ciiuMapping,
+      f.membershipRepo,
+      f.recRepo,
+      new PeerMatcher(f.featureBuilder),
+      new ValueChainMatcher(),
+      new AllianceMatcher(),
+    )
+
+    const result = await useCase.execute({
+      userId: 'reuser',
+      description: 'Restaurante',
+      businessName: 'Casa Reuse',
+      municipio: 'SANTA MARTA',
+    })
+
+    expect(result.clusters).toHaveLength(1)
+    expect(result.clusters[0].id).toBe('heur-grupo-561-santa-marta')
+    expect(await f.clusterRepo.count()).toBe(1)
   })
 
   it('caps recommendations per relation type to avoid flooding', async () => {
@@ -275,6 +321,6 @@ describe('OnboardCompanyFromSignup', () => {
     const referentes = result.recommendations.filter(
       (r) => r.relationType === 'referente',
     )
-    expect(referentes.length).toBeLessThanOrEqual(10)
+    expect(referentes.length).toBeLessThanOrEqual(2)
   })
 })

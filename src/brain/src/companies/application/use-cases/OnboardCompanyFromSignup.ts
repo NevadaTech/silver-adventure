@@ -13,7 +13,7 @@ import {
   CLUSTER_REPOSITORY,
   type ClusterRepository,
 } from '@/clusters/domain/repositories/ClusterRepository'
-import type { Cluster } from '@/clusters/domain/entities/Cluster'
+import { Cluster } from '@/clusters/domain/entities/Cluster'
 import { Company } from '@/companies/domain/entities/Company'
 import {
   COMPANY_REPOSITORY,
@@ -50,7 +50,7 @@ export interface OnboardCompanyFromSignupResult {
   recommendations: Recommendation[]
 }
 
-const TOP_PER_TYPE = 10
+const TOP_PER_TYPE = 2
 
 @Injectable()
 export class OnboardCompanyFromSignup implements UseCase<
@@ -97,7 +97,10 @@ export class OnboardCompanyFromSignup implements UseCase<
     })
     await this.companyRepo.saveMany([company])
 
-    const clusters = await this.resolveClusters(classification.ciiu.code)
+    const clusters = await this.resolveClusters(
+      classification.ciiu,
+      input.municipio,
+    )
     if (clusters.length > 0) {
       const memberships: Membership[] = clusters.map((c) => ({
         clusterId: c.id,
@@ -126,11 +129,35 @@ export class OnboardCompanyFromSignup implements UseCase<
     }
   }
 
-  private async resolveClusters(ciiuCode: string): Promise<Cluster[]> {
+  private async resolveClusters(
+    ciiu: { code: string; division: string; grupo: string },
+    municipio: string,
+  ): Promise<Cluster[]> {
     const ciiuToClusters = await this.ciiuMappingRepo.getCiiuToClusterMap()
-    const clusterIds = ciiuToClusters.get(ciiuCode) ?? []
-    if (clusterIds.length === 0) return []
-    return this.clusterRepo.findManyByIds(clusterIds)
+    const clusterIds = ciiuToClusters.get(ciiu.code) ?? []
+    if (clusterIds.length > 0) {
+      const predefined = await this.clusterRepo.findManyByIds(clusterIds)
+      if (predefined.length > 0) return predefined
+    }
+
+    const existing = await this.clusterRepo.findByGrupoAndMunicipio(
+      ciiu.grupo,
+      municipio,
+    )
+    if (existing) return [existing]
+
+    const slug = slugify(municipio)
+    const heuristic = Cluster.create({
+      id: `heur-grupo-${ciiu.grupo}-${slug}`,
+      codigo: `H-${ciiu.grupo}-${slug.toUpperCase()}`,
+      titulo: `Grupo ${ciiu.grupo} en ${municipio}`,
+      tipo: 'heuristic-grupo',
+      ciiuDivision: ciiu.division,
+      ciiuGrupo: ciiu.grupo,
+      municipio,
+    })
+    await this.clusterRepo.saveMany([heuristic])
+    return [heuristic]
   }
 
   private async generateRecommendations(
@@ -163,6 +190,15 @@ export class OnboardCompanyFromSignup implements UseCase<
       }),
     )
   }
+}
+
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 }
 
 function resolveCompanyId(input: OnboardCompanyFromSignupInput): string {

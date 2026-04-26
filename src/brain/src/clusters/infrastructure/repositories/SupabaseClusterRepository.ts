@@ -62,6 +62,21 @@ export class SupabaseClusterRepository implements ClusterRepository {
     return ((data ?? []) as ClusterRow[]).map((r) => this.toEntity(r))
   }
 
+  async findByGrupoAndMunicipio(
+    ciiuGrupo: string,
+    municipio: string,
+  ): Promise<Cluster | null> {
+    const { data, error } = await this.db
+      .from(TABLE)
+      .select('*')
+      .eq('tipo', 'heuristic-grupo')
+      .eq('ciiu_grupo', ciiuGrupo)
+      .eq('municipio', municipio)
+      .maybeSingle()
+    if (error) throw error
+    return data ? this.toEntity(data as ClusterRow) : null
+  }
+
   async saveMany(clusters: Cluster[]): Promise<void> {
     if (clusters.length === 0) return
     const rows = clusters.map((c) => this.toRow(c))

@@ -94,4 +94,54 @@ describe('InMemoryClusterRepository', () => {
     await repo.saveMany([makeCluster({ id: '1' }), makeCluster({ id: '2' })])
     expect(await repo.count()).toBe(2)
   })
+
+  describe('findByGrupoAndMunicipio', () => {
+    it('returns matching heuristic-grupo cluster', async () => {
+      await repo.saveMany([
+        makeCluster({
+          id: 'heur-grupo-561-santa-marta',
+          codigo: 'H-561-SM',
+          titulo: 'Grupo 561 en SANTA MARTA',
+          tipo: 'heuristic-grupo',
+          ciiuDivision: '56',
+          ciiuGrupo: '561',
+          municipio: 'SANTA MARTA',
+        }),
+      ])
+      const result = await repo.findByGrupoAndMunicipio('561', 'SANTA MARTA')
+      expect(result).not.toBeNull()
+      expect(result!.id).toBe('heur-grupo-561-santa-marta')
+    })
+
+    it('returns null when no cluster matches grupo and municipio', async () => {
+      await repo.saveMany([
+        makeCluster({
+          id: 'heur-grupo-561-cartagena',
+          codigo: 'H-561-CTG',
+          titulo: 'Grupo 561 en CARTAGENA',
+          tipo: 'heuristic-grupo',
+          ciiuDivision: '56',
+          ciiuGrupo: '561',
+          municipio: 'CARTAGENA',
+        }),
+      ])
+      expect(
+        await repo.findByGrupoAndMunicipio('561', 'SANTA MARTA'),
+      ).toBeNull()
+    })
+
+    it('ignores clusters of other tipos', async () => {
+      await repo.saveMany([
+        makeCluster({
+          id: 'pred-1',
+          codigo: 'PRED',
+          titulo: 'Predefined',
+          tipo: 'predefined',
+        }),
+      ])
+      expect(
+        await repo.findByGrupoAndMunicipio('561', 'SANTA MARTA'),
+      ).toBeNull()
+    })
+  })
 })

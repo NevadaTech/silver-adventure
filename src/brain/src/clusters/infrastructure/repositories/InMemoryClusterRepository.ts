@@ -24,6 +24,22 @@ export class InMemoryClusterRepository implements ClusterRepository {
     return Array.from(this.store.values()).filter((c) => c.tipo === tipo)
   }
 
+  async findByGrupoAndMunicipio(
+    ciiuGrupo: string,
+    municipio: string,
+  ): Promise<Cluster | null> {
+    for (const c of this.store.values()) {
+      if (
+        c.tipo === 'heuristic-grupo' &&
+        c.ciiuGrupo === ciiuGrupo &&
+        c.municipio === municipio
+      ) {
+        return c
+      }
+    }
+    return null
+  }
+
   async saveMany(clusters: Cluster[]): Promise<void> {
     for (const c of clusters) {
       this.store.set(c.id, c)

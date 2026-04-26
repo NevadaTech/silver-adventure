@@ -40,7 +40,7 @@ export interface GenerateRecommendationsResult {
 }
 
 const MIN_CONFIDENCE = 0.5
-const TOP_PER_TYPE = 5
+const TOP_PER_TYPE = 2
 const TOP_TOTAL = 20
 const AI_WEIGHT = 0.6
 const PROXIMITY_WEIGHT = 0.4

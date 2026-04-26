@@ -110,7 +110,7 @@ describe('SupabaseRecommendationRepository', () => {
             source: 'ai-inferred',
           }),
         ]),
-        { onConflict: 'id' },
+        { onConflict: 'source_company_id,target_company_id,relation_type' },
       )
     })
 

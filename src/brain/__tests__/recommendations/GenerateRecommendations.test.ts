@@ -192,7 +192,7 @@ describe('GenerateRecommendations', () => {
       expect(await setup.recRepo.countBySource('src')).toBeLessThanOrEqual(20)
     })
 
-    it('caps each (relationType) to at most 5 recommendations per company', async () => {
+    it('caps each (relationType) to at most 2 recommendations per company', async () => {
       const setup = makeSetup()
       const companies: Company[] = [
         company({ id: 'banano', ciiu: 'A0122', municipio: 'SANTA MARTA' }),
@@ -213,7 +213,7 @@ describe('GenerateRecommendations', () => {
         'banano',
         'cliente',
       )
-      expect(clientes.length).toBeLessThanOrEqual(5)
+      expect(clientes.length).toBeLessThanOrEqual(2)
     })
   })
 

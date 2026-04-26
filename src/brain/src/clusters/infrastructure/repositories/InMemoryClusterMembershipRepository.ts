@@ -48,4 +48,18 @@ export class InMemoryClusterMembershipRepository implements ClusterMembershipRep
   async count(): Promise<number> {
     return this.store.size
   }
+
+  async snapshot(): Promise<Map<string, string[]>> {
+    const snap = new Map<string, Set<string>>()
+    for (const key of this.store) {
+      const m = this.parse(key)
+      if (!snap.has(m.clusterId)) snap.set(m.clusterId, new Set())
+      snap.get(m.clusterId)!.add(m.companyId)
+    }
+    const result = new Map<string, string[]>()
+    for (const [clusterId, companies] of snap) {
+      result.set(clusterId, Array.from(companies))
+    }
+    return result
+  }
 }

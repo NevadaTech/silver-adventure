@@ -42,7 +42,7 @@ export class SupabaseAuthRepository implements AuthRepository {
           has_chamber: businessProfile.hasChamber,
           nit: businessProfile.nit || null,
           created_at: new Date().toISOString(),
-        },
+        } as any,
       ])
       .select('id, name, email, created_at')
       .single()
@@ -51,11 +51,12 @@ export class SupabaseAuthRepository implements AuthRepository {
       throw new Error(`Failed to create user profile: ${error?.message}`)
     }
 
+    const typedData = data as any
     const user = User.create(
-      data.id,
-      data.name,
-      new Date(data.created_at),
-      data.email,
+      typedData.id,
+      typedData.name,
+      new Date(typedData.created_at),
+      typedData.email,
     )
 
     return {

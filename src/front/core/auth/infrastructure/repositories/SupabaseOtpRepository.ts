@@ -19,8 +19,7 @@ export class SupabaseOtpRepository implements OtpRepository {
 
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
-    const { data, error } = await this.client
-      .from('otp_sessions')
+    const { data, error } = await (this.client.from('otp_sessions') as any)
       .insert([
         {
           session_id: sessionIdHex,
@@ -47,8 +46,7 @@ export class SupabaseOtpRepository implements OtpRepository {
   }
 
   async findSession(sessionId: string): Promise<OtpSession | null> {
-    const { data, error } = await this.client
-      .from('otp_sessions')
+    const { data, error } = await (this.client.from('otp_sessions') as any)
       .select()
       .eq('session_id', sessionId)
       .gt('expires_at', new Date().toISOString())

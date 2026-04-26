@@ -24,7 +24,7 @@ export class User extends Entity<string> {
     id: string,
     name: string,
     createdAt: Date = new Date(),
-    email?: string,
+    email?: string | null,
   ): User {
     if (!name || name.trim().length === 0) {
       throw new Error('User name cannot be empty')

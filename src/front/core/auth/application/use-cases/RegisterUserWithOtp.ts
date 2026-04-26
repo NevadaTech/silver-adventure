@@ -38,7 +38,7 @@ export class RegisterUserWithOtp implements UseCase<
     const session = await this.otpRepository.createSession(
       input.whatsapp,
       code,
-      input,
+      input as unknown as Record<string, unknown>,
     )
 
     await this.smsPort.sendOtp(input.whatsapp, code)

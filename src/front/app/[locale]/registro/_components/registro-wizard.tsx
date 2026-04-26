@@ -197,11 +197,13 @@ export function RegistroWizard() {
     return <RegistroSuccess data={data} />
   }
 
-  const displayStep = step === 'otp' || step === 'success' ? 3 : step
+  const displayStep: 1 | 2 | 3 = typeof step === 'string' ? 3 : step
+
+  const isFormStep = typeof step === 'number'
 
   return (
     <div className="flex flex-col gap-8">
-      {step !== 'otp' && step !== 'success' && (
+      {isFormStep && (
         <RegistroProgress currentStep={displayStep} labels={labels} />
       )}
 
@@ -243,25 +245,25 @@ export function RegistroWizard() {
           />
         ) : null}
 
-        {apiError && step !== 'otp' && (
+        {apiError && isFormStep && (
           <div className="bg-error/10 text-error mb-4 rounded-lg border border-red-200 p-3 text-sm">
             {apiError}
           </div>
         )}
 
-        {step !== 'success' && (
+        {
           <div className="border-border-soft mt-8 flex flex-col-reverse items-center justify-between gap-3 border-t pt-6 sm:flex-row">
             <button
               type="button"
               onClick={handleBack}
-              disabled={step === 1 || isPending}
+              disabled={(isFormStep && step === 1) || isPending}
               className="text-text-secondary hover:text-text inline-flex min-h-[48px] items-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ArrowLeft className="h-4 w-4" />
               {t('back')}
             </button>
 
-            {step !== 'otp' && step < 3 ? (
+            {isFormStep && step < 3 ? (
               <button
                 type="button"
                 onClick={handleNext}
@@ -291,7 +293,7 @@ export function RegistroWizard() {
               </button>
             ) : null}
           </div>
-        )}
+        }
       </div>
     </div>
   )

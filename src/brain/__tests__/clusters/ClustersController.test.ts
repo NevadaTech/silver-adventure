@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CiiuActivity } from '@/ciiu-taxonomy/domain/entities/CiiuActivity'
 import { InMemoryCiiuTaxonomyRepository } from '@/ciiu-taxonomy/infrastructure/repositories/InMemoryCiiuTaxonomyRepository'
 import { ExplainCluster } from '@/clusters/application/use-cases/ExplainCluster'
@@ -7,6 +7,7 @@ import { GenerateClusters } from '@/clusters/application/use-cases/GenerateClust
 import { GetCompanyClusters } from '@/clusters/application/use-cases/GetCompanyClusters'
 import { HeuristicClusterer } from '@/clusters/application/services/HeuristicClusterer'
 import { PredefinedClusterMatcher } from '@/clusters/application/services/PredefinedClusterMatcher'
+import type { EcosystemDiscoverer } from '@/clusters/application/services/EcosystemDiscoverer'
 import { Cluster } from '@/clusters/domain/entities/Cluster'
 import { InMemoryClusterCiiuMappingRepository } from '@/clusters/infrastructure/repositories/InMemoryClusterCiiuMappingRepository'
 import { InMemoryClusterMembershipRepository } from '@/clusters/infrastructure/repositories/InMemoryClusterMembershipRepository'
@@ -16,6 +17,12 @@ import { CompanyClustersController } from '@/clusters/infrastructure/http/compan
 import { Company } from '@/companies/domain/entities/Company'
 import { InMemoryCompanyRepository } from '@/companies/infrastructure/repositories/InMemoryCompanyRepository'
 import { StubLlmAdapter } from '@/shared/infrastructure/llm/StubLlmAdapter'
+
+function makeNoopEcosystemDiscoverer(): EcosystemDiscoverer {
+  return {
+    discover: vi.fn().mockResolvedValue([]),
+  } as unknown as EcosystemDiscoverer
+}
 
 function makeCompany(id: string, ciiu = 'G4711'): Company {
   return Company.create({
@@ -64,6 +71,7 @@ describe('ClustersController', () => {
       membershipRepo,
       new PredefinedClusterMatcher(mappingRepo),
       new HeuristicClusterer(ciiuRepo),
+      makeNoopEcosystemDiscoverer(),
     )
     const explain = new ExplainCluster(
       clusterRepo,

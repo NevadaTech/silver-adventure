@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "seed:ciiu": "bun run src/seeds/seed-ciiu-taxonomy.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

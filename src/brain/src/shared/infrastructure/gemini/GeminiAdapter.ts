@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { GeminiPort } from '@/shared/domain/GeminiPort'
+import type { GeminiPort } from '@/shared/domain/GeminiPort'
 import { env } from '@/shared/infrastructure/env'
 
 export class GeminiAdapter implements GeminiPort {

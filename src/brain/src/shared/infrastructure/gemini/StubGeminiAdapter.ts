@@ -1,4 +1,4 @@
-import { GeminiPort } from '@/shared/domain/GeminiPort'
+import type { GeminiPort } from '@/shared/domain/GeminiPort'
 
 export class StubGeminiAdapter implements GeminiPort {
   constructor(

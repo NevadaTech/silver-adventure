@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { CiiuTaxonomyModule } from '@/ciiu-taxonomy/ciiu-taxonomy.module'
 import { CompaniesModule } from '@/companies/companies.module'
 import { AiMatchEngine } from './application/services/AiMatchEngine'
@@ -19,7 +19,7 @@ import { SupabaseAiMatchCacheRepository } from './infrastructure/repositories/Su
 import { SupabaseRecommendationRepository } from './infrastructure/repositories/SupabaseRecommendationRepository'
 
 @Module({
-  imports: [CiiuTaxonomyModule, CompaniesModule],
+  imports: [CiiuTaxonomyModule, forwardRef(() => CompaniesModule)],
   controllers: [RecommendationsController, CompanyRecommendationsController],
   providers: [
     {

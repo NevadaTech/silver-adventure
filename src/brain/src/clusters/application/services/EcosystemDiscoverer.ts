@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common'
 import {
   CIIU_GRAPH_PORT,
   type CiiuGraphPort,
@@ -28,7 +28,7 @@ export class EcosystemDiscoverer {
 
   constructor(
     @Inject(CIIU_GRAPH_PORT) private readonly graph: CiiuGraphPort,
-    logger?: Logger,
+    @Optional() logger?: Logger,
   ) {
     this.logger = logger ?? new Logger(EcosystemDiscoverer.name)
   }

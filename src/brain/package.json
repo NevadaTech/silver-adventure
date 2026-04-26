@@ -13,7 +13,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "seed:ciiu": "bun run src/seeds/seed-ciiu-taxonomy.ts"
+    "seed:ciiu": "bun run src/seeds/seed-ciiu-taxonomy.ts",
+    "seed:companies": "bun run src/seeds/seed-companies.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

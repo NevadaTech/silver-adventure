@@ -377,6 +377,28 @@ describe('RunIncrementalScan', () => {
       const persisted = await stubs.scanRepo.findLatest()
       expect(persisted!.status).toBe('failed')
     })
+
+    it('serializes a Postgres-style POJO error instead of [object Object]', async () => {
+      const useCase = buildUseCase(stubs)
+      await stubs.companyRepo.saveMany([makeCompany('a')])
+      const pgError = {
+        code: '22P02',
+        details: null,
+        hint: null,
+        message: 'invalid input syntax for type uuid: ""',
+      }
+      stubs.generateRecs.execute.mockRejectedValueOnce(pgError)
+
+      await expect(useCase.execute({ trigger: 'cron' })).rejects.toBe(pgError)
+
+      const persisted = await stubs.scanRepo.findLatest()
+      expect(persisted!.status).toBe('failed')
+      expect(persisted!.errorMessage).not.toContain('[object Object]')
+      expect(persisted!.errorMessage).toContain('22P02')
+      expect(persisted!.errorMessage).toContain(
+        'invalid input syntax for type uuid: ""',
+      )
+    })
   })
 
   describe('result shape', () => {

@@ -23,7 +23,25 @@ export interface GenerateRecommendationsInput {
   enableAi?: boolean
 }
 
+export type GenerateRecommendationsMode =
+  | 'ai-driven'
+  | 'fallback-only'
+  | 'ai-failed-fallback'
+
+export interface AiEvalStats {
+  totalPairs: number
+  cached: number
+  evaluated: number
+  errors: number
+}
+
 export interface GenerateRecommendationsResult {
+  mode: GenerateRecommendationsMode
+  aiEnabled: boolean
+  aiStats: AiEvalStats | null
+  durationMs: number
+  startedAt: string
+  completedAt: string
   totalRecommendations: number
   companiesWithRecs: number
   byRelationType: Record<RelationType, number>
@@ -56,18 +74,33 @@ export class GenerateRecommendations implements UseCase<
     input: GenerateRecommendationsInput = {},
   ): Promise<GenerateRecommendationsResult> {
     const aiEnabled = resolveAiEnabled(input.enableAi)
+    const startedAtDate = new Date()
+    const startMs = startedAtDate.getTime()
 
     const companies = (await this.companyRepo.findAll()).filter(
       (c) => c.isActive,
     )
 
+    this.logger.log(
+      `starting batch (aiEnabled=${aiEnabled}, activeCompanies=${companies.length})`,
+    )
+
     let recsBySource: Map<string, Recommendation[]>
+    let mode: GenerateRecommendationsMode
+    let aiStats: AiEvalStats | null = null
+
     if (aiEnabled) {
       try {
         const pairs = this.candidateSelector.selectCiiuPairs(companies)
         const stats = await this.ciiuPairEvaluator.evaluateAll(pairs, {
           concurrency: 4,
         })
+        aiStats = {
+          totalPairs: stats.total,
+          cached: stats.cached,
+          evaluated: stats.evaluated,
+          errors: stats.errors,
+        }
         this.logger.log(
           `AI eval stats: total=${stats.total} cached=${stats.cached} evaluated=${stats.evaluated} errors=${stats.errors}`,
         )
@@ -76,16 +109,20 @@ export class GenerateRecommendations implements UseCase<
         recsBySource = new Map<string, Recommendation[]>()
         mergeInto(recsBySource, aiRecs)
         mergeInto(recsBySource, fallbackRecs)
+        mode = 'ai-driven'
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e)
         this.logger.error(
           `AI orchestration failed: ${message} — falling back to hardcoded matchers`,
         )
         recsBySource = await this.runFallback(companies)
+        mode = 'ai-failed-fallback'
+        aiStats = null
       }
     } else {
       this.logger.log('AI disabled — using hardcoded matchers')
       recsBySource = await this.runFallback(companies)
+      mode = 'fallback-only'
     }
 
     const limited = this.limit(recsBySource)
@@ -93,7 +130,23 @@ export class GenerateRecommendations implements UseCase<
     await this.recRepo.deleteAll()
     await this.recRepo.saveAll(flatten(limited))
 
-    return computeStats(limited)
+    const completedAtDate = new Date()
+    const durationMs = completedAtDate.getTime() - startMs
+    const stats = computeStats(limited)
+
+    this.logger.log(
+      `completed in ${durationMs}ms — ${stats.totalRecommendations} recs (mode=${mode})`,
+    )
+
+    return {
+      mode,
+      aiEnabled,
+      aiStats,
+      durationMs,
+      startedAt: startedAtDate.toISOString(),
+      completedAt: completedAtDate.toISOString(),
+      ...stats,
+    }
   }
 
   private async runFallback(
@@ -138,9 +191,13 @@ function mergeInto(
   }
 }
 
-function computeStats(
-  recs: Map<string, Recommendation[]>,
-): GenerateRecommendationsResult {
+interface BatchStats {
+  totalRecommendations: number
+  companiesWithRecs: number
+  byRelationType: Record<RelationType, number>
+}
+
+function computeStats(recs: Map<string, Recommendation[]>): BatchStats {
   const byRelationType: Record<RelationType, number> = {
     referente: 0,
     cliente: 0,

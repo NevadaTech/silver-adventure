@@ -334,4 +334,80 @@ describe('GenerateRecommendations', () => {
     expect(result.companiesWithRecs).toBeGreaterThanOrEqual(0)
     expect(result.byRelationType).toBeDefined()
   })
+
+  describe('execution telemetry', () => {
+    it('returns mode=fallback-only and null aiStats when enableAi is false', async () => {
+      const setup = makeSetup()
+      await setup.companyRepo.saveMany([
+        company({ id: 'p1', ciiu: 'C1071', municipio: 'SANTA MARTA' }),
+        company({ id: 'p2', ciiu: 'C1071', municipio: 'SANTA MARTA' }),
+      ])
+
+      const result = await setup.useCase.execute({ enableAi: false })
+
+      expect(result.mode).toBe('fallback-only')
+      expect(result.aiEnabled).toBe(false)
+      expect(result.aiStats).toBeNull()
+    })
+
+    it('returns mode=ai-driven and populated aiStats when AI runs successfully', async () => {
+      const setup = makeSetup({
+        matchResponse: {
+          has_match: true,
+          relation_type: 'cliente',
+          confidence: 0.85,
+          reason: 'r',
+        },
+      })
+      await setup.companyRepo.saveMany([
+        company({ id: 'mayor', ciiu: 'G4631', municipio: 'SANTA MARTA' }),
+        company({ id: 'rest', ciiu: 'I5611', municipio: 'SANTA MARTA' }),
+      ])
+
+      const result = await setup.useCase.execute({ enableAi: true })
+
+      expect(result.mode).toBe('ai-driven')
+      expect(result.aiEnabled).toBe(true)
+      expect(result.aiStats).not.toBeNull()
+      expect(result.aiStats!.totalPairs).toBeGreaterThanOrEqual(0)
+      expect(result.aiStats!.cached).toBeGreaterThanOrEqual(0)
+      expect(result.aiStats!.evaluated).toBeGreaterThanOrEqual(0)
+      expect(result.aiStats!.errors).toBeGreaterThanOrEqual(0)
+    })
+
+    it('returns mode=ai-failed-fallback when AI orchestration throws', async () => {
+      const setup = makeSetup()
+      vi.spyOn(setup.evaluator, 'evaluateAll').mockRejectedValue(
+        new Error('rate limited'),
+      )
+      await setup.companyRepo.saveMany([
+        company({ id: 'p1', ciiu: 'C1071', municipio: 'SANTA MARTA' }),
+        company({ id: 'p2', ciiu: 'C1071', municipio: 'SANTA MARTA' }),
+      ])
+
+      const result = await setup.useCase.execute({ enableAi: true })
+
+      expect(result.mode).toBe('ai-failed-fallback')
+      expect(result.aiEnabled).toBe(true)
+      expect(result.aiStats).toBeNull()
+    })
+
+    it('returns durationMs and ISO timestamps for startedAt and completedAt', async () => {
+      const setup = makeSetup()
+      await setup.companyRepo.saveMany([
+        company({ id: 'p1', ciiu: 'C1071', municipio: 'SANTA MARTA' }),
+        company({ id: 'p2', ciiu: 'C1071', municipio: 'SANTA MARTA' }),
+      ])
+
+      const result = await setup.useCase.execute({ enableAi: false })
+
+      expect(result.durationMs).toBeGreaterThanOrEqual(0)
+      expect(typeof result.durationMs).toBe('number')
+      expect(() => new Date(result.startedAt).toISOString()).not.toThrow()
+      expect(() => new Date(result.completedAt).toISOString()).not.toThrow()
+      expect(new Date(result.completedAt).getTime()).toBeGreaterThanOrEqual(
+        new Date(result.startedAt).getTime(),
+      )
+    })
+  })
 })

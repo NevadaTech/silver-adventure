@@ -28,7 +28,7 @@ export class SupabaseUserRepository implements UserRepository {
     }
 
     return data.map((row) =>
-      User.create(row.id, row.name, row.email, new Date(row.created_at)),
+      User.create(row.id, row.name, new Date(row.created_at), row.email),
     )
   }
 
@@ -47,8 +47,8 @@ export class SupabaseUserRepository implements UserRepository {
     return User.create(
       data.id,
       data.name,
-      data.email,
       new Date(data.created_at),
+      data.email,
     )
   }
 }

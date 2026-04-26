@@ -24,7 +24,8 @@ import type { RegistroDataPartial } from './schema'
 type Step = 1 | 2 | 3 | 'otp' | 'success'
 type StepErrors = Record<string, string>
 
-function normalizeWhatsapp(phone: string): string {
+function normalizeWhatsapp(phone: string | undefined): string {
+  if (!phone) return ''
   const cleaned = phone.replace(/\s/g, '')
   if (cleaned.startsWith('+')) return cleaned
   if (cleaned.startsWith('57')) return `+${cleaned}`

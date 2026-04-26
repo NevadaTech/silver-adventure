@@ -2,7 +2,7 @@ import { Entity } from '@/core/shared/domain/Entity'
 
 interface UserProps {
   name: string
-  email: string
+  email?: string
   createdAt: Date
 }
 
@@ -23,23 +23,24 @@ export class User extends Entity<string> {
   static create(
     id: string,
     name: string,
-    email: string,
     createdAt: Date = new Date(),
+    email?: string,
   ): User {
     if (!name || name.trim().length === 0) {
       throw new Error('User name cannot be empty')
     }
-    if (!email || email.trim().length === 0) {
-      throw new Error('User email cannot be empty')
-    }
-    return new User(id, { name: name.trim(), email: email.trim(), createdAt })
+    return new User(id, {
+      name: name.trim(),
+      email: email ? email.trim() : undefined,
+      createdAt,
+    })
   }
 
   get name(): string {
     return this.props.name
   }
 
-  get email(): string {
+  get email(): string | undefined {
     return this.props.email
   }
 

@@ -29,7 +29,7 @@ export class InMemoryAuthRepository implements AuthRepository {
     }
 
     const id = `user-${this.idCounter++}`
-    const user = User.create(id, businessName, email)
+    const user = User.create(id, businessName, new Date(), email)
 
     this.store.set(email, { user, password, businessProfile, whatsapp })
 
@@ -46,7 +46,7 @@ export class InMemoryAuthRepository implements AuthRepository {
   }
 
   async create(id: string, email: string, name: string): Promise<User> {
-    const user = User.create(id, name, email)
+    const user = User.create(id, name, new Date(), email)
     this.store.set(email, { user, password: 'mock-password' })
     return user
   }

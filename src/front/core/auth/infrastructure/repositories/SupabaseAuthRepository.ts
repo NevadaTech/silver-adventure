@@ -54,8 +54,8 @@ export class SupabaseAuthRepository implements AuthRepository {
     const user = User.create(
       data.id,
       data.name,
-      data.email,
       new Date(data.created_at),
+      data.email,
     )
 
     return {

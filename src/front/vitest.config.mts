@@ -8,12 +8,11 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    setupFiles: ['./vitest.setup.ts'],
     projects: [
       {
-        extends: true,
+        name: 'unit',
         test: {
-          name: 'unit',
+          globals: true,
           environment: 'node',
           include: [
             '__tests__/unit/**/*.{test,spec}.{ts,tsx}',
@@ -23,10 +22,11 @@ export default defineConfig({
         },
       },
       {
-        extends: true,
+        name: 'integration',
         test: {
-          name: 'integration',
+          globals: true,
           environment: 'jsdom',
+          setupFiles: ['./vitest.setup.ts'],
           include: ['__tests__/integration/**/*.{test,spec}.{ts,tsx}'],
         },
       },

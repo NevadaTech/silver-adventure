@@ -4,6 +4,7 @@ import { CiiuActivity } from '@/ciiu-taxonomy/domain/entities/CiiuActivity'
 import { InMemoryCiiuTaxonomyRepository } from '@/ciiu-taxonomy/infrastructure/repositories/InMemoryCiiuTaxonomyRepository'
 import { Company } from '@/companies/domain/entities/Company'
 import { InMemoryCompanyRepository } from '@/companies/infrastructure/repositories/InMemoryCompanyRepository'
+import { AiCacheExpander } from '@/recommendations/application/services/AiCacheExpander'
 import { AiMatchEngine } from '@/recommendations/application/services/AiMatchEngine'
 import { AllianceMatcher } from '@/recommendations/application/services/AllianceMatcher'
 import { CandidateSelector } from '@/recommendations/application/services/CandidateSelector'
@@ -11,6 +12,7 @@ import { CiiuPairEvaluator } from '@/recommendations/application/services/CiiuPa
 import { DynamicValueChainRules } from '@/recommendations/application/services/DynamicValueChainRules'
 import { FeatureVectorBuilder } from '@/recommendations/application/services/FeatureVectorBuilder'
 import { PeerMatcher } from '@/recommendations/application/services/PeerMatcher'
+import { RecommendationLimiter } from '@/recommendations/application/services/RecommendationLimiter'
 import { ValueChainMatcher } from '@/recommendations/application/services/ValueChainMatcher'
 import { InMemoryCiiuGraphRepository } from '@/recommendations/infrastructure/repositories/InMemoryCiiuGraphRepository'
 import { ExplainRecommendation } from '@/recommendations/application/use-cases/ExplainRecommendation'
@@ -61,13 +63,15 @@ function makeWiring() {
   const dynamicRules = new DynamicValueChainRules(graph)
   const valueChain = new ValueChainMatcher(dynamicRules, false)
   const alliance = new AllianceMatcher(dynamicRules, false)
+  const cacheExpander = new AiCacheExpander(cache, featureBuilder)
+  const limiter = new RecommendationLimiter()
   const generate = new GenerateRecommendations(
     companyRepo,
     recRepo,
-    cache,
     selector,
     evaluator,
-    featureBuilder,
+    cacheExpander,
+    limiter,
     peer,
     valueChain,
     alliance,

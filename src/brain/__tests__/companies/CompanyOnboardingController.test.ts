@@ -10,11 +10,14 @@ import { ClassifyCompanyFromDescription } from '@/companies/application/use-case
 import { OnboardCompanyFromSignup } from '@/companies/application/use-cases/OnboardCompanyFromSignup'
 import { CompanyOnboardingController } from '@/companies/infrastructure/http/company-onboarding.controller'
 import { InMemoryCompanyRepository } from '@/companies/infrastructure/repositories/InMemoryCompanyRepository'
+import { AiCacheExpander } from '@/recommendations/application/services/AiCacheExpander'
 import { AllianceMatcher } from '@/recommendations/application/services/AllianceMatcher'
 import { DynamicValueChainRules } from '@/recommendations/application/services/DynamicValueChainRules'
 import { FeatureVectorBuilder } from '@/recommendations/application/services/FeatureVectorBuilder'
 import { PeerMatcher } from '@/recommendations/application/services/PeerMatcher'
+import { RecommendationLimiter } from '@/recommendations/application/services/RecommendationLimiter'
 import { ValueChainMatcher } from '@/recommendations/application/services/ValueChainMatcher'
+import { InMemoryAiMatchCacheRepository } from '@/recommendations/infrastructure/repositories/InMemoryAiMatchCacheRepository'
 import { InMemoryCiiuGraphRepository } from '@/recommendations/infrastructure/repositories/InMemoryCiiuGraphRepository'
 import { InMemoryRecommendationRepository } from '@/recommendations/infrastructure/repositories/InMemoryRecommendationRepository'
 import type { LlmPort } from '@/shared/domain/LlmPort'
@@ -89,6 +92,8 @@ describe('CompanyOnboardingController', () => {
         new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
         false,
       ),
+      new AiCacheExpander(new InMemoryAiMatchCacheRepository(), featureBuilder),
+      new RecommendationLimiter(),
     )
     controller = new CompanyOnboardingController(onboard)
   })

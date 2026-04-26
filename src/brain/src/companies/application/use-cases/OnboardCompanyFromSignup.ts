@@ -20,15 +20,16 @@ import {
   type CompanyRepository,
 } from '@/companies/domain/repositories/CompanyRepository'
 import { ClassifyCompanyFromDescription } from '@/companies/application/use-cases/ClassifyCompanyFromDescription'
+import { AiCacheExpander } from '@/recommendations/application/services/AiCacheExpander'
 import { AllianceMatcher } from '@/recommendations/application/services/AllianceMatcher'
 import { PeerMatcher } from '@/recommendations/application/services/PeerMatcher'
+import { RecommendationLimiter } from '@/recommendations/application/services/RecommendationLimiter'
 import { ValueChainMatcher } from '@/recommendations/application/services/ValueChainMatcher'
 import { Recommendation } from '@/recommendations/domain/entities/Recommendation'
 import {
   RECOMMENDATION_REPOSITORY,
   type RecommendationRepository,
 } from '@/recommendations/domain/repositories/RecommendationRepository'
-import type { RelationType } from '@/recommendations/domain/value-objects/RelationType'
 import type { UseCase } from '@/shared/domain/UseCase'
 
 export type YearsOfOperation = 'menos_1' | '1_3' | '3_5' | '5_10' | 'mas_10'
@@ -74,6 +75,8 @@ export class OnboardCompanyFromSignup implements UseCase<
     private readonly peer: PeerMatcher,
     private readonly valueChain: ValueChainMatcher,
     private readonly alliance: AllianceMatcher,
+    private readonly cacheExpander: AiCacheExpander,
+    private readonly limiter: RecommendationLimiter,
   ) {}
 
   async execute(
@@ -170,14 +173,20 @@ export class OnboardCompanyFromSignup implements UseCase<
     const peerRecs = this.peer.match(activeUniverse, { topN: 20 })
     const valueChainRecs = await this.valueChain.match(activeUniverse)
     const allianceRecs = await this.alliance.match(activeUniverse)
+    const aiCacheRecs = await this.cacheExpander.expandForCompany(
+      newCompany,
+      activeUniverse,
+    )
 
-    const fromNew = mergeFromSource(newCompany.id, [
-      peerRecs,
-      valueChainRecs,
-      allianceRecs,
-    ])
-    const deduped = dedupeByTargetAndType(fromNew)
-    const capped = capPerType(deduped, TOP_PER_TYPE)
+    const fromNew: Recommendation[] = [
+      ...(peerRecs.get(newCompany.id) ?? []),
+      ...(valueChainRecs.get(newCompany.id) ?? []),
+      ...(allianceRecs.get(newCompany.id) ?? []),
+      ...aiCacheRecs,
+    ]
+
+    const deduped = this.limiter.dedupeByTargetAndType(fromNew)
+    const capped = this.limiter.capPerType(deduped, TOP_PER_TYPE)
     return capped.map((r) =>
       Recommendation.create({
         id: randomUUID(),
@@ -224,42 +233,4 @@ function derivedFechaMatricula(
   const date = new Date(now)
   date.setMonth(date.getMonth() - monthsBack[years])
   return date
-}
-
-function mergeFromSource(
-  sourceId: string,
-  maps: Map<string, Recommendation[]>[],
-): Recommendation[] {
-  const out: Recommendation[] = []
-  for (const map of maps) {
-    const recs = map.get(sourceId) ?? []
-    out.push(...recs)
-  }
-  return out
-}
-
-function dedupeByTargetAndType(recs: Recommendation[]): Recommendation[] {
-  const byKey = new Map<string, Recommendation>()
-  for (const rec of recs) {
-    const key = `${rec.targetCompanyId}|${rec.relationType}`
-    const existing = byKey.get(key)
-    if (!existing || rec.score > existing.score) {
-      byKey.set(key, rec)
-    }
-  }
-  return Array.from(byKey.values())
-}
-
-function capPerType(recs: Recommendation[], perType: number): Recommendation[] {
-  const sorted = [...recs].sort((a, b) => b.score - a.score)
-  const counts = new Map<RelationType, number>()
-  const out: Recommendation[] = []
-  for (const rec of sorted) {
-    const c = counts.get(rec.relationType) ?? 0
-    if (c < perType) {
-      out.push(rec)
-      counts.set(rec.relationType, c + 1)
-    }
-  }
-  return out
 }

@@ -9,11 +9,15 @@ import { Company } from '@/companies/domain/entities/Company'
 import { InMemoryCompanyRepository } from '@/companies/infrastructure/repositories/InMemoryCompanyRepository'
 import { ClassifyCompanyFromDescription } from '@/companies/application/use-cases/ClassifyCompanyFromDescription'
 import { OnboardCompanyFromSignup } from '@/companies/application/use-cases/OnboardCompanyFromSignup'
+import { AiCacheExpander } from '@/recommendations/application/services/AiCacheExpander'
 import { AllianceMatcher } from '@/recommendations/application/services/AllianceMatcher'
 import { DynamicValueChainRules } from '@/recommendations/application/services/DynamicValueChainRules'
 import { FeatureVectorBuilder } from '@/recommendations/application/services/FeatureVectorBuilder'
 import { PeerMatcher } from '@/recommendations/application/services/PeerMatcher'
+import { RecommendationLimiter } from '@/recommendations/application/services/RecommendationLimiter'
 import { ValueChainMatcher } from '@/recommendations/application/services/ValueChainMatcher'
+import { AiMatchCacheEntry } from '@/recommendations/domain/entities/AiMatchCacheEntry'
+import { InMemoryAiMatchCacheRepository } from '@/recommendations/infrastructure/repositories/InMemoryAiMatchCacheRepository'
 import { InMemoryCiiuGraphRepository } from '@/recommendations/infrastructure/repositories/InMemoryCiiuGraphRepository'
 import { InMemoryRecommendationRepository } from '@/recommendations/infrastructure/repositories/InMemoryRecommendationRepository'
 import type { LlmPort } from '@/shared/domain/LlmPort'
@@ -67,12 +71,15 @@ function buildFixtures() {
   const ciiuMapping = new InMemoryClusterCiiuMappingRepository()
   const membershipRepo = new InMemoryClusterMembershipRepository()
   const recRepo = new InMemoryRecommendationRepository()
+  const aiCache = new InMemoryAiMatchCacheRepository()
   const gemini = new FixedGemini({
     ciiuCode: '5611',
     reasoning: 'Restaurante de comida del Caribe — clase 5611.',
   })
   const classify = new ClassifyCompanyFromDescription(gemini, taxonomy)
   const featureBuilder = new FeatureVectorBuilder()
+  const cacheExpander = new AiCacheExpander(aiCache, featureBuilder)
+  const limiter = new RecommendationLimiter()
 
   return {
     taxonomy,
@@ -81,8 +88,11 @@ function buildFixtures() {
     ciiuMapping,
     membershipRepo,
     recRepo,
+    aiCache,
     classify,
     featureBuilder,
+    cacheExpander,
+    limiter,
   }
 }
 
@@ -113,6 +123,8 @@ async function buildUseCase(
       new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
       false,
     ),
+    f.cacheExpander,
+    f.limiter,
   )
   return { useCase, ...f }
 }
@@ -250,6 +262,8 @@ describe('OnboardCompanyFromSignup', () => {
         new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
         false,
       ),
+      f.cacheExpander,
+      f.limiter,
     )
 
     const result = await useCase.execute({
@@ -304,6 +318,8 @@ describe('OnboardCompanyFromSignup', () => {
         new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
         false,
       ),
+      f.cacheExpander,
+      f.limiter,
     )
 
     const result = await useCase.execute({
@@ -316,6 +332,49 @@ describe('OnboardCompanyFromSignup', () => {
     expect(result.clusters).toHaveLength(1)
     expect(result.clusters[0].id).toBe('heur-grupo-561-santa-marta')
     expect(await f.clusterRepo.count()).toBe(1)
+  })
+
+  it('uses AI match cache hits when present to seed ai-inferred recommendations', async () => {
+    // Use a CIIU pair (5611 ↔ 0122) with NO hardcoded rule so the AI cache is
+    // the only producer of the recommendation. This isolates the AI cache wiring.
+    await fixtures.aiCache.put(
+      AiMatchCacheEntry.create({
+        ciiuOrigen: '0122',
+        ciiuDestino: '5611',
+        hasMatch: true,
+        relationType: 'aliado',
+        confidence: 0.8,
+        reason: 'Sinergia agro–gastronomía: producto local en menú',
+      }),
+    )
+    await fixtures.companyRepo.saveMany([
+      Company.create({
+        id: 'finca-1',
+        razonSocial: 'Finca La Esperanza',
+        ciiu: 'A0122',
+        municipio: 'SANTA MARTA',
+        fechaMatricula: new Date('2018-01-01'),
+        personal: 12,
+      }),
+    ])
+
+    const result = await fixtures.useCase.execute({
+      userId: 'u-ai',
+      description: 'Restaurante',
+      businessName: 'Casa Bambú',
+      municipio: 'SANTA MARTA',
+      yearsOfOperation: '3_5',
+    })
+
+    const aiInferred = result.recommendations.filter(
+      (r) => r.source === 'ai-inferred',
+    )
+    expect(aiInferred.length).toBeGreaterThan(0)
+    expect(
+      aiInferred.some(
+        (r) => r.targetCompanyId === 'finca-1' && r.relationType === 'aliado',
+      ),
+    ).toBe(true)
   })
 
   it('caps recommendations per relation type to avoid flooding', async () => {

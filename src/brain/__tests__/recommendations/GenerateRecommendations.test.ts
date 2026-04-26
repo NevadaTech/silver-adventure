@@ -6,6 +6,7 @@ import {
   type CreateCompanyInput,
 } from '@/companies/domain/entities/Company'
 import { InMemoryCompanyRepository } from '@/companies/infrastructure/repositories/InMemoryCompanyRepository'
+import { AiCacheExpander } from '@/recommendations/application/services/AiCacheExpander'
 import { AiMatchEngine } from '@/recommendations/application/services/AiMatchEngine'
 import { AllianceMatcher } from '@/recommendations/application/services/AllianceMatcher'
 import { CandidateSelector } from '@/recommendations/application/services/CandidateSelector'
@@ -13,6 +14,7 @@ import { CiiuPairEvaluator } from '@/recommendations/application/services/CiiuPa
 import { DynamicValueChainRules } from '@/recommendations/application/services/DynamicValueChainRules'
 import { FeatureVectorBuilder } from '@/recommendations/application/services/FeatureVectorBuilder'
 import { PeerMatcher } from '@/recommendations/application/services/PeerMatcher'
+import { RecommendationLimiter } from '@/recommendations/application/services/RecommendationLimiter'
 import { ValueChainMatcher } from '@/recommendations/application/services/ValueChainMatcher'
 import { InMemoryCiiuGraphRepository } from '@/recommendations/infrastructure/repositories/InMemoryCiiuGraphRepository'
 import { GenerateRecommendations } from '@/recommendations/application/use-cases/GenerateRecommendations'
@@ -80,6 +82,8 @@ function makeSetup({
   const evaluator = new CiiuPairEvaluator(aiEngine, cache)
   const selector = new CandidateSelector()
   const featureBuilder = new FeatureVectorBuilder()
+  const cacheExpander = new AiCacheExpander(cache, featureBuilder)
+  const limiter = new RecommendationLimiter()
   const peer = new PeerMatcher(featureBuilder)
   const graph = new InMemoryCiiuGraphRepository()
   const dynamicRules = new DynamicValueChainRules(graph)
@@ -88,10 +92,10 @@ function makeSetup({
   const useCase = new GenerateRecommendations(
     companyRepo,
     recRepo,
-    cache,
     selector,
     evaluator,
-    featureBuilder,
+    cacheExpander,
+    limiter,
     peer,
     valueChain,
     alliance,
@@ -196,7 +200,7 @@ describe('GenerateRecommendations', () => {
       expect(await setup.recRepo.countBySource('src')).toBeLessThanOrEqual(20)
     })
 
-    it('caps each (relationType) to at most 2 recommendations per company', async () => {
+    it('delivers exactly 2 recommendations per relationType when supply allows', async () => {
       const setup = makeSetup()
       const companies: Company[] = [
         company({ id: 'banano', ciiu: 'A0122', municipio: 'SANTA MARTA' }),
@@ -217,7 +221,64 @@ describe('GenerateRecommendations', () => {
         'banano',
         'cliente',
       )
-      expect(clientes.length).toBeLessThanOrEqual(2)
+      expect(clientes.length).toBe(2)
+    })
+  })
+
+  describe('floor coverage (at least 2 per relationType)', () => {
+    it('delivers up to 2 of each relationType when supply allows in fallback mode', async () => {
+      const setup = makeSetup()
+      await setup.companyRepo.saveMany([
+        company({ id: 'banano', ciiu: 'A0122', municipio: 'SANTA MARTA' }),
+        company({ id: 'banano2', ciiu: 'A0122', municipio: 'SANTA MARTA' }),
+        company({ id: 'banano3', ciiu: 'A0122', municipio: 'SANTA MARTA' }),
+        company({ id: 'mayor1', ciiu: 'G4631', municipio: 'SANTA MARTA' }),
+        company({ id: 'mayor2', ciiu: 'G4631', municipio: 'SANTA MARTA' }),
+        company({ id: 'transp1', ciiu: 'H4923', municipio: 'SANTA MARTA' }),
+        company({ id: 'transp2', ciiu: 'H4923', municipio: 'SANTA MARTA' }),
+      ])
+
+      await setup.useCase.execute({ enableAi: false })
+
+      const referente = await setup.recRepo.findBySourceAndType(
+        'banano',
+        'referente',
+      )
+      const cliente = await setup.recRepo.findBySourceAndType(
+        'banano',
+        'cliente',
+      )
+      const proveedor = await setup.recRepo.findBySourceAndType(
+        'banano',
+        'proveedor',
+      )
+      const aliado = await setup.recRepo.findBySourceAndType('banano', 'aliado')
+
+      expect(referente.length).toBe(2)
+      expect(cliente.length).toBe(2)
+      expect(proveedor.length).toBe(2)
+      expect(aliado.length).toBe(2)
+    })
+
+    it('supplements AI matches with fallback recs to fill missing relation types', async () => {
+      const setup = makeSetup({
+        matchResponse: { has_match: false },
+      })
+      await setup.companyRepo.saveMany([
+        company({ id: 'banano', ciiu: 'A0122', municipio: 'SANTA MARTA' }),
+        company({ id: 'banano2', ciiu: 'A0122', municipio: 'SANTA MARTA' }),
+        company({ id: 'mayor1', ciiu: 'G4631', municipio: 'SANTA MARTA' }),
+        company({ id: 'mayor2', ciiu: 'G4631', municipio: 'SANTA MARTA' }),
+        company({ id: 'transp1', ciiu: 'H4923', municipio: 'SANTA MARTA' }),
+      ])
+
+      await setup.useCase.execute({ enableAi: true })
+
+      const all = await setup.recRepo.findBySource('banano')
+      const sources = new Set(all.map((r) => r.source))
+
+      expect(all.length).toBeGreaterThan(0)
+      expect(sources.has('rule')).toBe(true)
     })
   })
 
@@ -240,7 +301,7 @@ describe('GenerateRecommendations', () => {
       const recs = await setup.recRepo.findBySource('mayor')
 
       expect(recs.length).toBeGreaterThan(0)
-      expect(recs.every((r) => r.source === 'ai-inferred')).toBe(true)
+      expect(recs.some((r) => r.source === 'ai-inferred')).toBe(true)
     })
 
     it('falls back to hardcoded matchers when AI orchestration throws', async () => {
@@ -272,5 +333,81 @@ describe('GenerateRecommendations', () => {
     expect(result.totalRecommendations).toBeGreaterThanOrEqual(0)
     expect(result.companiesWithRecs).toBeGreaterThanOrEqual(0)
     expect(result.byRelationType).toBeDefined()
+  })
+
+  describe('execution telemetry', () => {
+    it('returns mode=fallback-only and null aiStats when enableAi is false', async () => {
+      const setup = makeSetup()
+      await setup.companyRepo.saveMany([
+        company({ id: 'p1', ciiu: 'C1071', municipio: 'SANTA MARTA' }),
+        company({ id: 'p2', ciiu: 'C1071', municipio: 'SANTA MARTA' }),
+      ])
+
+      const result = await setup.useCase.execute({ enableAi: false })
+
+      expect(result.mode).toBe('fallback-only')
+      expect(result.aiEnabled).toBe(false)
+      expect(result.aiStats).toBeNull()
+    })
+
+    it('returns mode=ai-driven and populated aiStats when AI runs successfully', async () => {
+      const setup = makeSetup({
+        matchResponse: {
+          has_match: true,
+          relation_type: 'cliente',
+          confidence: 0.85,
+          reason: 'r',
+        },
+      })
+      await setup.companyRepo.saveMany([
+        company({ id: 'mayor', ciiu: 'G4631', municipio: 'SANTA MARTA' }),
+        company({ id: 'rest', ciiu: 'I5611', municipio: 'SANTA MARTA' }),
+      ])
+
+      const result = await setup.useCase.execute({ enableAi: true })
+
+      expect(result.mode).toBe('ai-driven')
+      expect(result.aiEnabled).toBe(true)
+      expect(result.aiStats).not.toBeNull()
+      expect(result.aiStats!.totalPairs).toBeGreaterThanOrEqual(0)
+      expect(result.aiStats!.cached).toBeGreaterThanOrEqual(0)
+      expect(result.aiStats!.evaluated).toBeGreaterThanOrEqual(0)
+      expect(result.aiStats!.errors).toBeGreaterThanOrEqual(0)
+    })
+
+    it('returns mode=ai-failed-fallback when AI orchestration throws', async () => {
+      const setup = makeSetup()
+      vi.spyOn(setup.evaluator, 'evaluateAll').mockRejectedValue(
+        new Error('rate limited'),
+      )
+      await setup.companyRepo.saveMany([
+        company({ id: 'p1', ciiu: 'C1071', municipio: 'SANTA MARTA' }),
+        company({ id: 'p2', ciiu: 'C1071', municipio: 'SANTA MARTA' }),
+      ])
+
+      const result = await setup.useCase.execute({ enableAi: true })
+
+      expect(result.mode).toBe('ai-failed-fallback')
+      expect(result.aiEnabled).toBe(true)
+      expect(result.aiStats).toBeNull()
+    })
+
+    it('returns durationMs and ISO timestamps for startedAt and completedAt', async () => {
+      const setup = makeSetup()
+      await setup.companyRepo.saveMany([
+        company({ id: 'p1', ciiu: 'C1071', municipio: 'SANTA MARTA' }),
+        company({ id: 'p2', ciiu: 'C1071', municipio: 'SANTA MARTA' }),
+      ])
+
+      const result = await setup.useCase.execute({ enableAi: false })
+
+      expect(result.durationMs).toBeGreaterThanOrEqual(0)
+      expect(typeof result.durationMs).toBe('number')
+      expect(() => new Date(result.startedAt).toISOString()).not.toThrow()
+      expect(() => new Date(result.completedAt).toISOString()).not.toThrow()
+      expect(new Date(result.completedAt).getTime()).toBeGreaterThanOrEqual(
+        new Date(result.startedAt).getTime(),
+      )
+    })
   })
 })

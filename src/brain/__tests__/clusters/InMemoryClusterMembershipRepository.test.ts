@@ -53,4 +53,36 @@ describe('InMemoryClusterMembershipRepository', () => {
     await repo.saveMany([])
     expect(await repo.count()).toBe(0)
   })
+
+  describe('snapshot', () => {
+    it('returns a Map of clusterId to companyIds for every stored membership', async () => {
+      await repo.saveMany([
+        { clusterId: 'pred-1', companyId: 'c-1' },
+        { clusterId: 'pred-1', companyId: 'c-2' },
+        { clusterId: 'pred-2', companyId: 'c-1' },
+        { clusterId: 'pred-2', companyId: 'c-3' },
+      ])
+
+      const snap = await repo.snapshot()
+      expect(snap).toBeInstanceOf(Map)
+      expect(snap.size).toBe(2)
+      expect(snap.get('pred-1')!.sort()).toEqual(['c-1', 'c-2'])
+      expect(snap.get('pred-2')!.sort()).toEqual(['c-1', 'c-3'])
+    })
+
+    it('returns an empty Map when store is empty', async () => {
+      const snap = await repo.snapshot()
+      expect(snap.size).toBe(0)
+    })
+
+    it('does not include duplicate companyIds within the same cluster', async () => {
+      await repo.saveMany([
+        { clusterId: 'pred-1', companyId: 'c-1' },
+        { clusterId: 'pred-1', companyId: 'c-1' },
+      ])
+
+      const snap = await repo.snapshot()
+      expect(snap.get('pred-1')).toEqual(['c-1'])
+    })
+  })
 })

@@ -1,0 +1,359 @@
+{
+  "info": {
+    "_postman_id": "ruta-c-conecta-brain-collection-v1",
+    "name": "Silver Adventure · Brain",
+    "description": "Colección con todas las rutas REST del brain (NestJS) de Ruta C Conecta.\n\n**Base URL:** `{{baseUrl}}` → default `http://localhost:3001/api`.\n\n**Cómo usarla:**\n1. Levantar el brain con `bun dev:brain` (desde la raíz del monorepo).\n2. Importar esta colección en Postman/Insomnia.\n3. Setear variables de la colección si necesitás otros valores (companyId, clusterId, recommendationId, eventId).\n4. Health primero, después seedear, después correr scan, después consumir.\n\n**OpenAPI auto-generado** con todos los schemas en `http://localhost:3001/docs`.\n\n**Referencias:**\n- `src/brain/README.md` — overview del servicio\n- `docs/scoring.md` — cómo funcionan los scores de las recomendaciones\n- `docs/specs/` — specs por bounded context",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001/api",
+      "type": "string"
+    },
+    {
+      "key": "companyId",
+      "value": "",
+      "type": "string",
+      "description": "registradoMATRICULA de una empresa (ej. '0123456-7'). Se obtiene listando /companies."
+    },
+    {
+      "key": "clusterId",
+      "value": "",
+      "type": "string",
+      "description": "ID del cluster. Convención: pred-{n} | div-{div}-{municipio} | grp-{grupo}-{municipio}"
+    },
+    {
+      "key": "recommendationId",
+      "value": "",
+      "type": "string",
+      "description": "UUID de una recomendación generada"
+    },
+    {
+      "key": "eventId",
+      "value": "",
+      "type": "string",
+      "description": "UUID de un agent_event"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "description": "Health check del servicio.",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Devuelve `{ status: 'ok', timestamp: <ISO> }`. Útil para readiness probe."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Companies",
+      "description": "Empresas (entidades económicas) sincronizadas vía CompanySource (CSV hoy, BigQuery cuando lleguen creds).",
+      "item": [
+        {
+          "name": "GET /companies — listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/companies?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["companies"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Cantidad máxima de resultados (default 50)"
+                }
+              ]
+            },
+            "description": "Retorna un array de CompanyDto sanitizado: `{ id, razonSocial, ciiu, ciiuSeccion, ciiuDivision, municipio, etapa, personal, ingreso }`.\n\nFiltra por `estado='ACTIVO'` internamente."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /companies/:id — detalle",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/companies/{{companyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["companies", "{{companyId}}"]
+            },
+            "description": "Detalle de una empresa por su `registradoMATRICULA`. 404 si no existe."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /companies/:id/clusters — clusters de una empresa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/companies/{{companyId}}/clusters",
+              "host": ["{{baseUrl}}"],
+              "path": ["companies", "{{companyId}}", "clusters"]
+            },
+            "description": "Devuelve todos los clusters a los que pertenece la empresa (relación N:M).\n\nPuede contener clusters predefinidos (`tipo='predefined'`) y heurísticos (`'heuristic-division'`, `'heuristic-grupo'`).\n\nVer `docs/specs/00-arquitectura.md` ARQ-005."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /companies/:id/recommendations — recomendaciones de una empresa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/companies/{{companyId}}/recommendations?type=cliente&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["companies", "{{companyId}}", "recommendations"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "cliente",
+                  "description": "Filtrar por relationType: 'referente' | 'cliente' | 'proveedor' | 'aliado'. Opcional.",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Máximo de resultados. Opcional.",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Lista las recomendaciones generadas para esta empresa, ordenadas por score desc.\n\nPara entender cómo se calcula el score ver `docs/scoring.md`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Clusters",
+      "description": "Generación y consulta de clusters (predefinidos estratégicos + heurísticos en cascada por CIIU + municipio).",
+      "item": [
+        {
+          "name": "POST /clusters/generate — regenerar clusters",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clusters/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["clusters", "generate"]
+            },
+            "description": "Endpoint admin. Corre el use case `GenerateClusters`:\n1. Carga companies con `estado='ACTIVO'`.\n2. Aplica `PredefinedClusterMatcher` (8 clusters de la Cámara).\n3. Aplica `HeuristicClusterer` (división MIN=5 + grupo MIN=10).\n4. Persiste clusters y memberships (regeneración limpia).\n\nDevuelve `{ predefinedClusters, heuristicClusters, totalMemberships }`."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /clusters/:id/explain — explicar cluster",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clusters/{{clusterId}}/explain",
+              "host": ["{{baseUrl}}"],
+              "path": ["clusters", "{{clusterId}}", "explain"]
+            },
+            "description": "Devuelve `{ description: string }` con texto en lenguaje natural que explica por qué existe el cluster (sector, ubicación, miembros característicos).\n\n404 si el cluster no existe."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Recommendations",
+      "description": "Motor AI-first con Gemini + 3 fallbacks heurísticos (Peer, ValueChain, Alliance). Detalle del scoring en `docs/scoring.md`.",
+      "item": [
+        {
+          "name": "POST /recommendations/generate — regenerar (con AI)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enableAi\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recommendations/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommendations", "generate"]
+            },
+            "description": "Regenera TODAS las recomendaciones. Endpoint admin.\n\n**Body opcional:** `{ enableAi?: boolean }` — override por llamada del flag `AI_MATCH_INFERENCE_ENABLED`. Si se omite, usa el valor del env.\n\n**Pipeline (cuando enableAi=true):**\n1. `CandidateSelector.selectCiiuPairs()` reduce el universo.\n2. `CiiuPairEvaluator.evaluateAll()` consulta Gemini con concurrencia=4 y llena `ai_match_cache`.\n3. `expandFromCache()` materializa recs aplicando `score = ai_confidence × (0.6 + 0.4 × proximity)`.\n4. Dedupe + tope (TOP_PER_TYPE=5, TOP_TOTAL=20) + persistencia.\n\nSi falla AI cae a fallback heurístico automáticamente.\n\nDevuelve `{ totalRecommendations, companiesWithRecs, byRelationType }`.\n\n⚠️ Primer scan llena cache de ~25k pares de CIIUs (~$1-3 USD con `gemini-2.5-flash`). Después es casi gratis por el cache."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /recommendations/generate — solo fallback (sin AI)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enableAi\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recommendations/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommendations", "generate"]
+            },
+            "description": "Misma generación, pero forzando los matchers heurísticos (`PeerMatcher`, `ValueChainMatcher`, `AllianceMatcher`) — útil para tests y demos sin tocar Gemini."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /recommendations/:id/explain — explicación natural lazy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recommendations/{{recommendationId}}/explain",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommendations", "{{recommendationId}}", "explain"]
+            },
+            "description": "Devuelve `{ explanation: string }` con texto natural en español generado por Gemini.\n\n**Lazy + cached:**\n- Si `recommendation.explanation != null` → retorna cached.\n- Sino, invoca Gemini con contexto (source, target, relationType, reasons), persiste en `recommendations.explanation` y retorna.\n\n404 si la recomendación no existe."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Agent",
+      "description": "Componente agéntico. Cron cada 60s (configurable vía `AGENT_CRON_SCHEDULE`). Sync incremental, regenera clusters y recs, detecta oportunidades y emite eventos.",
+      "item": [
+        {
+          "name": "POST /agent/scan — disparar scan manual",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/agent/scan",
+              "host": ["{{baseUrl}}"],
+              "path": ["agent", "scan"]
+            },
+            "description": "Dispara `RunIncrementalScan({ trigger: 'manual' })`.\n\n**Pipeline del scan:**\n1. Crea `ScanRun` y persiste en `scan_runs`.\n2. Calcula `since = lastCompletedRun?.completedAt`.\n3. `SyncCompaniesFromSource` (CSV/BQ).\n4. Si no hay diff y NO es primer run → completar vacío.\n5. Snapshot del estado anterior.\n6. `GenerateClusters.execute()`.\n7. `GenerateRecommendations.execute()`.\n8. `OpportunityDetector.detect(...)` → emite eventos:\n   - `new_high_score_match` (score ≥ 0.8 nuevo)\n   - `new_value_chain_partner` (cliente/proveedor nuevo)\n   - `new_cluster_member` (entró a cluster nuevo)\n9. `agent_events.saveAll(...)`.\n10. `ScanRun.complete(stats)`.\n\nDevuelve `ScanRunResult` con métricas + status."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /agent/status — estado del agente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agent/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["agent", "status"]
+            },
+            "description": "Devuelve último `ScanRun` + conteo por status.\n\n```json\n{\n  \"latest\": { id, status, trigger, startedAt, completedAt, companiesScanned, clustersGenerated, recommendationsGenerated, eventsEmitted, durationMs, errorMessage },\n  \"counts\": { completed, running, failed, partial }\n}\n```\n\nÚtil para observabilidad y dashboard admin."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /agent/events — eventos para una empresa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agent/events?companyId={{companyId}}&unread=true&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["agent", "events"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}",
+                  "description": "Empresa destinataria de los eventos (requerido)"
+                },
+                {
+                  "key": "unread",
+                  "value": "true",
+                  "description": "'true' filtra solo no leídos. Cualquier otro valor o ausencia → todos."
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Máximo de eventos. Opcional."
+                }
+              ]
+            },
+            "description": "Lista los `agent_events` que el agente emitió para esta empresa.\n\nEvent types posibles:\n- `new_high_score_match`\n- `new_value_chain_partner`\n- `new_cluster_member`\n\nDevuelve `{ events: AgentEvent[] }`."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /agent/events/:id/read — marcar evento como leído",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/agent/events/{{eventId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["agent", "events", "{{eventId}}", "read"]
+            },
+            "description": "Marca un evento como leído (`read=true`). El front lo invoca cuando el usuario abre la notificación.\n\nResponse: `204 No Content`."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

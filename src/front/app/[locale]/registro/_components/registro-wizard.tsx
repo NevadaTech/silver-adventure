@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { ArrowLeft, ArrowRight, Loader2, Send } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-import { z } from 'zod'
+import type { z } from 'zod'
 
 import { createSupabaseBrowserClient } from '@/core/shared/infrastructure/supabase/client'
 import { RegistroProgress } from './registro-progress'

@@ -144,4 +144,37 @@ describe('SupabaseClusterMembershipRepository', () => {
       expect(await repo.count()).toBe(0)
     })
   })
+
+  describe('snapshot', () => {
+    it('selects both columns and groups company_ids by cluster_id', async () => {
+      fake.setNext({
+        data: [
+          { cluster_id: 'pred-1', company_id: 'c-1' },
+          { cluster_id: 'pred-1', company_id: 'c-2' },
+          { cluster_id: 'pred-2', company_id: 'c-3' },
+        ],
+        error: null,
+      })
+
+      const snap = await repo.snapshot()
+
+      expect(fake.spies.from).toHaveBeenCalledWith('cluster_members')
+      expect(fake.spies.select).toHaveBeenCalledWith('cluster_id, company_id')
+      expect(snap).toBeInstanceOf(Map)
+      expect(snap.size).toBe(2)
+      expect(snap.get('pred-1')!.sort()).toEqual(['c-1', 'c-2'])
+      expect(snap.get('pred-2')).toEqual(['c-3'])
+    })
+
+    it('returns empty Map when no rows', async () => {
+      fake.setNext({ data: [], error: null })
+      const snap = await repo.snapshot()
+      expect(snap.size).toBe(0)
+    })
+
+    it('throws on error', async () => {
+      fake.setNext({ data: null, error: new Error('boom') })
+      await expect(repo.snapshot()).rejects.toThrow(/boom/)
+    })
+  })
 })

@@ -125,6 +125,26 @@ describe('SupabaseAiMatchCacheRepository', () => {
     })
   })
 
+  describe('findAll', () => {
+    it('returns mapped entries for every row', async () => {
+      fake.setNext({ data: [validRow], error: null })
+      const all = await repo.findAll()
+      expect(all).toHaveLength(1)
+      expect(all[0]).toBeInstanceOf(AiMatchCacheEntry)
+      expect(all[0].ciiuOrigen).toBe('0122')
+    })
+
+    it('returns empty array when data is null', async () => {
+      fake.setNext({ data: null, error: null })
+      expect(await repo.findAll()).toEqual([])
+    })
+
+    it('throws on supabase error', async () => {
+      fake.setNext({ data: null, error: new Error('boom') })
+      await expect(repo.findAll()).rejects.toThrow(/boom/)
+    })
+  })
+
   describe('size', () => {
     it('returns total count via count: exact head: true', async () => {
       fake.setNext({ data: null, error: null, count: 42 })

@@ -21,6 +21,10 @@ export class InMemoryAiMatchCacheRepository implements AiMatchCacheRepository {
     return this.store.size
   }
 
+  async findAll(): Promise<AiMatchCacheEntry[]> {
+    return Array.from(this.store.values())
+  }
+
   private keyOf(origen: string, destino: string): string {
     return `${origen}->${destino}`
   }

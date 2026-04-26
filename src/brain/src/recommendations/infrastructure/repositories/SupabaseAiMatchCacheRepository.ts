@@ -52,6 +52,12 @@ export class SupabaseAiMatchCacheRepository implements AiMatchCacheRepository {
     return count ?? 0
   }
 
+  async findAll(): Promise<AiMatchCacheEntry[]> {
+    const { data, error } = await this.db.from(TABLE).select('*')
+    if (error) throw error
+    return ((data ?? []) as CacheRow[]).map((r) => this.toEntity(r))
+  }
+
   private toEntity(row: CacheRow): AiMatchCacheEntry {
     if (row.relation_type !== null && !isRelationType(row.relation_type)) {
       throw new Error(

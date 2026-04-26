@@ -64,6 +64,33 @@ describe('InMemoryAiMatchCacheRepository', () => {
     expect(await repo.size()).toBe(1)
   })
 
+  it('findAll returns every entry in the store', async () => {
+    await repo.put(
+      AiMatchCacheEntry.create({
+        ciiuOrigen: '0122',
+        ciiuDestino: '4631',
+        hasMatch: true,
+        relationType: 'cliente',
+        confidence: 0.8,
+      }),
+    )
+    await repo.put(
+      AiMatchCacheEntry.create({
+        ciiuOrigen: '4631',
+        ciiuDestino: '5611',
+        hasMatch: false,
+      }),
+    )
+
+    const all = await repo.findAll()
+    expect(all).toHaveLength(2)
+    expect(all.map((e) => e.key).sort()).toEqual(['0122->4631', '4631->5611'])
+  })
+
+  it('findAll returns an empty array when nothing was stored', async () => {
+    expect(await repo.findAll()).toEqual([])
+  })
+
   it('size returns the total number of entries', async () => {
     expect(await repo.size()).toBe(0)
     await repo.put(

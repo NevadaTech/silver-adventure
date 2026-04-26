@@ -9,4 +9,5 @@ export interface AiMatchCacheRepository {
   ): Promise<AiMatchCacheEntry | null>
   put(entry: AiMatchCacheEntry): Promise<void>
   size(): Promise<number>
+  findAll(): Promise<AiMatchCacheEntry[]>
 }

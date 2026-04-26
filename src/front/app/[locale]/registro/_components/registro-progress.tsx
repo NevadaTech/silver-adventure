@@ -3,15 +3,15 @@
 import { Check } from 'lucide-react'
 
 type Props = {
-  currentStep: 1 | 2 | 3
-  labels: readonly [string, string, string]
+  currentStep: 1 | 2 | 3 | 4
+  labels: readonly [string, string, string, string]
 }
 
 export function RegistroProgress({ currentStep, labels }: Props) {
   return (
     <ol className="mx-auto flex w-full max-w-md items-start justify-between">
       {labels.map((label, index) => {
-        const stepNumber = (index + 1) as 1 | 2 | 3
+        const stepNumber = (index + 1) as 1 | 2 | 3 | 4
         const isActive = stepNumber === currentStep
         const isComplete = stepNumber < currentStep
         const isLast = index === labels.length - 1

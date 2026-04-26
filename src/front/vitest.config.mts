@@ -8,28 +8,13 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    setupFiles: ['./vitest.setup.ts'],
-    projects: [
-      {
-        extends: true,
-        test: {
-          name: 'unit',
-          environment: 'node',
-          include: [
-            '__tests__/unit/**/*.{test,spec}.{ts,tsx}',
-            '__tests__/core/**/*.{test,spec}.{ts,tsx}',
-            'core/**/*.{test,spec}.{ts,tsx}',
-          ],
-        },
-      },
-      {
-        extends: true,
-        test: {
-          name: 'integration',
-          environment: 'jsdom',
-          include: ['__tests__/integration/**/*.{test,spec}.{ts,tsx}'],
-        },
-      },
+    environment: 'node',
+    setupFiles: ['vitest.setup.ts'],
+    include: [
+      '__tests__/unit/**/*.{test,spec}.{ts,tsx}',
+      '__tests__/core/**/*.{test,spec}.{ts,tsx}',
+      'core/**/*.{test,spec}.{ts,tsx}',
+      '__tests__/integration/**/*.{test,spec}.{ts,tsx}',
     ],
     coverage: {
       provider: 'v8',

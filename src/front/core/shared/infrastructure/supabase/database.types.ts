@@ -307,6 +307,33 @@ export type Database = {
         }
         Relationships: []
       }
+      otp_sessions: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string
+          phone_number: string
+          registration_data: Json
+          session_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at: string
+          phone_number: string
+          registration_data: Json
+          session_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string
+          phone_number?: string
+          registration_data?: Json
+          session_id?: string
+        }
+        Relationships: []
+      }
       recommendations: {
         Row: {
           created_at: string
@@ -405,19 +432,43 @@ export type Database = {
       }
       users: {
         Row: {
+          barrio: string | null
           created_at: string
+          email: string | null
+          has_chamber: boolean | null
           id: string
+          municipio: string | null
           name: string
+          nit: string | null
+          sector: string | null
+          whatsapp: string | null
+          years_of_operation: string | null
         }
         Insert: {
+          barrio?: string | null
           created_at?: string
+          email?: string | null
+          has_chamber?: boolean | null
           id?: string
+          municipio?: string | null
           name: string
+          nit?: string | null
+          sector?: string | null
+          whatsapp?: string | null
+          years_of_operation?: string | null
         }
         Update: {
+          barrio?: string | null
           created_at?: string
+          email?: string | null
+          has_chamber?: boolean | null
           id?: string
+          municipio?: string | null
           name?: string
+          nit?: string | null
+          sector?: string | null
+          whatsapp?: string | null
+          years_of_operation?: string | null
         }
         Relationships: []
       }

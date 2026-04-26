@@ -157,4 +157,82 @@ describe('InMemoryRecommendationRepository', () => {
     expect(await repo.findById('r1')).toBeNull()
     expect(await repo.countBySource('a')).toBe(0)
   })
+
+  describe('findAll', () => {
+    it('returns every stored recommendation', async () => {
+      await repo.saveAll([
+        makeRec({ id: 'r1' }),
+        makeRec({ id: 'r2', sourceCompanyId: 'x', targetCompanyId: 'y' }),
+        makeRec({ id: 'r3', targetCompanyId: 'c', relationType: 'proveedor' }),
+      ])
+
+      const all = await repo.findAll()
+      expect(all).toHaveLength(3)
+      expect(all.map((r) => r.id).sort()).toEqual(['r1', 'r2', 'r3'])
+    })
+
+    it('returns empty array when store is empty', async () => {
+      expect(await repo.findAll()).toEqual([])
+    })
+  })
+
+  describe('snapshotKeys', () => {
+    it('returns a Set of source|target|type keys for every stored rec', async () => {
+      await repo.saveAll([
+        makeRec({
+          id: 'r1',
+          sourceCompanyId: 'a',
+          targetCompanyId: 'b',
+          relationType: 'cliente',
+        }),
+        makeRec({
+          id: 'r2',
+          sourceCompanyId: 'a',
+          targetCompanyId: 'b',
+          relationType: 'proveedor',
+        }),
+        makeRec({
+          id: 'r3',
+          sourceCompanyId: 'x',
+          targetCompanyId: 'y',
+          relationType: 'aliado',
+        }),
+      ])
+
+      const keys = await repo.snapshotKeys()
+      expect(keys).toBeInstanceOf(Set)
+      expect(keys.size).toBe(3)
+      expect(keys.has('a|b|cliente')).toBe(true)
+      expect(keys.has('a|b|proveedor')).toBe(true)
+      expect(keys.has('x|y|aliado')).toBe(true)
+    })
+
+    it('returns an empty Set when store is empty', async () => {
+      const keys = await repo.snapshotKeys()
+      expect(keys.size).toBe(0)
+    })
+
+    it('does not include score in the key (different scores collapse)', async () => {
+      await repo.saveAll([
+        makeRec({
+          id: 'r1',
+          sourceCompanyId: 'a',
+          targetCompanyId: 'b',
+          relationType: 'cliente',
+          score: 0.3,
+        }),
+        makeRec({
+          id: 'r2',
+          sourceCompanyId: 'a',
+          targetCompanyId: 'b',
+          relationType: 'cliente',
+          score: 0.9,
+        }),
+      ])
+
+      const keys = await repo.snapshotKeys()
+      expect(keys.size).toBe(1)
+      expect(keys.has('a|b|cliente')).toBe(true)
+    })
+  })
 })

@@ -1,0 +1,1 @@
+export const AI_DRIVEN_RULES_FLAG = Symbol('AI_DRIVEN_RULES_FLAG')

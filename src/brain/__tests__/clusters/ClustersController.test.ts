@@ -72,6 +72,7 @@ describe('ClustersController', () => {
       new PredefinedClusterMatcher(mappingRepo),
       new HeuristicClusterer(ciiuRepo),
       makeNoopEcosystemDiscoverer(),
+      false,
     )
     const explain = new ExplainCluster(
       clusterRepo,

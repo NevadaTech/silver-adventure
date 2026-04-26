@@ -15,6 +15,8 @@ import { GetCompanyRecommendations } from './application/use-cases/GetCompanyRec
 import { GetGroupedCompanyRecommendations } from './application/use-cases/GetGroupedCompanyRecommendations'
 import { AI_MATCH_CACHE_REPOSITORY } from './domain/repositories/AiMatchCacheRepository'
 import { CIIU_GRAPH_PORT } from './domain/ports/CiiuGraphPort'
+import { AI_DRIVEN_RULES_FLAG } from './application/tokens'
+import { env } from '@/shared/infrastructure/env'
 import { RECOMMENDATION_REPOSITORY } from './domain/repositories/RecommendationRepository'
 import { CompanyRecommendationsController } from './infrastructure/http/company-recommendations.controller'
 import { RecommendationsController } from './infrastructure/http/recommendations.controller'
@@ -38,6 +40,10 @@ import { SupabaseRecommendationRepository } from './infrastructure/repositories/
       provide: CIIU_GRAPH_PORT,
       useClass: SupabaseCiiuGraphRepository,
     },
+    {
+      provide: AI_DRIVEN_RULES_FLAG,
+      useFactory: () => env.AI_DRIVEN_RULES_ENABLED === 'true',
+    },
     DynamicValueChainRules,
     AiMatchEngine,
     AllianceMatcher,
@@ -55,6 +61,7 @@ import { SupabaseRecommendationRepository } from './infrastructure/repositories/
     RECOMMENDATION_REPOSITORY,
     AI_MATCH_CACHE_REPOSITORY,
     CIIU_GRAPH_PORT,
+    AI_DRIVEN_RULES_FLAG,
     PeerMatcher,
     ValueChainMatcher,
     AllianceMatcher,

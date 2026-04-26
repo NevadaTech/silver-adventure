@@ -90,6 +90,7 @@ describe('GenerateClusters', () => {
       new PredefinedClusterMatcher(mappingRepo),
       new HeuristicClusterer(ciiuRepo),
       ecosystemDiscoverer,
+      false,
     )
 
     await clusterRepo.saveMany([
@@ -245,37 +246,21 @@ describe('GenerateClusters', () => {
 
       const deleteByTypeSpy = vi.spyOn(clusterRepo, 'deleteByType')
 
-      // Temporarily set env flag — we use Object.defineProperty to simulate
-      const originalEnv = process.env.AI_DRIVEN_RULES_ENABLED
-      process.env.AI_DRIVEN_RULES_ENABLED = 'true'
+      const useCaseFlagOn = new GenerateClusters(
+        companyRepo,
+        clusterRepo,
+        membershipRepo,
+        new PredefinedClusterMatcher(mappingRepo),
+        new HeuristicClusterer(ciiuRepo),
+        ecosystemDiscoverer,
+        true,
+      )
 
-      try {
-        // Re-create use case so it reads env fresh (env is cached on module load)
-        // Instead, we use a workaround: the use case reads env.AI_DRIVEN_RULES_ENABLED
-        // which is the parsed env at module init. We need to test via the discoverer
-        // being called or not. Since env is cached, we test via mocking the discover method
-        // and checking the result field.
+      const stats = await useCaseFlagOn.execute()
 
-        // Create a new useCase that forces the flag to be true by inspecting
-        // what the current test can do. Since env.AI_DRIVEN_RULES_ENABLED defaults
-        // to 'false' in test environment, we need a different approach.
-        // Use the explicit flag check: ecosystemEnabled = env.AI_DRIVEN_RULES_ENABLED === 'true'
-        // We'll test this by verifying the ecosystem discoverer stub interaction.
-
-        // Since we cannot change env at runtime (it's parsed at module load),
-        // we verify the behavior through the result:
-        // when flag=false (default in tests), ecosystemClusters should be 0
-        // and discover should NOT be called.
-        const stats = await useCase.execute()
-        expect(stats.ecosystemClusters).toBe(0) // flag is false in test env
-        expect(discoverSpy).not.toHaveBeenCalled() // flag is false — no call
-      } finally {
-        process.env.AI_DRIVEN_RULES_ENABLED = originalEnv
-      }
-
-      // The above confirms flag=false behavior. The flag=true behavior
-      // is tested via the deleteByType spy which also shouldn't be called.
-      expect(deleteByTypeSpy).not.toHaveBeenCalled()
+      expect(stats.ecosystemClusters).toBe(1)
+      expect(discoverSpy).toHaveBeenCalledOnce()
+      expect(deleteByTypeSpy).toHaveBeenCalledWith('heuristic-ecosistema')
     })
   })
 
@@ -354,6 +339,7 @@ describe('GenerateClusters — E.3 integration: full flow with real InMemory ada
       new PredefinedClusterMatcher(mappingRepo),
       new HeuristicClusterer(ciiuRepo),
       realDiscoverer,
+      false,
     )
 
     // Seed companies with CIIUs belonging to the community (section letter prefix required)

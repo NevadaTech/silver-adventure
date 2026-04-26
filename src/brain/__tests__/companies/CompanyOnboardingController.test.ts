@@ -83,9 +83,11 @@ describe('CompanyOnboardingController', () => {
       new PeerMatcher(featureBuilder),
       new ValueChainMatcher(
         new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+        false,
       ),
       new AllianceMatcher(
         new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+        false,
       ),
     )
     controller = new CompanyOnboardingController(onboard)

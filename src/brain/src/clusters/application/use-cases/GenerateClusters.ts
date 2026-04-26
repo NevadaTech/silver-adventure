@@ -17,8 +17,8 @@ import {
   type CompanyRepository,
 } from '@/companies/domain/repositories/CompanyRepository'
 import type { Company } from '@/companies/domain/entities/Company'
+import { AI_DRIVEN_RULES_FLAG } from '@/recommendations/application/tokens'
 import type { UseCase } from '@/shared/domain/UseCase'
-import { env } from '@/shared/infrastructure/env'
 
 export interface GenerateClustersResult {
   predefinedClusters: number
@@ -39,6 +39,7 @@ export class GenerateClusters implements UseCase<void, GenerateClustersResult> {
     private readonly predefinedMatcher: PredefinedClusterMatcher,
     private readonly heuristicClusterer: HeuristicClusterer,
     private readonly ecosystemDiscoverer: EcosystemDiscoverer,
+    @Inject(AI_DRIVEN_RULES_FLAG) private readonly ecosystemEnabled: boolean,
   ) {}
 
   async execute(): Promise<GenerateClustersResult> {
@@ -49,7 +50,7 @@ export class GenerateClusters implements UseCase<void, GenerateClustersResult> {
     const predefinedAssignments = await this.predefinedMatcher.match(companies)
     const heuristicResults = await this.heuristicClusterer.cluster(companies)
 
-    const ecosystemEnabled = env.AI_DRIVEN_RULES_ENABLED === 'true'
+    const ecosystemEnabled = this.ecosystemEnabled
     const ecosystemResults = ecosystemEnabled
       ? await this.ecosystemDiscoverer.discover(companies)
       : []

@@ -242,9 +242,11 @@ describe('OnboardCompanyFromSignup', () => {
       new PeerMatcher(f.featureBuilder),
       new ValueChainMatcher(
         new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+        false,
       ),
       new AllianceMatcher(
         new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+        false,
       ),
     )
 
@@ -294,9 +296,11 @@ describe('OnboardCompanyFromSignup', () => {
       new PeerMatcher(f.featureBuilder),
       new ValueChainMatcher(
         new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+        false,
       ),
       new AllianceMatcher(
         new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+        false,
       ),
     )
 

@@ -34,11 +34,14 @@ function makeEdge(
   })
 }
 
-function makeMatcher(edges: CiiuEdge[] = []): AllianceMatcher {
+function makeMatcher(
+  edges: CiiuEdge[] = [],
+  aiEnabled = false,
+): AllianceMatcher {
   const graph = new InMemoryCiiuGraphRepository()
   if (edges.length > 0) graph.seed(edges)
   const dynamicRules = new DynamicValueChainRules(graph)
-  return new AllianceMatcher(dynamicRules)
+  return new AllianceMatcher(dynamicRules, aiEnabled)
 }
 
 describe('AllianceMatcher', () => {
@@ -150,7 +153,7 @@ describe('AllianceMatcher', () => {
       // Only proveedor edges — no aliado
       graph.seed([makeEdge('I5511', 'H4921', 'cliente', 0.8)])
       const dynamicRules = new DynamicValueChainRules(graph)
-      const matcher = new AllianceMatcher(dynamicRules)
+      const matcher = new AllianceMatcher(dynamicRules, true)
 
       // getEcosystems(true) with no aliado → returns ECOSYSTEMS
       const ecosystems = await dynamicRules.getEcosystems(true)

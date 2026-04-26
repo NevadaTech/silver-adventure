@@ -33,11 +33,14 @@ function makeEdge(
   })
 }
 
-function makeMatcher(edges: CiiuEdge[] = []): ValueChainMatcher {
+function makeMatcher(
+  edges: CiiuEdge[] = [],
+  aiEnabled = false,
+): ValueChainMatcher {
   const graph = new InMemoryCiiuGraphRepository()
   if (edges.length > 0) graph.seed(edges)
   const dynamicRules = new DynamicValueChainRules(graph)
-  return new ValueChainMatcher(dynamicRules)
+  return new ValueChainMatcher(dynamicRules, aiEnabled)
 }
 
 describe('ValueChainMatcher', () => {
@@ -157,20 +160,13 @@ describe('ValueChainMatcher', () => {
 
   describe('flag=true behavior', () => {
     it('flag=true + empty graph → falls back to hardcoded, no error', async () => {
-      // graph is empty — falls back to VALUE_CHAIN_RULES
       const graph = new InMemoryCiiuGraphRepository()
       const dynamicRules = new DynamicValueChainRules(graph)
-      // Temporarily force flag=true by spying... instead we pass the flag through
-      // the helper: if graph is empty getValueChainRules(true) returns VALUE_CHAIN_RULES
-      const matcher = new ValueChainMatcher(dynamicRules)
+      const matcher = new ValueChainMatcher(dynamicRules, true)
 
       const banano = company({ id: 'banano', ciiu: 'A0122' })
       const mayor = company({ id: 'mayor', ciiu: 'G4631' })
 
-      // Even with flag=true and empty graph, result equals hardcoded
-      // We can't directly set env in tests so we use the helper's behavior directly.
-      // The matcher will read env.AI_DRIVEN_RULES_ENABLED which defaults to 'false'.
-      // Test that match still works correctly regardless.
       const result = await matcher.match([banano, mayor])
       expect(result.get('banano') ?? []).toHaveLength(1)
     })

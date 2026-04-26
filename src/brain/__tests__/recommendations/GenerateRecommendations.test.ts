@@ -83,8 +83,8 @@ function makeSetup({
   const peer = new PeerMatcher(featureBuilder)
   const graph = new InMemoryCiiuGraphRepository()
   const dynamicRules = new DynamicValueChainRules(graph)
-  const valueChain = new ValueChainMatcher(dynamicRules)
-  const alliance = new AllianceMatcher(dynamicRules)
+  const valueChain = new ValueChainMatcher(dynamicRules, false)
+  const alliance = new AllianceMatcher(dynamicRules, false)
   const useCase = new GenerateRecommendations(
     companyRepo,
     recRepo,

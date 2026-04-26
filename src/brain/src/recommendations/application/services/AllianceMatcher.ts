@@ -1,22 +1,23 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { randomUUID } from 'node:crypto'
 import type { Company } from '@/companies/domain/entities/Company'
 import { DynamicValueChainRules } from '@/recommendations/application/services/DynamicValueChainRules'
+import { AI_DRIVEN_RULES_FLAG } from '@/recommendations/application/tokens'
 import { Recommendation } from '@/recommendations/domain/entities/Recommendation'
 import { Reasons } from '@/recommendations/domain/value-objects/Reason'
-import { env } from '@/shared/infrastructure/env'
 
 const SAME_MUNICIPIO_SCORE = 0.75
 const DIFF_MUNICIPIO_SCORE = 0.55
 
 @Injectable()
 export class AllianceMatcher {
-  constructor(private readonly dynamicRules: DynamicValueChainRules) {}
+  constructor(
+    private readonly dynamicRules: DynamicValueChainRules,
+    @Inject(AI_DRIVEN_RULES_FLAG) private readonly aiEnabled: boolean,
+  ) {}
 
   async match(companies: Company[]): Promise<Map<string, Recommendation[]>> {
-    const ecosystems = await this.dynamicRules.getEcosystems(
-      env.AI_DRIVEN_RULES_ENABLED === 'true',
-    )
+    const ecosystems = await this.dynamicRules.getEcosystems(this.aiEnabled)
 
     const byCiiu = new Map<string, Company[]>()
     for (const c of companies) {

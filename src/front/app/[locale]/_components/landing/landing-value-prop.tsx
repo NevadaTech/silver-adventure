@@ -3,7 +3,7 @@ import { BadgeCheck, Hand, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 type Props = {
-  currentStep: 1 | 2 | 3
+  currentStep: 1 | 2 | 3 | 4
   totalSteps: number
 }
 

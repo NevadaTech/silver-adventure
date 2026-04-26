@@ -8,6 +8,23 @@ vi.mock('@/core/shared/infrastructure/env', () => ({
   env: {
     SUPABASE_URL: 'https://test.supabase.co',
     SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test',
+    BRAIN_API_URL: 'http://localhost:3001',
+  },
+}))
+
+// Mock brain client — never hit the real backend during tests
+const mockBrainPost = vi.fn()
+const mockBrainGet = vi.fn()
+vi.mock('@/core/shared/infrastructure/brain/brainClient', () => ({
+  brainClient: { post: mockBrainPost, get: mockBrainGet },
+  BrainHttpError: class BrainHttpError extends Error {
+    constructor(
+      public readonly status: number,
+      public readonly body: unknown,
+      message: string,
+    ) {
+      super(message)
+    }
   },
 }))
 
@@ -29,6 +46,8 @@ const mockInsert = vi.fn()
 const mockSelect = vi.fn()
 const mockSingle = vi.fn()
 const mockFrom = vi.fn()
+const mockUpdate = vi.fn()
+const mockEq = vi.fn()
 
 vi.mock('@/core/shared/infrastructure/supabase/server', () => {
   return {
@@ -93,8 +112,33 @@ describe('POST /api/auth/register', () => {
       select: mockSelect,
     })
 
+    mockEq.mockResolvedValue({ data: null, error: null })
+    mockUpdate.mockReturnValue({ eq: mockEq })
+
     mockFrom.mockReturnValue({
       insert: mockInsert,
+      update: mockUpdate,
+    })
+
+    // Default brain onboarding response (success). Tests can override.
+    mockBrainPost.mockResolvedValue({
+      company: {
+        id: 'co-user-123',
+        razonSocial: 'Test Business',
+        ciiu: '4711',
+        ciiuSeccion: 'G',
+        ciiuDivision: '47',
+        municipio: 'Santa Marta',
+        etapa: 'crecimiento',
+      },
+      classification: { ciiuTitulo: 'Comercio', reasoning: 'tienda' },
+      clusters: [],
+      recommendations: {
+        proveedor: [],
+        cliente: [],
+        aliado: [],
+        referente: [],
+      },
     })
   })
 
@@ -110,6 +154,7 @@ describe('POST /api/auth/register', () => {
           municipio: 'Santa Marta',
           barrio: 'Centro',
           hasChamber: false,
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -138,6 +183,7 @@ describe('POST /api/auth/register', () => {
           yearsOfOperation: '5_10',
           nit: '123456789',
           whatsapp: '+573001234567',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -170,6 +216,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -193,6 +240,7 @@ describe('POST /api/auth/register', () => {
           yearsOfOperation: null,
           nit: null,
           whatsapp: null,
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -219,6 +267,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -238,6 +287,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -257,6 +307,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -276,6 +327,7 @@ describe('POST /api/auth/register', () => {
           email: 'test@example.com',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -334,6 +386,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -354,6 +407,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -374,6 +428,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -394,6 +449,7 @@ describe('POST /api/auth/register', () => {
           password: 'Short1',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -414,6 +470,7 @@ describe('POST /api/auth/register', () => {
           password: 'testpass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -434,6 +491,7 @@ describe('POST /api/auth/register', () => {
           password: 'TESTPASS123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -454,6 +512,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPassword',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -481,6 +540,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -506,6 +566,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -531,6 +592,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -556,6 +618,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -581,6 +644,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -602,6 +666,7 @@ describe('POST /api/auth/register', () => {
           municipio: 'Santa Marta',
           barrio: 'Centro',
           whatsapp: '',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -633,6 +698,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -654,6 +720,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -672,6 +739,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -691,6 +759,7 @@ describe('POST /api/auth/register', () => {
           municipio: 'Santa Marta',
           barrio: 'Centro',
           hasChamber: 'true', // string instead of boolean
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -711,6 +780,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -775,6 +845,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -793,6 +864,7 @@ describe('POST /api/auth/register', () => {
           password: 'TestPass123',
           municipio: 'Santa Marta',
           barrio: 'Centro',
+          descripcion: 'Negocio de prueba que vende productos a clientes',
         }),
       })
 
@@ -803,6 +875,163 @@ describe('POST /api/auth/register', () => {
           id: 'user-123',
         }),
       )
+    })
+  })
+
+  describe('Brain Onboarding Integration', () => {
+    function validBody(overrides: Record<string, unknown> = {}) {
+      return JSON.stringify({
+        businessName: 'Casa Bambú',
+        sector: 'gastronomia',
+        email: 'casa@example.com',
+        password: 'TestPass123',
+        municipio: 'Santa Marta',
+        barrio: 'Centro',
+        hasChamber: false,
+        descripcion: 'Restaurante boutique en El Rodadero, comida del Caribe',
+        ...overrides,
+      })
+    }
+
+    it('rejects descripcion shorter than 10 characters', async () => {
+      const request = new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        body: validBody({ descripcion: 'corto' }),
+      })
+      const response = await POST(request)
+      expect(response.status).toBe(400)
+      const data = await response.json()
+      expect(data.error).toMatch(/descripcion/i)
+    })
+
+    it('rejects descripcion longer than 280 characters', async () => {
+      const request = new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        body: validBody({ descripcion: 'x'.repeat(281) }),
+      })
+      const response = await POST(request)
+      expect(response.status).toBe(400)
+    })
+
+    it('rejects missing descripcion', async () => {
+      const request = new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          businessName: 'X',
+          sector: 'comercio',
+          email: 'x@y.com',
+          password: 'TestPass123',
+          municipio: 'Santa Marta',
+          barrio: 'Centro',
+        }),
+      })
+      const response = await POST(request)
+      expect(response.status).toBe(400)
+    })
+
+    it('forwards descripcion to the brain onboarding endpoint', async () => {
+      const request = new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        body: validBody({
+          yearsOfOperation: '5_10',
+          nit: '900-123.456',
+        }),
+      })
+      await POST(request)
+
+      expect(mockBrainPost).toHaveBeenCalledWith(
+        '/api/companies/onboard',
+        expect.objectContaining({
+          userId: 'user-123',
+          description: 'Restaurante boutique en El Rodadero, comida del Caribe',
+          businessName: 'Casa Bambú',
+          municipio: 'Santa Marta',
+          yearsOfOperation: '5_10',
+          nit: '900-123.456',
+        }),
+      )
+    })
+
+    it('returns the brain onboarding payload alongside auth tokens', async () => {
+      const onboarding = {
+        company: {
+          id: '900123456',
+          razonSocial: 'Casa Bambú',
+          ciiu: '5611',
+          ciiuSeccion: 'I',
+          ciiuDivision: '56',
+          municipio: 'Santa Marta',
+          etapa: 'crecimiento',
+        },
+        classification: {
+          ciiuTitulo: 'Expendio a la mesa',
+          reasoning: 'restaurante boutique',
+        },
+        clusters: [
+          {
+            id: 'gastro',
+            codigo: 'GASTRO',
+            titulo: 'Gastronomía',
+            tipo: 'predefined',
+            descripcion: null,
+          },
+        ],
+        recommendations: {
+          proveedor: [],
+          cliente: [],
+          aliado: [],
+          referente: [],
+        },
+      }
+      mockBrainPost.mockResolvedValueOnce(onboarding)
+
+      const request = new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        body: validBody(),
+      })
+      const response = await POST(request)
+      const data = await response.json()
+
+      expect(response.status).toBe(201)
+      expect(data.data.onboarding).toEqual(onboarding)
+    })
+
+    it('persists company_id back into the user row', async () => {
+      mockBrainPost.mockResolvedValueOnce({
+        company: { id: 'co-42' },
+        classification: { ciiuTitulo: 't', reasoning: 'r' },
+        clusters: [],
+        recommendations: {
+          proveedor: [],
+          cliente: [],
+          aliado: [],
+          referente: [],
+        },
+      })
+
+      const request = new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        body: validBody(),
+      })
+      await POST(request)
+
+      expect(mockUpdate).toHaveBeenCalledWith({ company_id: 'co-42' })
+      expect(mockEq).toHaveBeenCalledWith('id', 'user-123')
+    })
+
+    it('still returns 201 when the brain is unreachable (best-effort onboarding)', async () => {
+      mockBrainPost.mockRejectedValueOnce(new Error('ECONNREFUSED'))
+
+      const request = new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        body: validBody(),
+      })
+      const response = await POST(request)
+      const data = await response.json()
+
+      expect(response.status).toBe(201)
+      expect(data.data.user.id).toBe('user-123')
+      expect(data.data.onboarding).toBeNull()
     })
   })
 })

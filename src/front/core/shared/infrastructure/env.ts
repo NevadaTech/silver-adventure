@@ -20,6 +20,15 @@ export const envSchema = z.object({
    * Valores válidos: "true" | "false" (cualquier otro valor = false).
    */
   DEBUG_ENABLED: z.enum(['true', 'false']).optional().default('false'),
+  /**
+   * Base URL del backend NestJS (brain). El front lo invoca server-side
+   * para clasificación CIIU, generación de clusters y recomendaciones.
+   * Default razonable para dev local — en prod debe venir del entorno.
+   */
+  BRAIN_API_URL: z
+    .url({ error: 'BRAIN_API_URL must be a valid URL' })
+    .optional()
+    .default('http://localhost:3001'),
 })
 
 export type Env = z.infer<typeof envSchema>

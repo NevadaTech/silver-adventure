@@ -12,28 +12,40 @@ import { useTranslations } from 'next-intl'
 import type { z } from 'zod'
 
 import { useRouter } from '@/i18n/navigation'
+import { createSupabaseBrowserClient } from '@/core/shared/infrastructure/supabase/client'
 
 import { RegistroStepBusiness } from './registro-step-business'
 import { RegistroStepConfirm } from './registro-step-confirm'
 import { RegistroStepContact } from './registro-step-contact'
+import { RegistroStepPassword } from './registro-step-password'
 import {
   businessStepSchema,
   confirmStepSchema,
   contactStepSchema,
   emptyRegistroData,
+  passwordStepSchema,
 } from './schema'
 import type { RegistroDataPartial } from './schema'
 
 const REDIRECT_DELAY_MS = 1500
 const REDIRECT_TARGET = '/app/recomendaciones'
 
-type Step = 1 | 2 | 3
+type Step = 1 | 2 | 3 | 4
 type StepErrors = Record<string, string>
 
 const stepSchemas: Record<Step, z.ZodTypeAny> = {
   1: businessStepSchema,
   2: contactStepSchema,
   3: confirmStepSchema,
+  4: passwordStepSchema,
+}
+
+function normalizeWhatsapp(phone: string | undefined): string {
+  if (!phone) return ''
+  const cleaned = phone.replace(/\s/g, '')
+  if (cleaned.startsWith('+')) return cleaned
+  if (cleaned.startsWith('57')) return `+${cleaned}`
+  return `+57${cleaned}`
 }
 
 type Props = {
@@ -60,6 +72,7 @@ export function RegistroWizard({ step: stepProp, onStepChange }: Props = {}) {
   const [data, setData] = useState<RegistroDataPartial>(emptyRegistroData)
   const [errors, setErrors] = useState<StepErrors>({})
   const [submitted, setSubmitted] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function patchData(patch: RegistroDataPartial) {
@@ -91,20 +104,59 @@ export function RegistroWizard({ step: stepProp, onStepChange }: Props = {}) {
 
   function handleNext() {
     if (!validateCurrentStep()) return
-    if (step < 3) setStep((step + 1) as Step)
+    if (step < 4) setStep((step + 1) as Step)
   }
 
   function handleBack() {
     setErrors({})
+    setApiError(null)
     if (step > 1) setStep((step - 1) as Step)
   }
 
   function handleSubmit() {
     if (!validateCurrentStep()) return
-    startTransition(() => {
-      setTimeout(() => {
+
+    setApiError(null)
+    startTransition(async () => {
+      try {
+        const payload = {
+          businessName: data.nombre,
+          sector: data.sector,
+          yearsOfOperation: data.tiempoOperando,
+          municipio: data.municipio,
+          barrio: data.barrio,
+          hasChamber: data.registradoCamara,
+          nit: data.nit,
+          whatsapp: data.whatsapp
+            ? normalizeWhatsapp(data.whatsapp)
+            : undefined,
+          email: data.email,
+          password: data.password,
+          descripcion: data.descripcion,
+        }
+
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+
+        if (!response.ok) {
+          const result = await response.json()
+          setApiError(result.error || 'Error al crear la cuenta')
+          return
+        }
+
+        const result = await response.json()
+        const supabase = createSupabaseBrowserClient()
+        await supabase.auth.setSession({
+          access_token: result.data.accessToken,
+          refresh_token: result.data.refreshToken,
+        })
         setSubmitted(true)
-      }, 800)
+      } catch (err) {
+        setApiError(err instanceof Error ? err.message : 'Error de conexión')
+      }
     })
   }
 
@@ -155,10 +207,23 @@ export function RegistroWizard({ step: stepProp, onStepChange }: Props = {}) {
           onChange={patchData}
           onEdit={(target) => {
             setErrors({})
-            setStep(target)
+            setStep(target as Step)
           }}
         />
       ) : null}
+      {step === 4 ? (
+        <RegistroStepPassword
+          data={data}
+          errors={errors}
+          onChange={patchData}
+        />
+      ) : null}
+
+      {apiError && (
+        <div className="bg-error/10 text-error mt-6 rounded-lg border border-red-200 p-3 text-sm">
+          {apiError}
+        </div>
+      )}
 
       <div className="border-border-soft mt-8 flex flex-col-reverse items-center justify-between gap-3 border-t pt-6 sm:flex-row">
         <button
@@ -171,7 +236,7 @@ export function RegistroWizard({ step: stepProp, onStepChange }: Props = {}) {
           {t('back')}
         </button>
 
-        {step < 3 ? (
+        {step < 4 ? (
           <button
             type="button"
             onClick={handleNext}

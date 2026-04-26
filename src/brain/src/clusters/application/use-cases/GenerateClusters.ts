@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { HeuristicClusterer } from '@/clusters/application/services/HeuristicClusterer'
 import { PredefinedClusterMatcher } from '@/clusters/application/services/PredefinedClusterMatcher'
+import { EcosystemDiscoverer } from '@/clusters/application/services/EcosystemDiscoverer'
 import { Cluster } from '@/clusters/domain/entities/Cluster'
 import {
   CLUSTER_MEMBERSHIP_REPOSITORY,
@@ -17,10 +18,12 @@ import {
 } from '@/companies/domain/repositories/CompanyRepository'
 import type { Company } from '@/companies/domain/entities/Company'
 import type { UseCase } from '@/shared/domain/UseCase'
+import { env } from '@/shared/infrastructure/env'
 
 export interface GenerateClustersResult {
   predefinedClusters: number
   heuristicClusters: number
+  ecosystemClusters: number
   totalMemberships: number
 }
 
@@ -35,6 +38,7 @@ export class GenerateClusters implements UseCase<void, GenerateClustersResult> {
     private readonly membershipRepo: ClusterMembershipRepository,
     private readonly predefinedMatcher: PredefinedClusterMatcher,
     private readonly heuristicClusterer: HeuristicClusterer,
+    private readonly ecosystemDiscoverer: EcosystemDiscoverer,
   ) {}
 
   async execute(): Promise<GenerateClustersResult> {
@@ -45,10 +49,21 @@ export class GenerateClusters implements UseCase<void, GenerateClustersResult> {
     const predefinedAssignments = await this.predefinedMatcher.match(companies)
     const heuristicResults = await this.heuristicClusterer.cluster(companies)
 
+    const ecosystemEnabled = env.AI_DRIVEN_RULES_ENABLED === 'true'
+    const ecosystemResults = ecosystemEnabled
+      ? await this.ecosystemDiscoverer.discover(companies)
+      : []
+
+    // Targeted cleanup of ecosystem clusters before re-persisting (CLU-REQ-NEW-006)
+    if (ecosystemEnabled) {
+      await this.clusterRepo.deleteByType('heuristic-ecosistema')
+    }
+
     await this.membershipRepo.deleteAll()
 
     await this.persistPredefinedUpdates(predefinedAssignments)
     await this.persistHeuristicClusters(heuristicResults)
+    await this.persistHeuristicClusters(ecosystemResults)
 
     const memberships: Membership[] = []
     for (const [clusterId, list] of predefinedAssignments) {
@@ -61,11 +76,17 @@ export class GenerateClusters implements UseCase<void, GenerateClustersResult> {
         memberships.push({ clusterId: cluster.id, companyId: c.id })
       }
     }
+    for (const { cluster, members } of ecosystemResults) {
+      for (const c of members) {
+        memberships.push({ clusterId: cluster.id, companyId: c.id })
+      }
+    }
     await this.membershipRepo.saveMany(memberships)
 
     return {
       predefinedClusters: predefinedAssignments.size,
       heuristicClusters: heuristicResults.length,
+      ecosystemClusters: ecosystemResults.length,
       totalMemberships: memberships.length,
     }
   }

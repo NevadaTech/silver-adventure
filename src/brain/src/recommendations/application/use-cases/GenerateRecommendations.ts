@@ -73,7 +73,7 @@ export class GenerateRecommendations implements UseCase<
     const aiEnabled = resolveAiEnabled(input.enableAi)
 
     const companies = (await this.companyRepo.findAll()).filter(
-      (c) => c.estado === 'ACTIVO',
+      (c) => c.isActive,
     )
 
     let recsBySource: Map<string, Recommendation[]>

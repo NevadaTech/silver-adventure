@@ -141,6 +141,22 @@ export class Company extends Entity<string> {
   get etapa(): Etapa {
     return this.props.etapa
   }
+  get isActive(): boolean {
+    return ACTIVE_ESTADOS.has(normalizeEstado(this.props.estado))
+  }
+}
+
+const ACTIVE_ESTADOS: ReadonlySet<string> = new Set([
+  'ACTIVO',
+  'MATRICULA ACTIVA',
+])
+
+function normalizeEstado(value: string): string {
+  return value
+    .trim()
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
 }
 
 function parseCiiu(raw: string): { code: string; seccion: string } {

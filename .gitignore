@@ -35,6 +35,14 @@ yarn-error.log*
 .env*
 !.env.example
 
+# local MCP config (contains personal API keys — share via .example only)
+.cursor/mcp.json
+!.cursor/mcp.json.example
+
+# Playwright MCP scratch (screenshots, snapshots, console logs)
+.playwright-mcp/
+landing-*.png
+
 # vercel
 .vercel
 

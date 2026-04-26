@@ -9,7 +9,7 @@ import {
 import { Inject } from '@nestjs/common'
 import type { Cluster } from '@/clusters/domain/entities/Cluster'
 
-interface ClusterDto {
+export interface ClusterDto {
   id: string
   codigo: string
   titulo: string

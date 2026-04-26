@@ -3,7 +3,7 @@ import {
   SupabaseClientProvider,
   SUPABASE_CLIENT,
 } from './infrastructure/supabase/SupabaseClient'
-import { GeminiAdapter } from './infrastructure/llm/GeminiAdapter'
+import { createLlmAdapter } from './infrastructure/llm/createLlmAdapter'
 
 export const LLM_PORT = Symbol('LLM_PORT')
 
@@ -11,7 +11,7 @@ export const LLM_PORT = Symbol('LLM_PORT')
 @Module({
   providers: [
     SupabaseClientProvider,
-    { provide: LLM_PORT, useClass: GeminiAdapter },
+    { provide: LLM_PORT, useFactory: createLlmAdapter },
   ],
   exports: [SUPABASE_CLIENT, LLM_PORT],
 })

@@ -7,6 +7,11 @@ export class GeminiAdapter implements LlmPort {
   private readonly modelName: string
 
   constructor() {
+    if (!env.GEMINI_API_KEY) {
+      throw new Error(
+        'GeminiAdapter requires GEMINI_API_KEY (set LLM_PROVIDER=gemini and the key in .env)',
+      )
+    }
     this.client = new GoogleGenerativeAI(env.GEMINI_API_KEY)
     this.modelName = env.GEMINI_CHAT_MODEL
   }

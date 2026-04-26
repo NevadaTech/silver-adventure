@@ -4,6 +4,7 @@ import { SharedModule } from './shared/shared.module'
 import { CiiuTaxonomyModule } from './ciiu-taxonomy/ciiu-taxonomy.module'
 import { ClustersModule } from './clusters/clusters.module'
 import { CompaniesModule } from './companies/companies.module'
+import { RecommendationsModule } from './recommendations/recommendations.module'
 import { HealthController } from './shared/infrastructure/health/health.controller'
 
 @Module({
@@ -13,6 +14,7 @@ import { HealthController } from './shared/infrastructure/health/health.controll
     CiiuTaxonomyModule,
     CompaniesModule,
     ClustersModule,
+    RecommendationsModule,
   ],
   controllers: [HealthController],
 })

@@ -643,12 +643,12 @@ E.4 ──► F.2 (docs AGENTS.md)
 
 ### Phase E (4 tasks)
 
-- [ ] E.1 — `RecommendationsModule` wiring
-- [ ] E.2 — `ClustersModule` wiring
-- [ ] E.3 — Test integración end-to-end
-- [ ] E.4 — Smoke check flag reading
+- [x] E.1 — `RecommendationsModule` wiring (b70b1ea)
+- [x] E.2 — `ClustersModule` wiring (2740af4)
+- [x] E.3 — Test integración end-to-end (e114bbf)
+- [x] E.4 — Smoke check flag reading (f400e0d)
 
 ### Phase F (2 tasks)
 
-- [ ] F.1 — `docs/scoring.md`
-- [ ] F.2 — `AGENTS.md`
+- [x] F.1 — `docs/scoring.md` (8231399)
+- [x] F.2 — `AGENTS.md` (d0ad2fc)

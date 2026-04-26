@@ -130,6 +130,42 @@ describe('SupabaseClusterRepository', () => {
     })
   })
 
+  describe('findByGrupoAndMunicipio', () => {
+    it('returns the heuristic-grupo cluster mapped from the row', async () => {
+      const grupoRow = {
+        ...validRow,
+        id: 'heur-grupo-561-santa-marta',
+        codigo: 'H-561-SM',
+        titulo: 'Grupo 561 en SANTA MARTA',
+        tipo: 'heuristic-grupo',
+        ciiu_division: '56',
+        ciiu_grupo: '561',
+        municipio: 'SANTA MARTA',
+      }
+      fake.setNext({ data: grupoRow, error: null })
+      const result = await repo.findByGrupoAndMunicipio('561', 'SANTA MARTA')
+      expect(result).not.toBeNull()
+      expect(result!.id).toBe('heur-grupo-561-santa-marta')
+      expect(fake.spies.eq).toHaveBeenCalledWith('tipo', 'heuristic-grupo')
+      expect(fake.spies.eq).toHaveBeenCalledWith('ciiu_grupo', '561')
+      expect(fake.spies.eq).toHaveBeenCalledWith('municipio', 'SANTA MARTA')
+    })
+
+    it('returns null when no row matches', async () => {
+      fake.setNext({ data: null, error: null })
+      expect(
+        await repo.findByGrupoAndMunicipio('561', 'SANTA MARTA'),
+      ).toBeNull()
+    })
+
+    it('throws when supabase returns error', async () => {
+      fake.setNext({ data: null, error: new Error('query boom') })
+      await expect(
+        repo.findByGrupoAndMunicipio('561', 'SANTA MARTA'),
+      ).rejects.toThrow(/query boom/)
+    })
+  })
+
   describe('saveMany', () => {
     it('upserts mapped rows with onConflict on id', async () => {
       fake.setNext({ data: null, error: null })

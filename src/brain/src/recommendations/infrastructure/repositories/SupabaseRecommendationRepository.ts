@@ -43,9 +43,9 @@ export class SupabaseRecommendationRepository implements RecommendationRepositor
     const rows = recs.map((r) => this.toRow(r))
     for (let i = 0; i < rows.length; i += CHUNK_SIZE) {
       const chunk = rows.slice(i, i + CHUNK_SIZE)
-      const { error } = await this.db
-        .from(TABLE)
-        .upsert(chunk, { onConflict: 'id' })
+      const { error } = await this.db.from(TABLE).upsert(chunk, {
+        onConflict: 'source_company_id,target_company_id,relation_type',
+      })
       if (error) throw error
     }
   }

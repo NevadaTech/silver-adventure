@@ -8,6 +8,15 @@ export interface ClusterRepository {
   findById(id: string): Promise<Cluster | null>
   findManyByIds(ids: string[]): Promise<Cluster[]>
   findByTipo(tipo: ClusterType): Promise<Cluster[]>
+  /**
+   * Finds a heuristic-grupo cluster matching both ciiuGrupo and municipio.
+   * Used by the onboard flow to reuse existing heuristic clusters before
+   * creating a new one.
+   */
+  findByGrupoAndMunicipio(
+    ciiuGrupo: string,
+    municipio: string,
+  ): Promise<Cluster | null>
   saveMany(clusters: Cluster[]): Promise<void>
   updateDescripcion(id: string, descripcion: string): Promise<void>
   count(): Promise<number>

@@ -5,7 +5,10 @@ import {
   type BrainOnboardResponse,
 } from '@/core/shared/infrastructure/brain/brainClient'
 import { serverLogger } from '@/core/shared/infrastructure/logger/serverLogger'
-import { createSupabaseServerClient } from '@/core/shared/infrastructure/supabase/server'
+import {
+  createSupabaseServerClient,
+  createSupabaseUserClient,
+} from '@/core/shared/infrastructure/supabase/server'
 import { User } from '@/core/users/domain/entities/User'
 
 const VALID_YEARS = new Set<BrainOnboardRequest['yearsOfOperation']>([
@@ -96,7 +99,7 @@ export async function POST(request: Request) {
       },
     })
 
-    if (authError || !authData.user) {
+    if (authError || !authData.user || !authData.session) {
       serverLogger.error('[POST /api/auth/register] Auth error:', authError)
       return Response.json(
         { error: authError?.message || 'Failed to create user' },
@@ -104,28 +107,12 @@ export async function POST(request: Request) {
       )
     }
 
-    // Auto-confirm email so the user gets a session immediately
-    const { error: confirmError } = await supabase.auth.admin.updateUserById(
-      authData.user.id,
-      {
-        email_confirm: true,
-      },
-    )
-
-    if (confirmError) {
-      serverLogger.error(
-        '[POST /api/auth/register] Email confirm error:',
-        confirmError,
-      )
-      await supabase.auth.admin.deleteUser(authData.user.id)
-      return Response.json(
-        { error: confirmError?.message || 'Failed to confirm email' },
-        { status: 400 },
-      )
-    }
+    // From here on we act AS the new user so RLS policies (auth.uid() = id)
+    // allow inserting their own profile and linking the company later.
+    const userScoped = createSupabaseUserClient(authData.session.access_token)
 
     // Create user profile in public.users table
-    const { data, error: profileError } = await supabase
+    const { data, error: profileError } = await userScoped
       .from('users')
       .insert({
         id: authData.user.id,
@@ -148,7 +135,6 @@ export async function POST(request: Request) {
         '[POST /api/auth/register] Profile error:',
         profileError,
       )
-      await supabase.auth.admin.deleteUser(authData.user.id)
       return Response.json(
         { error: profileError?.message || 'Failed to create user profile' },
         { status: 400 },
@@ -187,7 +173,7 @@ export async function POST(request: Request) {
         } satisfies BrainOnboardRequest,
       )
 
-      const { error: linkError } = await supabase
+      const { error: linkError } = await userScoped
         .from('users')
         .update({ company_id: onboarding.company.id })
         .eq('id', user.id)

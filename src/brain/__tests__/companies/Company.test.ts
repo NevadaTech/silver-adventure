@@ -112,4 +112,43 @@ describe('Company', () => {
     expect(c.fechaRenovacion).toEqual(new Date('2026-01-01'))
     expect(c.estado).toBe('ACTIVO')
   })
+
+  describe('isActive', () => {
+    const withEstado = (estado: string) =>
+      Company.create({ ...validInput, estado })
+
+    it('returns true for "ACTIVO"', () => {
+      expect(withEstado('ACTIVO').isActive).toBe(true)
+    })
+
+    it('returns true for "Matricula Activa" (RUES canonical, no accent)', () => {
+      expect(withEstado('Matricula Activa').isActive).toBe(true)
+    })
+
+    it('returns true for "Matrícula Activa" (RUES canonical, with accent)', () => {
+      expect(withEstado('Matrícula Activa').isActive).toBe(true)
+    })
+
+    it('is case-insensitive', () => {
+      expect(withEstado('matricula activa').isActive).toBe(true)
+      expect(withEstado('MATRICULA ACTIVA').isActive).toBe(true)
+      expect(withEstado('activo').isActive).toBe(true)
+    })
+
+    it('tolerates surrounding whitespace', () => {
+      expect(withEstado('  Matricula Activa  ').isActive).toBe(true)
+    })
+
+    it('returns false for inactive RUES states', () => {
+      expect(withEstado('Cancelada').isActive).toBe(false)
+      expect(withEstado('Liquidada').isActive).toBe(false)
+      expect(withEstado('Suspendida').isActive).toBe(false)
+      expect(withEstado('Inactiva').isActive).toBe(false)
+    })
+
+    it('returns false for empty or unknown estados', () => {
+      expect(withEstado('').isActive).toBe(false)
+      expect(withEstado('Foo Bar').isActive).toBe(false)
+    })
+  })
 })

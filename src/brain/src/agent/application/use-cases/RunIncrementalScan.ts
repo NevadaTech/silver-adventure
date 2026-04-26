@@ -34,6 +34,7 @@ import {
   type RecommendationRepository,
 } from '@/recommendations/domain/repositories/RecommendationRepository'
 import type { UseCase } from '@/shared/domain/UseCase'
+import { serializeError } from '@/shared/infrastructure/errors/serializeError'
 
 export interface RunIncrementalScanInput {
   trigger: ScanRunTrigger
@@ -151,7 +152,7 @@ export class RunIncrementalScan implements UseCase<
         eventsEmitted: events.length,
       }
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e)
+      const message = serializeError(e)
       run = run.fail(message, new Date())
       await this.scanRepo.save(run)
       this.logger.error(`Scan ${id} failed: ${message}`)

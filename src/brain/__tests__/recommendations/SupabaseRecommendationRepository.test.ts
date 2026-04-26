@@ -18,6 +18,7 @@ function createFakeDb() {
     upsert: vi.fn(),
     delete: vi.fn(),
     neq: vi.fn(),
+    not: vi.fn(),
     order: vi.fn(),
     limit: vi.fn(),
     maybeSingle: vi.fn(),
@@ -36,6 +37,7 @@ function createFakeDb() {
     'upsert',
     'delete',
     'neq',
+    'not',
     'order',
     'limit',
   ] as const) {
@@ -245,11 +247,17 @@ describe('SupabaseRecommendationRepository', () => {
   })
 
   describe('deleteAll', () => {
-    it('issues a delete with neq trick to remove all rows', async () => {
+    it('deletes all rows using a UUID-safe filter (not id is null)', async () => {
       fake.setNext({ data: null, error: null })
       await repo.deleteAll()
       expect(fake.spies.delete).toHaveBeenCalled()
-      expect(fake.spies.neq).toHaveBeenCalledWith('id', '')
+      expect(fake.spies.not).toHaveBeenCalledWith('id', 'is', null)
+    })
+
+    it('does NOT use neq with empty string (would trigger UUID cast 22P02)', async () => {
+      fake.setNext({ data: null, error: null })
+      await repo.deleteAll()
+      expect(fake.spies.neq).not.toHaveBeenCalledWith('id', '')
     })
 
     it('throws on error', async () => {

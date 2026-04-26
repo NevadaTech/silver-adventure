@@ -137,7 +137,7 @@ export class SupabaseRecommendationRepository implements RecommendationRepositor
   }
 
   async deleteAll(): Promise<void> {
-    const { error } = await this.db.from(TABLE).delete().neq('id', '')
+    const { error } = await this.db.from(TABLE).delete().not('id', 'is', null)
     if (error) throw error
   }
 

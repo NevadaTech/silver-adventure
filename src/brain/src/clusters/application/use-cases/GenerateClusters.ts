@@ -39,7 +39,7 @@ export class GenerateClusters implements UseCase<void, GenerateClustersResult> {
 
   async execute(): Promise<GenerateClustersResult> {
     const companies = (await this.companyRepo.findAll()).filter(
-      (c) => c.estado === 'ACTIVO',
+      (c) => c.isActive,
     )
 
     const predefinedAssignments = await this.predefinedMatcher.match(companies)

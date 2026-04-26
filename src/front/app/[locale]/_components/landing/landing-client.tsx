@@ -5,9 +5,9 @@ import { useState } from 'react'
 import { RegistroWizard } from '../../registro/_components/registro-wizard'
 import { LandingValueProp } from './landing-value-prop'
 
-type Step = 1 | 2 | 3
+type Step = 1 | 2 | 3 | 4
 
-const TOTAL_STEPS = 3
+const TOTAL_STEPS = 4
 
 export function LandingClient() {
   const [step, setStep] = useState<Step>(1)

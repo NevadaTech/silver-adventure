@@ -1,6 +1,20 @@
+import {
+  brainClient,
+  BrainHttpError,
+  type BrainOnboardRequest,
+  type BrainOnboardResponse,
+} from '@/core/shared/infrastructure/brain/brainClient'
 import { serverLogger } from '@/core/shared/infrastructure/logger/serverLogger'
 import { createSupabaseServerClient } from '@/core/shared/infrastructure/supabase/server'
 import { User } from '@/core/users/domain/entities/User'
+
+const VALID_YEARS = new Set<BrainOnboardRequest['yearsOfOperation']>([
+  'menos_1',
+  '1_3',
+  '3_5',
+  '5_10',
+  'mas_10',
+])
 
 export async function POST(request: Request) {
   try {
@@ -17,6 +31,7 @@ export async function POST(request: Request) {
       whatsapp,
       email,
       password,
+      descripcion,
     } = body
 
     // Validate required fields
@@ -34,6 +49,17 @@ export async function POST(request: Request) {
         {
           error: 'municipio and barrio are required',
         },
+        { status: 400 },
+      )
+    }
+
+    if (
+      typeof descripcion !== 'string' ||
+      descripcion.trim().length < 10 ||
+      descripcion.trim().length > 280
+    ) {
+      return Response.json(
+        { error: 'descripcion must be between 10 and 280 characters' },
         { status: 400 },
       )
     }
@@ -62,7 +88,6 @@ export async function POST(request: Request) {
     const supabase = createSupabaseServerClient()
 
     // Create Supabase auth user (email + password)
-    // Using signUp instead of admin.createUser to get a session with tokens
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -79,8 +104,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // Since we want auto-login, we need to confirm the email
-    // Get the user object and use admin API to confirm
+    // Auto-confirm email so the user gets a session immediately
     const { error: confirmError } = await supabase.auth.admin.updateUserById(
       authData.user.id,
       {
@@ -93,7 +117,6 @@ export async function POST(request: Request) {
         '[POST /api/auth/register] Email confirm error:',
         confirmError,
       )
-      // Delete the auth user since confirmation failed
       await supabase.auth.admin.deleteUser(authData.user.id)
       return Response.json(
         { error: confirmError?.message || 'Failed to confirm email' },
@@ -125,7 +148,6 @@ export async function POST(request: Request) {
         '[POST /api/auth/register] Profile error:',
         profileError,
       )
-      // Delete the auth user since profile creation failed
       await supabase.auth.admin.deleteUser(authData.user.id)
       return Response.json(
         { error: profileError?.message || 'Failed to create user profile' },
@@ -133,7 +155,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Create User entity
     const typedData = data as {
       id: string
       name: string
@@ -147,6 +168,51 @@ export async function POST(request: Request) {
       typedData.email,
     )
 
+    // Classify the business + persist Company + clusters + initial recommendations
+    let onboarding: BrainOnboardResponse | null = null
+    try {
+      const safeYears = VALID_YEARS.has(yearsOfOperation)
+        ? (yearsOfOperation as BrainOnboardRequest['yearsOfOperation'])
+        : null
+      onboarding = await brainClient.post<BrainOnboardResponse>(
+        '/api/companies/onboard',
+        {
+          userId: user.id,
+          description: descripcion.trim(),
+          businessName,
+          municipio,
+          yearsOfOperation: safeYears,
+          hasChamber: Boolean(hasChamber),
+          nit: nit || null,
+        } satisfies BrainOnboardRequest,
+      )
+
+      const { error: linkError } = await supabase
+        .from('users')
+        .update({ company_id: onboarding.company.id })
+        .eq('id', user.id)
+      if (linkError) {
+        serverLogger.warn(
+          '[POST /api/auth/register] Could not link user→company',
+          linkError,
+        )
+      }
+    } catch (brainErr) {
+      // Onboarding is best-effort — user already exists; classification can
+      // be retried later. We log and surface a warning instead of failing.
+      if (brainErr instanceof BrainHttpError) {
+        serverLogger.error(
+          `[POST /api/auth/register] Brain onboarding failed (${brainErr.status})`,
+          brainErr.body,
+        )
+      } else {
+        serverLogger.error(
+          '[POST /api/auth/register] Brain onboarding error',
+          brainErr,
+        )
+      }
+    }
+
     return Response.json(
       {
         data: {
@@ -157,6 +223,7 @@ export async function POST(request: Request) {
             email: user.email,
             createdAt: user.createdAt.toISOString(),
           },
+          onboarding,
         },
       },
       { status: 201 },

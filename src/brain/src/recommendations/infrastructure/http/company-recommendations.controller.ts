@@ -5,6 +5,10 @@ import {
   type GetCompanyRecommendationsResult,
 } from '@/recommendations/application/use-cases/GetCompanyRecommendations'
 import {
+  GetGroupedCompanyRecommendations,
+  type GetGroupedCompanyRecommendationsResult,
+} from '@/recommendations/application/use-cases/GetGroupedCompanyRecommendations'
+import {
   isRelationType,
   type RelationType,
 } from '@/recommendations/domain/value-objects/RelationType'
@@ -14,7 +18,18 @@ import {
 export class CompanyRecommendationsController {
   constructor(
     private readonly getCompanyRecommendations: GetCompanyRecommendations,
+    private readonly getGroupedCompanyRecommendations: GetGroupedCompanyRecommendations,
   ) {}
+
+  @Get(':id/recommendations/grouped')
+  @ApiOperation({
+    summary: 'Recommendations for a company grouped by relation type',
+  })
+  async grouped(
+    @Param('id') id: string,
+  ): Promise<GetGroupedCompanyRecommendationsResult> {
+    return this.getGroupedCompanyRecommendations.execute({ companyId: id })
+  }
 
   @Get(':id/recommendations')
   @ApiOperation({ summary: 'List recommendations for a given company' })

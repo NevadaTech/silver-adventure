@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { CompaniesModule } from '@/companies/companies.module'
 import { ExplainCluster } from './application/use-cases/ExplainCluster'
 import { GenerateClusters } from './application/use-cases/GenerateClusters'
@@ -16,7 +16,7 @@ import { SupabaseClusterRepository } from './infrastructure/repositories/Supabas
 import { CiiuTaxonomyModule } from '@/ciiu-taxonomy/ciiu-taxonomy.module'
 
 @Module({
-  imports: [CiiuTaxonomyModule, CompaniesModule],
+  imports: [CiiuTaxonomyModule, forwardRef(() => CompaniesModule)],
   controllers: [ClustersController, CompanyClustersController],
   providers: [
     {

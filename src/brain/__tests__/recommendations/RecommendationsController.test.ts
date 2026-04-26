@@ -14,6 +14,7 @@ import { ValueChainMatcher } from '@/recommendations/application/services/ValueC
 import { ExplainRecommendation } from '@/recommendations/application/use-cases/ExplainRecommendation'
 import { GenerateRecommendations } from '@/recommendations/application/use-cases/GenerateRecommendations'
 import { GetCompanyRecommendations } from '@/recommendations/application/use-cases/GetCompanyRecommendations'
+import { GetGroupedCompanyRecommendations } from '@/recommendations/application/use-cases/GetGroupedCompanyRecommendations'
 import { Recommendation } from '@/recommendations/domain/entities/Recommendation'
 import { Reasons } from '@/recommendations/domain/value-objects/Reason'
 import { CompanyRecommendationsController } from '@/recommendations/infrastructure/http/company-recommendations.controller'
@@ -69,12 +70,13 @@ function makeWiring() {
   )
   const explain = new ExplainRecommendation(recRepo, companyRepo, gemini)
   const get = new GetCompanyRecommendations(recRepo, companyRepo)
+  const grouped = new GetGroupedCompanyRecommendations(get)
   return {
     companyRepo,
     recRepo,
     gemini,
     controller: new RecommendationsController(generate, explain),
-    companyController: new CompanyRecommendationsController(get),
+    companyController: new CompanyRecommendationsController(get, grouped),
   }
 }
 
@@ -254,5 +256,57 @@ describe('CompanyRecommendationsController', () => {
 
     const invalid = await setup.companyController.list('src', undefined, 'oops')
     expect(invalid.recommendations.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('GET /:id/recommendations/grouped returns recs grouped by relation type with partial flag', async () => {
+    const setup = makeWiring()
+    await setup.companyRepo.saveMany([
+      Company.create({
+        id: 'src',
+        razonSocial: 'Acme',
+        ciiu: 'G4631',
+        municipio: 'SANTA MARTA',
+      }),
+      Company.create({
+        id: 'tgt-c',
+        razonSocial: 'Cliente',
+        ciiu: 'I5611',
+        municipio: 'SANTA MARTA',
+      }),
+      Company.create({
+        id: 'tgt-p',
+        razonSocial: 'Proveedor',
+        ciiu: 'A0122',
+        municipio: 'SANTA MARTA',
+      }),
+    ])
+    await setup.recRepo.saveAll([
+      Recommendation.create({
+        id: 'rc',
+        sourceCompanyId: 'src',
+        targetCompanyId: 'tgt-c',
+        relationType: 'cliente',
+        score: 0.9,
+        reasons: Reasons.empty(),
+        source: 'rule',
+      }),
+      Recommendation.create({
+        id: 'rp',
+        sourceCompanyId: 'src',
+        targetCompanyId: 'tgt-p',
+        relationType: 'proveedor',
+        score: 0.8,
+        reasons: Reasons.empty(),
+        source: 'rule',
+      }),
+    ])
+
+    const result = await setup.companyController.grouped('src')
+
+    expect(result.cliente.map((r) => r.id)).toEqual(['rc'])
+    expect(result.proveedor.map((r) => r.id)).toEqual(['rp'])
+    expect(result.aliado).toEqual([])
+    expect(result.referente).toEqual([])
+    expect(result.partial).toBe(true)
   })
 })

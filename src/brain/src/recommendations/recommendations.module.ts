@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { CiiuTaxonomyModule } from '@/ciiu-taxonomy/ciiu-taxonomy.module'
 import { CompaniesModule } from '@/companies/companies.module'
 import { AiMatchEngine } from './application/services/AiMatchEngine'
@@ -11,6 +11,7 @@ import { ValueChainMatcher } from './application/services/ValueChainMatcher'
 import { ExplainRecommendation } from './application/use-cases/ExplainRecommendation'
 import { GenerateRecommendations } from './application/use-cases/GenerateRecommendations'
 import { GetCompanyRecommendations } from './application/use-cases/GetCompanyRecommendations'
+import { GetGroupedCompanyRecommendations } from './application/use-cases/GetGroupedCompanyRecommendations'
 import { AI_MATCH_CACHE_REPOSITORY } from './domain/repositories/AiMatchCacheRepository'
 import { RECOMMENDATION_REPOSITORY } from './domain/repositories/RecommendationRepository'
 import { CompanyRecommendationsController } from './infrastructure/http/company-recommendations.controller'
@@ -19,7 +20,7 @@ import { SupabaseAiMatchCacheRepository } from './infrastructure/repositories/Su
 import { SupabaseRecommendationRepository } from './infrastructure/repositories/SupabaseRecommendationRepository'
 
 @Module({
-  imports: [CiiuTaxonomyModule, CompaniesModule],
+  imports: [CiiuTaxonomyModule, forwardRef(() => CompaniesModule)],
   controllers: [RecommendationsController, CompanyRecommendationsController],
   providers: [
     {
@@ -39,6 +40,7 @@ import { SupabaseRecommendationRepository } from './infrastructure/repositories/
     ValueChainMatcher,
     GenerateRecommendations,
     GetCompanyRecommendations,
+    GetGroupedCompanyRecommendations,
     ExplainRecommendation,
   ],
   exports: [
@@ -46,6 +48,7 @@ import { SupabaseRecommendationRepository } from './infrastructure/repositories/
     AI_MATCH_CACHE_REPOSITORY,
     GenerateRecommendations,
     GetCompanyRecommendations,
+    GetGroupedCompanyRecommendations,
     ExplainRecommendation,
   ],
 })

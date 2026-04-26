@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
+import { useRecomendaciones } from '@/core/recommendations/infrastructure/hooks/useRecomendaciones'
 import { mockRecomendaciones } from '../_data/mock-recomendaciones'
 import type { EstadoReco, Recomendacion, TipoRelacion } from '../_data/types'
 
@@ -18,18 +19,27 @@ const PAGE_SIZE = 8
 export function RecoTable() {
   const t = useTranslations('App.Recomendaciones')
 
+  const { data: live, isLoading } = useRecomendaciones()
+
   const [active, setActive] = useState<TabValue>('todas')
   const [showAll, setShowAll] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [overrides, setOverrides] = useState<Record<string, EstadoReco>>({})
 
+  // Use real data when available; fall back to mock so the UI still renders
+  // before the brain has finished onboarding the user's company.
+  const source: Recomendacion[] =
+    live && live.length > 0 ? live : mockRecomendaciones
+
   const data = useMemo(
     () =>
-      mockRecomendaciones.map((reco) =>
+      source.map((reco) =>
         overrides[reco.id] ? { ...reco, estado: overrides[reco.id]! } : reco,
       ),
-    [overrides],
+    [source, overrides],
   )
+
+  void isLoading
 
   const counts = useMemo(() => {
     const base: Record<TabValue, number> = {

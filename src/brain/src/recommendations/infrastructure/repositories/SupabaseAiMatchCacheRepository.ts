@@ -15,6 +15,7 @@ interface CacheRow {
   confidence: number | null
   reason: string | null
   cached_at: string
+  model_version: string | null
 }
 
 @Injectable()
@@ -72,6 +73,7 @@ export class SupabaseAiMatchCacheRepository implements AiMatchCacheRepository {
       confidence: row.confidence,
       reason: row.reason,
       cachedAt: new Date(row.cached_at),
+      modelVersion: row.model_version,
     })
   }
 
@@ -84,6 +86,7 @@ export class SupabaseAiMatchCacheRepository implements AiMatchCacheRepository {
       confidence: entry.confidence,
       reason: entry.reason,
       cached_at: entry.cachedAt.toISOString(),
+      model_version: entry.modelVersion,
     }
   }
 }

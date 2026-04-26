@@ -81,4 +81,21 @@ describe('AiMatchCacheEntry', () => {
     const entry = AiMatchCacheEntry.create(validInput())
     expect(entry.key).toBe('0122->4631')
   })
+
+  it('accepts modelVersion as a non-null string', () => {
+    const entry = AiMatchCacheEntry.create(
+      validInput({ modelVersion: 'gemini-2.5-flash' }),
+    )
+    expect(entry.modelVersion).toBe('gemini-2.5-flash')
+  })
+
+  it('accepts modelVersion: null (legacy entry)', () => {
+    const entry = AiMatchCacheEntry.create(validInput({ modelVersion: null }))
+    expect(entry.modelVersion).toBeNull()
+  })
+
+  it('defaults modelVersion to null when not provided', () => {
+    const entry = AiMatchCacheEntry.create(validInput())
+    expect(entry.modelVersion).toBeNull()
+  })
 })

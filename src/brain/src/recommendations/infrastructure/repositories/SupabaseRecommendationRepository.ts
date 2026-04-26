@@ -13,6 +13,7 @@ import {
   Reasons,
   type Reason,
 } from '@/recommendations/domain/value-objects/Reason'
+import type { Json } from '@/shared/infrastructure/supabase/database.types'
 import { SUPABASE_CLIENT } from '@/shared/infrastructure/supabase/SupabaseClient'
 import type { BrainSupabaseClient } from '@/shared/infrastructure/supabase/SupabaseClient'
 
@@ -25,7 +26,7 @@ interface RecommendationRow {
   target_company_id: string
   relation_type: string
   score: number
-  reasons: unknown
+  reasons: Json
   source: string
   explanation: string | null
   explanation_cached_at: string | null
@@ -126,7 +127,7 @@ export class SupabaseRecommendationRepository implements RecommendationRepositor
       )
     }
     const reasons = Array.isArray(row.reasons)
-      ? Reasons.from(row.reasons as Reason[])
+      ? Reasons.from(row.reasons as unknown as Reason[])
       : Reasons.empty()
 
     return Recommendation.create({
@@ -151,7 +152,7 @@ export class SupabaseRecommendationRepository implements RecommendationRepositor
       target_company_id: r.targetCompanyId,
       relation_type: r.relationType,
       score: r.score,
-      reasons: r.reasons.toJson(),
+      reasons: r.reasons.toJson() as unknown as Json,
       source: r.source,
       explanation: r.explanation,
       explanation_cached_at: r.explanationCachedAt

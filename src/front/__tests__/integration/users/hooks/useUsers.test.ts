@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { createElement } from 'react'
@@ -11,9 +12,7 @@ import { httpClient } from '@/core/shared/infrastructure/http/httpClient'
  * Mockeamos el método get directamente (no el módulo entero)
  * porque el interceptor de auth no nos afecta acá.
  */
-vi.spyOn(httpClient, 'get')
-
-const mockGet = vi.mocked(httpClient.get)
+const mockGet = vi.spyOn(httpClient, 'get')
 
 /**
  * Wrapper que:

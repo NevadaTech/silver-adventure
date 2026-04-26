@@ -26,6 +26,7 @@ export async function GET() {
       data: users.map((user) => ({
         id: user.id,
         name: user.name,
+        email: user.email,
         createdAt: user.createdAt.toISOString(),
       })),
     })

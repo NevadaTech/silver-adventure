@@ -138,8 +138,6 @@ export const barriosSantaMarta = [
 ] as const
 export type BarrioSantaMarta = (typeof barriosSantaMarta)[number]
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 /**
  * Per-step slices of the schema. Used to validate progressively without
  * touching fields the user hasn't reached yet.
@@ -169,8 +167,11 @@ export const contactStepSchema = z
   .object({
     municipio: z.enum(municipiosMagdalena),
     barrio: z.string().min(2, 'minLength'),
-    whatsapp: z.string().regex(/^[\d\s\-+()]{7,15}$/, 'invalidWhatsapp'),
-    email: z.string().optional(),
+    whatsapp: z
+      .string()
+      .regex(/^[\d\s\-+()]{7,15}$/, 'invalidWhatsapp')
+      .optional(),
+    email: z.string().email('invalidEmail'),
   })
   .superRefine((data, ctx) => {
     if (data.municipio === 'Santa Marta') {
@@ -182,14 +183,21 @@ export const contactStepSchema = z
         })
       }
     }
-    const email = (data.email ?? '').trim()
-    if (email && !EMAIL_REGEX.test(email)) {
-      ctx.addIssue({
-        path: ['email'],
-        code: 'custom',
-        message: 'invalidEmail',
-      })
-    }
+  })
+
+export const passwordStepSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, 'passwordMin8')
+      .regex(/[A-Z]/, 'passwordNeedsUppercase')
+      .regex(/[a-z]/, 'passwordNeedsLowercase')
+      .regex(/[0-9]/, 'passwordNeedsNumber'),
+    passwordConfirm: z.string(),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: 'passwordMismatch',
+    path: ['passwordConfirm'],
   })
 
 export const confirmStepSchema = z.object({
@@ -207,8 +215,10 @@ export type RegistroData = {
   descripcion: string
   municipio: Municipio
   barrio: string
-  whatsapp: string
-  email?: string
+  whatsapp?: string
+  email: string
+  password: string
+  passwordConfirm: string
   acceptTerms: true
 }
 
@@ -226,5 +236,7 @@ export const emptyRegistroData: RegistroDataPartial = {
   barrio: '',
   whatsapp: '',
   email: '',
+  password: '',
+  passwordConfirm: '',
   acceptTerms: false as unknown as true,
 }

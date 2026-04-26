@@ -2,6 +2,7 @@ import { Entity } from '@/core/shared/domain/Entity'
 
 interface UserProps {
   name: string
+  email?: string
   createdAt: Date
 }
 
@@ -19,15 +20,28 @@ export class User extends Entity<string> {
     this.props = props
   }
 
-  static create(id: string, name: string, createdAt: Date = new Date()): User {
+  static create(
+    id: string,
+    name: string,
+    createdAt: Date = new Date(),
+    email?: string | null,
+  ): User {
     if (!name || name.trim().length === 0) {
       throw new Error('User name cannot be empty')
     }
-    return new User(id, { name: name.trim(), createdAt })
+    return new User(id, {
+      name: name.trim(),
+      email: email ? email.trim() : undefined,
+      createdAt,
+    })
   }
 
   get name(): string {
     return this.props.name
+  }
+
+  get email(): string | undefined {
+    return this.props.email
   }
 
   get createdAt(): Date {

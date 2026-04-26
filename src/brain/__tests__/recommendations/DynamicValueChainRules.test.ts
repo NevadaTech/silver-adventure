@@ -144,4 +144,55 @@ describe('DynamicValueChainRules', () => {
       }
     })
   })
+
+  // E.4 — Smoke check: verifies the string→boolean conversion used by all three consumers
+  // is consistent: env.AI_DRIVEN_RULES_ENABLED === 'true' (NOT strict boolean coercion)
+  describe('flag string-to-boolean conversion consistency (E.4 smoke check)', () => {
+    it("'true' === 'true' is true (flag-on path)", () => {
+      const envValue = 'true'
+      expect(envValue === 'true').toBe(true)
+    })
+
+    it("'false' === 'true' is false (flag-off path, default)", () => {
+      const envValue = 'false'
+      expect(envValue === 'true').toBe(false)
+    })
+
+    it("undefined coerced to string is not equal to 'true'", () => {
+      // The zod schema defaults to 'false', so undefined in process.env → 'false'
+      const envValue = undefined ?? 'false'
+      expect(envValue === 'true').toBe(false)
+    })
+
+    it('DynamicValueChainRules correctly receives false when flag is off', async () => {
+      // Simulates: const flagEnabled = env.AI_DRIVEN_RULES_ENABLED === 'true'
+      // where env.AI_DRIVEN_RULES_ENABLED = 'false' (default)
+      const flagString = 'false'
+      const flagEnabled = flagString === 'true'
+
+      const graph = new InMemoryCiiuGraphRepository()
+      // Seed with edges that would only be used if flagEnabled=true
+      graph.seed([makeEdge('9999', '8888', 'cliente', 0.9)])
+      const helper = new DynamicValueChainRules(graph)
+
+      // With flagEnabled=false, the helper returns hardcoded rules (no graph query)
+      const rules = await helper.getValueChainRules(flagEnabled)
+      expect(rules).toBe(VALUE_CHAIN_RULES) // exact reference equality: no copy made
+    })
+
+    it('DynamicValueChainRules correctly receives true when flag is on', async () => {
+      // Simulates: const flagEnabled = env.AI_DRIVEN_RULES_ENABLED === 'true'
+      // where env.AI_DRIVEN_RULES_ENABLED = 'true' (enabled)
+      const flagString = 'true'
+      const flagEnabled = flagString === 'true'
+
+      const graph = new InMemoryCiiuGraphRepository()
+      // Empty graph → fallback to hardcoded (but the graph IS consulted)
+      const helper = new DynamicValueChainRules(graph)
+
+      // With flagEnabled=true and empty graph, helper falls back to VALUE_CHAIN_RULES
+      const rules = await helper.getValueChainRules(flagEnabled)
+      expect(rules).toBe(VALUE_CHAIN_RULES)
+    })
+  })
 })

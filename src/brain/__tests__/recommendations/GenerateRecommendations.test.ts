@@ -6,6 +6,7 @@ import {
   type CreateCompanyInput,
 } from '@/companies/domain/entities/Company'
 import { InMemoryCompanyRepository } from '@/companies/infrastructure/repositories/InMemoryCompanyRepository'
+import { AiCacheExpander } from '@/recommendations/application/services/AiCacheExpander'
 import { AiMatchEngine } from '@/recommendations/application/services/AiMatchEngine'
 import { AllianceMatcher } from '@/recommendations/application/services/AllianceMatcher'
 import { CandidateSelector } from '@/recommendations/application/services/CandidateSelector'
@@ -13,6 +14,7 @@ import { CiiuPairEvaluator } from '@/recommendations/application/services/CiiuPa
 import { DynamicValueChainRules } from '@/recommendations/application/services/DynamicValueChainRules'
 import { FeatureVectorBuilder } from '@/recommendations/application/services/FeatureVectorBuilder'
 import { PeerMatcher } from '@/recommendations/application/services/PeerMatcher'
+import { RecommendationLimiter } from '@/recommendations/application/services/RecommendationLimiter'
 import { ValueChainMatcher } from '@/recommendations/application/services/ValueChainMatcher'
 import { InMemoryCiiuGraphRepository } from '@/recommendations/infrastructure/repositories/InMemoryCiiuGraphRepository'
 import { GenerateRecommendations } from '@/recommendations/application/use-cases/GenerateRecommendations'
@@ -80,6 +82,8 @@ function makeSetup({
   const evaluator = new CiiuPairEvaluator(aiEngine, cache)
   const selector = new CandidateSelector()
   const featureBuilder = new FeatureVectorBuilder()
+  const cacheExpander = new AiCacheExpander(cache, featureBuilder)
+  const limiter = new RecommendationLimiter()
   const peer = new PeerMatcher(featureBuilder)
   const graph = new InMemoryCiiuGraphRepository()
   const dynamicRules = new DynamicValueChainRules(graph)
@@ -88,10 +92,10 @@ function makeSetup({
   const useCase = new GenerateRecommendations(
     companyRepo,
     recRepo,
-    cache,
     selector,
     evaluator,
-    featureBuilder,
+    cacheExpander,
+    limiter,
     peer,
     valueChain,
     alliance,

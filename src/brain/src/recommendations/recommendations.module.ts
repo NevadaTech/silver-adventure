@@ -2,12 +2,14 @@ import { Module, forwardRef } from '@nestjs/common'
 import { CiiuTaxonomyModule } from '@/ciiu-taxonomy/ciiu-taxonomy.module'
 import { CompaniesModule } from '@/companies/companies.module'
 import { DynamicValueChainRules } from './application/services/DynamicValueChainRules'
+import { AiCacheExpander } from './application/services/AiCacheExpander'
 import { AiMatchEngine } from './application/services/AiMatchEngine'
 import { AllianceMatcher } from './application/services/AllianceMatcher'
 import { CandidateSelector } from './application/services/CandidateSelector'
 import { CiiuPairEvaluator } from './application/services/CiiuPairEvaluator'
 import { FeatureVectorBuilder } from './application/services/FeatureVectorBuilder'
 import { PeerMatcher } from './application/services/PeerMatcher'
+import { RecommendationLimiter } from './application/services/RecommendationLimiter'
 import { ValueChainMatcher } from './application/services/ValueChainMatcher'
 import { ExplainRecommendation } from './application/use-cases/ExplainRecommendation'
 import { GenerateRecommendations } from './application/use-cases/GenerateRecommendations'
@@ -45,12 +47,14 @@ import { SupabaseRecommendationRepository } from './infrastructure/repositories/
       useFactory: () => env.AI_DRIVEN_RULES_ENABLED === 'true',
     },
     DynamicValueChainRules,
+    AiCacheExpander,
     AiMatchEngine,
     AllianceMatcher,
     CandidateSelector,
     CiiuPairEvaluator,
     FeatureVectorBuilder,
     PeerMatcher,
+    RecommendationLimiter,
     ValueChainMatcher,
     GenerateRecommendations,
     GetCompanyRecommendations,
@@ -65,6 +69,8 @@ import { SupabaseRecommendationRepository } from './infrastructure/repositories/
     PeerMatcher,
     ValueChainMatcher,
     AllianceMatcher,
+    AiCacheExpander,
+    RecommendationLimiter,
     GenerateRecommendations,
     GetCompanyRecommendations,
     GetGroupedCompanyRecommendations,

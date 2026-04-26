@@ -1,3 +1,3 @@
-import { InMemoryOtpRepository } from './InMemoryOtpRepository'
+import { SupabaseOtpRepository } from './SupabaseOtpRepository'
 
-export const otpStore = new InMemoryOtpRepository()
+export const otpStore = new SupabaseOtpRepository()

@@ -39,6 +39,370 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_events: {
+        Row: {
+          company_id: string
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          read: boolean
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          payload: Json
+          read?: boolean
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          read?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'agent_events_company_id_fkey'
+            columns: ['company_id']
+            isOneToOne: false
+            referencedRelation: 'companies'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      ai_match_cache: {
+        Row: {
+          cached_at: string
+          ciiu_destino: string
+          ciiu_origen: string
+          confidence: number | null
+          has_match: boolean
+          reason: string | null
+          relation_type: string | null
+        }
+        Insert: {
+          cached_at?: string
+          ciiu_destino: string
+          ciiu_origen: string
+          confidence?: number | null
+          has_match: boolean
+          reason?: string | null
+          relation_type?: string | null
+        }
+        Update: {
+          cached_at?: string
+          ciiu_destino?: string
+          ciiu_origen?: string
+          confidence?: number | null
+          has_match?: boolean
+          reason?: string | null
+          relation_type?: string | null
+        }
+        Relationships: []
+      }
+      ciiu_taxonomy: {
+        Row: {
+          code: string
+          division: string
+          grupo: string
+          macro_sector: string | null
+          seccion: string
+          titulo_actividad: string
+          titulo_division: string
+          titulo_grupo: string
+          titulo_seccion: string
+        }
+        Insert: {
+          code: string
+          division: string
+          grupo: string
+          macro_sector?: string | null
+          seccion: string
+          titulo_actividad: string
+          titulo_division: string
+          titulo_grupo: string
+          titulo_seccion: string
+        }
+        Update: {
+          code?: string
+          division?: string
+          grupo?: string
+          macro_sector?: string | null
+          seccion?: string
+          titulo_actividad?: string
+          titulo_division?: string
+          titulo_grupo?: string
+          titulo_seccion?: string
+        }
+        Relationships: []
+      }
+      cluster_ciiu_mapping: {
+        Row: {
+          ciiu_code: string
+          cluster_id: string
+        }
+        Insert: {
+          ciiu_code: string
+          cluster_id: string
+        }
+        Update: {
+          ciiu_code?: string
+          cluster_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'cluster_ciiu_mapping_cluster_id_fkey'
+            columns: ['cluster_id']
+            isOneToOne: false
+            referencedRelation: 'clusters'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      cluster_members: {
+        Row: {
+          added_at: string
+          cluster_id: string
+          company_id: string
+        }
+        Insert: {
+          added_at?: string
+          cluster_id: string
+          company_id: string
+        }
+        Update: {
+          added_at?: string
+          cluster_id?: string
+          company_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'cluster_members_cluster_id_fkey'
+            columns: ['cluster_id']
+            isOneToOne: false
+            referencedRelation: 'clusters'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'cluster_members_company_id_fkey'
+            columns: ['company_id']
+            isOneToOne: false
+            referencedRelation: 'companies'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      clusters: {
+        Row: {
+          ciiu_division: string | null
+          ciiu_grupo: string | null
+          codigo: string
+          descripcion: string | null
+          generated_at: string
+          id: string
+          macro_sector: string | null
+          member_count: number
+          municipio: string | null
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          ciiu_division?: string | null
+          ciiu_grupo?: string | null
+          codigo: string
+          descripcion?: string | null
+          generated_at?: string
+          id: string
+          macro_sector?: string | null
+          member_count?: number
+          municipio?: string | null
+          tipo: string
+          titulo: string
+        }
+        Update: {
+          ciiu_division?: string | null
+          ciiu_grupo?: string | null
+          codigo?: string
+          descripcion?: string | null
+          generated_at?: string
+          id?: string
+          macro_sector?: string | null
+          member_count?: number
+          municipio?: string | null
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
+      companies: {
+        Row: {
+          activos_totales: number | null
+          ciiu: string
+          ciiu_division: string
+          ciiu_grupo: string
+          ciiu_seccion: string
+          created_at: string
+          direccion: string | null
+          email: string | null
+          estado: string
+          etapa: string
+          fecha_matricula: string | null
+          fecha_renovacion: string | null
+          id: string
+          ingreso_operacion: number | null
+          municipio: string
+          personal: number | null
+          razon_social: string
+          telefono: string | null
+          tipo_organizacion: string | null
+          updated_at: string
+        }
+        Insert: {
+          activos_totales?: number | null
+          ciiu: string
+          ciiu_division: string
+          ciiu_grupo: string
+          ciiu_seccion: string
+          created_at?: string
+          direccion?: string | null
+          email?: string | null
+          estado?: string
+          etapa: string
+          fecha_matricula?: string | null
+          fecha_renovacion?: string | null
+          id: string
+          ingreso_operacion?: number | null
+          municipio: string
+          personal?: number | null
+          razon_social: string
+          telefono?: string | null
+          tipo_organizacion?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activos_totales?: number | null
+          ciiu?: string
+          ciiu_division?: string
+          ciiu_grupo?: string
+          ciiu_seccion?: string
+          created_at?: string
+          direccion?: string | null
+          email?: string | null
+          estado?: string
+          etapa?: string
+          fecha_matricula?: string | null
+          fecha_renovacion?: string | null
+          id?: string
+          ingreso_operacion?: number | null
+          municipio?: string
+          personal?: number | null
+          razon_social?: string
+          telefono?: string | null
+          tipo_organizacion?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      recommendations: {
+        Row: {
+          created_at: string
+          explanation: string | null
+          explanation_cached_at: string | null
+          id: string
+          reasons: Json
+          relation_type: string
+          score: number
+          source: string
+          source_company_id: string
+          target_company_id: string
+        }
+        Insert: {
+          created_at?: string
+          explanation?: string | null
+          explanation_cached_at?: string | null
+          id?: string
+          reasons?: Json
+          relation_type: string
+          score: number
+          source: string
+          source_company_id: string
+          target_company_id: string
+        }
+        Update: {
+          created_at?: string
+          explanation?: string | null
+          explanation_cached_at?: string | null
+          id?: string
+          reasons?: Json
+          relation_type?: string
+          score?: number
+          source?: string
+          source_company_id?: string
+          target_company_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'recommendations_source_company_id_fkey'
+            columns: ['source_company_id']
+            isOneToOne: false
+            referencedRelation: 'companies'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'recommendations_target_company_id_fkey'
+            columns: ['target_company_id']
+            isOneToOne: false
+            referencedRelation: 'companies'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      scan_runs: {
+        Row: {
+          clusters_generated: number
+          companies_scanned: number
+          completed_at: string | null
+          duration_ms: number | null
+          error_message: string | null
+          events_emitted: number
+          id: string
+          recommendations_generated: number
+          started_at: string
+          status: string
+          trigger: string
+        }
+        Insert: {
+          clusters_generated?: number
+          companies_scanned?: number
+          completed_at?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          events_emitted?: number
+          id?: string
+          recommendations_generated?: number
+          started_at?: string
+          status: string
+          trigger: string
+        }
+        Update: {
+          clusters_generated?: number
+          companies_scanned?: number
+          completed_at?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          events_emitted?: number
+          id?: string
+          recommendations_generated?: number
+          started_at?: string
+          status?: string
+          trigger?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string

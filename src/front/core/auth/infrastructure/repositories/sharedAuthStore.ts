@@ -1,3 +1,5 @@
-import { InMemoryAuthRepository } from './InMemoryAuthRepository'
+import { createSupabaseServerClient } from '@/core/shared/infrastructure/supabase/server'
+import { SupabaseAuthRepository } from './SupabaseAuthRepository'
 
-export const authStore = new InMemoryAuthRepository()
+const supabase = createSupabaseServerClient()
+export const authStore = new SupabaseAuthRepository(supabase)

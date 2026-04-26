@@ -16,62 +16,95 @@
  * Naming convention:
  *   --color-{semantic-name}
  *   e.g. --color-bg, --color-text, --color-primary
+ *
+ * Brand palette (Material You inspired):
+ *   primary    → azul marino profundo de la noche caribe (#001430)
+ *   secondary  → cyan del mar de Santa Marta (#00687b)
+ *   accent     → amarillo del sol samario, para CTAs vibrantes
  * ───────────────────────────────────────────── */
 
 :root {
   /* ── Base ── */
-  --color-bg: #ffffff;
-  --color-bg-secondary: #f9fafb;
-  --color-bg-tertiary: #f3f4f6;
+  --color-bg: #f7f9fb;
+  --color-bg-secondary: #f2f4f6;
+  --color-bg-tertiary: #eceef0;
 
   /* ── Text ── */
-  --color-text: #111827;
-  --color-text-secondary: #6b7280;
-  --color-text-muted: #9ca3af;
+  --color-text: #191c1e;
+  --color-text-secondary: #43474f;
+  --color-text-muted: #747780;
 
-  /* ── Primary (brand) ── */
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
+  /* ── Primary (azul marino — brand principal) ── */
+  --color-primary: #001430;
+  --color-primary-hover: #002855;
+  --color-primary-soft: #d6e3ff;
   --color-primary-text: #ffffff;
 
+  /* ── Secondary (cyan — acentos, links, etiquetas) ── */
+  --color-secondary: #00687b;
+  --color-secondary-hover: #004e5d;
+  --color-secondary-soft: #66defe;
+  --color-secondary-text: #ffffff;
+
+  /* ── Accent (amarillo solar — CTAs alta atención) ── */
+  --color-accent: #f9b300;
+  --color-accent-hover: #d99a00;
+  --color-accent-text: #001430;
+
   /* ── Borders & Surfaces ── */
-  --color-border: #e5e7eb;
+  --color-border: #c4c6d0;
+  --color-border-soft: #e0e3e5;
   --color-surface: #ffffff;
-  --color-surface-hover: #f9fafb;
+  --color-surface-hover: #f2f4f6;
+  --color-surface-elevated: #ffffff;
 
   /* ── Semantic ── */
   --color-success: #16a34a;
   --color-warning: #d97706;
-  --color-error: #dc2626;
-  --color-info: #2563eb;
+  --color-error: #ba1a1a;
+  --color-info: #00687b;
 }
 
 .dark {
   /* ── Base ── */
-  --color-bg: #0a0a0a;
-  --color-bg-secondary: #171717;
-  --color-bg-tertiary: #262626;
+  --color-bg: #0a0f1a;
+  --color-bg-secondary: #111827;
+  --color-bg-tertiary: #1a2332;
 
   /* ── Text ── */
-  --color-text: #ededed;
+  --color-text: #e0e3e5;
   --color-text-secondary: #a3a3a3;
   --color-text-muted: #737373;
 
-  /* ── Primary (brand) ── */
-  --color-primary: #3b82f6;
-  --color-primary-hover: #60a5fa;
-  --color-primary-text: #ffffff;
+  /* ── Primary (clarea para legibilidad en oscuro) ── */
+  --color-primary: #aac7fd;
+  --color-primary-hover: #d6e3ff;
+  --color-primary-soft: #284775;
+  --color-primary-text: #001430;
+
+  /* ── Secondary ── */
+  --color-secondary: #5dd5f5;
+  --color-secondary-hover: #afecff;
+  --color-secondary-soft: #004e5d;
+  --color-secondary-text: #001f27;
+
+  /* ── Accent ── */
+  --color-accent: #ffc940;
+  --color-accent-hover: #f9b300;
+  --color-accent-text: #001430;
 
   /* ── Borders & Surfaces ── */
   --color-border: #2e2e2e;
-  --color-surface: #171717;
-  --color-surface-hover: #262626;
+  --color-border-soft: #1f2937;
+  --color-surface: #111827;
+  --color-surface-hover: #1a2332;
+  --color-surface-elevated: #1a2332;
 
   /* ── Semantic ── */
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
-  --color-info: #3b82f6;
+  --color-info: #5dd5f5;
 }
 
 /*
@@ -81,6 +114,11 @@
  * Example usage:
  *   <div className="bg-bg text-text border-border">
  *   <button className="bg-primary text-primary-text hover:bg-primary-hover">
+ *
+ * Fonts:
+ *   font-sans     → Inter (body por defecto)
+ *   font-display  → Plus Jakarta Sans (headings, hero, marca)
+ *   font-mono     → Geist Mono (código)
  */
 @theme inline {
   --color-bg: var(--color-bg);
@@ -93,22 +131,83 @@
 
   --color-primary: var(--color-primary);
   --color-primary-hover: var(--color-primary-hover);
+  --color-primary-soft: var(--color-primary-soft);
   --color-primary-text: var(--color-primary-text);
 
+  --color-secondary: var(--color-secondary);
+  --color-secondary-hover: var(--color-secondary-hover);
+  --color-secondary-soft: var(--color-secondary-soft);
+  --color-secondary-text: var(--color-secondary-text);
+
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-accent-text: var(--color-accent-text);
+
   --color-border: var(--color-border);
+  --color-border-soft: var(--color-border-soft);
   --color-surface: var(--color-surface);
   --color-surface-hover: var(--color-surface-hover);
+  --color-surface-elevated: var(--color-surface-elevated);
 
   --color-success: var(--color-success);
   --color-warning: var(--color-warning);
   --color-error: var(--color-error);
   --color-info: var(--color-info);
 
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-inter), var(--font-geist-sans);
+  --font-display: var(--font-display);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--color-bg);
   color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+/* ─────────────────────────────────────────────
+ * Reveal animations.
+ *
+ * Simple CSS keyframes + a `.reveal` opt-in pattern that plays nicely
+ * with Server Components (no motion library hydration headaches).
+ *
+ * Usage:
+ *   - Above the fold: just <div className="animate-fade-up" style={{ animationDelay: '100ms' }}>
+ *   - Below the fold: wrap in <Reveal delay={120}>...</Reveal> (it adds `is-visible`)
+ * ───────────────────────────────────────────── */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .reveal.is-visible {
+    animation: none;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
 }

@@ -10,11 +10,6 @@
     "system": "Sistema",
     "toggle": "Cambiar tema"
   },
-  "Locale": {
-    "switchTo": "Cambiar idioma",
-    "en": "Inglés",
-    "es": "Español"
-  },
   "HomePage": {
     "title": "Usuarios desde Supabase",
     "subtitle": "Arquitectura Hexagonal • Patrón BFF • SWR • Supabase Cloud"
@@ -24,5 +19,313 @@
     "error": "Error al cargar usuarios: {message}",
     "empty": "No se encontraron usuarios. Insertá uno en tu panel de Supabase.",
     "createdAt": "Creado {date}"
+  },
+  "Landing": {
+    "Header": {
+      "logoLabel": "Ir al inicio de Ruta C Conecta",
+      "navLabel": "Navegación principal",
+      "navAudiences": "Audiencias",
+      "navHow": "Cómo funciona",
+      "navTeam": "Equipo"
+    },
+    "Hero": {
+      "eyebrow": "Conectamos el Magdalena",
+      "titleStart": "Conecta tu negocio con más clientes en",
+      "titleHighlight": "Santa Marta",
+      "titleEnd": "",
+      "description": "Gratis, fácil y en menos de 5 minutos. Únete a la red empresarial más grande de la ciudad.",
+      "ctaPrimary": "Registrarme gratis",
+      "ctaSecondary": "Conocer más",
+      "badge1": "100% gratis",
+      "badge2": "Sin trámites complicados",
+      "badge3": "Hecho para emprendedores locales"
+    },
+    "Segments": {
+      "title": "Un espacio para todos",
+      "subtitle": "Encontramos el lugar perfecto para que crezcas según tu perfil.",
+      "vendors": {
+        "title": "Vendedores",
+        "description": "Ofrece tus productos a toda la ciudad y aumenta tus ventas diarias."
+      },
+      "suppliers": {
+        "title": "Proveedores",
+        "description": "Conecta con negocios que necesitan tus insumos y servicios."
+      },
+      "clients": {
+        "title": "Clientes",
+        "description": "Encuentra los mejores productos locales con sello samario."
+      },
+      "allies": {
+        "title": "Aliados",
+        "description": "Instituciones y gremios apoyando el ecosistema local."
+      }
+    },
+    "Steps": {
+      "eyebrow": "En 3 pasos",
+      "title": "¿Cómo funciona Ruta C?",
+      "subtitle": "Sin descargas, sin formularios largos. Lo único que necesitas para empezar es WhatsApp.",
+      "register": {
+        "title": "Regístrate (5 min)",
+        "description": "Crea tu perfil empresarial con datos básicos de contacto."
+      },
+      "connect": {
+        "title": "Te conectamos",
+        "description": "Nuestro algoritmo te muestra ante los perfiles que necesitan de ti."
+      },
+      "whatsapp": {
+        "title": "Habla vía WhatsApp",
+        "description": "Cierra negocios directamente por chat, sin intermediarios."
+      }
+    },
+    "Camara": {
+      "eyebrow": "Respaldo institucional",
+      "title": "¿Necesitas ayuda para registrarte?",
+      "description": "Contamos con el respaldo de la Cámara de Comercio. Nuestros asesores te guiarán paso a paso de forma gratuita.",
+      "cta": "Hablar con un asesor",
+      "statValue": "100%",
+      "statLabel": "Acompañamiento gratuito",
+      "quote": "Asesores certificados de la Cámara guían tu registro paso a paso, sin costo y en tu propio idioma."
+    },
+    "FinalCta": {
+      "title": "Únete a los más de 5,000 negocios que ya están en Ruta C",
+      "subtitle": "No pierdas más oportunidades de venta. Tu competencia ya está aquí.",
+      "cta": "Quiero empezar gratis"
+    },
+    "Footer": {
+      "tagline": "Conectando nuestra comunidad",
+      "linkPrivacy": "Privacidad",
+      "linkTerms": "Términos",
+      "linkSupport": "Soporte",
+      "copyright": "© 2026 Ruta C Santa Marta — Conectando nuestra comunidad",
+      "credits": "Hackathon Samatech · Cámara de Comercio de Santa Marta"
+    },
+    "Registro": {
+      "eyebrow": "Registro gratuito",
+      "pageTitle": "Cuéntanos de tu negocio",
+      "pageSubtitle": "Tres pasos cortos. La Cámara de Comercio te contacta por WhatsApp en menos de 24 horas.",
+      "back": "Atrás",
+      "next": "Continuar",
+      "Steps": {
+        "business": "Tu negocio",
+        "contact": "Ubicación",
+        "confirm": "Confirmación"
+      },
+      "Business": {
+        "eyebrow": "Paso 1 de 3",
+        "title": "Tu negocio",
+        "fields": {
+          "nombre": {
+            "label": "Nombre del negocio",
+            "placeholder": "Empanadas Doña Marleny",
+            "hint": "Como te conocen los clientes"
+          },
+          "registradoCamara": {
+            "label": "¿Estás registrado en la Cámara de Comercio?",
+            "si": {
+              "title": "Sí, ya estoy registrado",
+              "description": "Tengo NIT y registro mercantil vigente."
+            },
+            "no": {
+              "title": "No, todavía no",
+              "description": "Soy un negocio informal o estoy empezando."
+            }
+          },
+          "nit": {
+            "label": "NIT",
+            "placeholder": "900.123.456-7",
+            "hint": "Sin espacios. Acepta puntos y guion del dígito de verificación."
+          },
+          "sector": {
+            "label": "Sector",
+            "placeholder": "Selecciona un sector"
+          },
+          "tiempoOperando": {
+            "label": "¿Hace cuánto tiempo operas?",
+            "placeholder": "Selecciona un rango"
+          },
+          "descripcion": {
+            "label": "Cuéntanos qué haces",
+            "placeholder": "Vendo empanadas frente al edificio Bavaria, abro de 7 am a 3 pm. Hago de pollo, carne y queso.",
+            "warning": "Te quedan {remaining} caracteres"
+          }
+        },
+        "sectores": {
+          "comercio": "Comercio",
+          "gastronomia": "Gastronomía",
+          "servicios": "Servicios",
+          "turismo": "Turismo",
+          "pesca": "Pesca y mariscos",
+          "agricultura": "Agricultura",
+          "artesania": "Artesanía",
+          "transporte": "Transporte",
+          "otros": "Otro"
+        },
+        "tiemposOperando": {
+          "menos_1": "Menos de 1 año",
+          "1_3": "1 a 3 años",
+          "3_5": "3 a 5 años",
+          "5_10": "5 a 10 años",
+          "mas_10": "Más de 10 años"
+        }
+      },
+      "Contact": {
+        "eyebrow": "Paso 2 de 3",
+        "title": "¿Dónde te encontramos?",
+        "subtitle": "Esto nos ayuda a conectarte con clientes y aliados cerca de ti.",
+        "fields": {
+          "municipio": {
+            "label": "Municipio",
+            "placeholder": "Selecciona un municipio",
+            "hint": "Magdalena"
+          },
+          "barrio": {
+            "label": "Barrio o vereda",
+            "placeholder": "Pescaíto, vereda La Concepción...",
+            "placeholderSelect": "Selecciona tu barrio",
+            "hint": "Donde está tu negocio"
+          },
+          "whatsapp": {
+            "label": "WhatsApp",
+            "placeholder": "300 123 4567",
+            "hint": "Te escribiremos por aquí"
+          },
+          "email": {
+            "label": "Email",
+            "placeholder": "tunegocio@gmail.com",
+            "hint": "Opcional. Te enviaremos recursos y novedades."
+          }
+        },
+        "municipios": {
+          "Santa Marta": "Santa Marta",
+          "Cienaga": "Ciénaga",
+          "Aracataca": "Aracataca",
+          "Fundacion": "Fundación",
+          "El Banco": "El Banco",
+          "Plato": "Plato",
+          "Pivijay": "Pivijay",
+          "Sitionuevo": "Sitionuevo",
+          "Pueblo Viejo": "Pueblo Viejo",
+          "Zona Bananera": "Zona Bananera",
+          "Algarrobo": "Algarrobo",
+          "Ariguani": "Ariguaní",
+          "Cerro de San Antonio": "Cerro de San Antonio",
+          "Chibolo": "Chibolo",
+          "Concordia": "Concordia",
+          "El Pinon": "El Piñón",
+          "El Reten": "El Retén",
+          "Guamal": "Guamal",
+          "Nueva Granada": "Nueva Granada",
+          "Pedraza": "Pedraza",
+          "Pijino del Carmen": "Pijiño del Carmen",
+          "Remolino": "Remolino",
+          "Sabanas de San Angel": "Sabanas de San Ángel",
+          "Salamina": "Salamina",
+          "San Sebastian de Buenavista": "San Sebastián de Buenavista",
+          "San Zenon": "San Zenón",
+          "Santa Ana": "Santa Ana",
+          "Santa Barbara de Pinto": "Santa Bárbara de Pinto",
+          "Tenerife": "Tenerife",
+          "Zapayan": "Zapayán"
+        },
+        "barrios": {
+          "1 de Mayo": "1 de Mayo",
+          "11 de Noviembre": "11 de Noviembre",
+          "17 de Diciembre": "17 de Diciembre",
+          "20 de Julio": "20 de Julio",
+          "20 de Octubre": "20 de Octubre",
+          "Alfonso Lopez": "Alfonso López",
+          "Bastidas": "Bastidas",
+          "Bavaria": "Bavaria",
+          "Bello Horizonte": "Bello Horizonte",
+          "Bolivar": "Bolívar",
+          "Bolivariana": "Bolivariana",
+          "Bonda": "Bonda",
+          "Boston": "Boston",
+          "Bureche": "Bureche",
+          "Centro": "Centro",
+          "Centro Historico": "Centro Histórico",
+          "Concepcion": "Concepción",
+          "Don Jaca": "Don Jaca",
+          "El Bosque": "El Bosque",
+          "El Carmen": "El Carmen",
+          "El Chico": "El Chicó",
+          "El Jardin": "El Jardín",
+          "El Pando": "El Pando",
+          "El Parque": "El Parque",
+          "El Reposo": "El Reposo",
+          "El Rosario": "El Rosario",
+          "Gaira": "Gaira",
+          "Gairamar": "Gairamar",
+          "Galicia": "Galicia",
+          "Garagoa": "Garagoa",
+          "Goenaga": "Goenaga",
+          "Guachaca": "Guachaca",
+          "Juan XXIII": "Juan XXIII",
+          "La Esperanza": "La Esperanza",
+          "La Estrella": "La Estrella",
+          "La Magdalena": "La Magdalena",
+          "Las Acacias": "Las Acacias",
+          "Las Americas": "Las Américas",
+          "Las Delicias": "Las Delicias",
+          "Las Malvinas": "Las Malvinas",
+          "Loma Fresca": "Loma Fresca",
+          "Los Alcazares": "Los Alcázares",
+          "Los Naranjos": "Los Naranjos",
+          "Mamatoco": "Mamatoco",
+          "Manga": "Manga",
+          "Manguitos": "Manguitos",
+          "Manzanares": "Manzanares",
+          "Maria Eugenia": "María Eugenia",
+          "Martinete": "Martinete",
+          "Minca": "Minca",
+          "Miramar": "Miramar",
+          "Modelo": "Modelo",
+          "Nueva Colombia": "Nueva Colombia",
+          "Nueva Galicia": "Nueva Galicia",
+          "Ondas del Caribe": "Ondas del Caribe",
+          "Paraiso": "Paraíso",
+          "Pastrana": "Pastrana",
+          "Pescaito": "Pescaíto",
+          "Polideportivo": "Polideportivo",
+          "Pozos Colorados": "Pozos Colorados",
+          "Rodadero": "Rodadero",
+          "Salamanca": "Salamanca",
+          "San Martin": "San Martín",
+          "Santa Lucia": "Santa Lucía",
+          "Santafe": "Santafé",
+          "Taganga": "Taganga",
+          "Tairona": "Tairona",
+          "Tamaca": "Tamacá",
+          "Villa Berlin": "Villa Berlín",
+          "Villa Toledo": "Villa Toledo",
+          "Villa Universitaria": "Villa Universitaria",
+          "Otro": "Otro barrio o vereda"
+        }
+      },
+      "Confirm": {
+        "eyebrow": "Paso 3 de 3",
+        "title": "Revisa antes de enviar",
+        "subtitle": "Verifica que todo esté correcto. Puedes editar cualquier sección.",
+        "edit": "Editar",
+        "terms": "Acepto los <link>términos y políticas de privacidad</link> de la Cámara de Comercio de Santa Marta.",
+        "cta": "Crear mi perfil",
+        "sending": "Enviando..."
+      },
+      "Success": {
+        "title": "¡Bienvenido a Ruta C!",
+        "body": "Tu perfil está en cola. La Cámara te contactará en menos de 24 horas para confirmar y empezar a recomendarte oportunidades.",
+        "ctaWhatsapp": "Abrir WhatsApp con la Cámara",
+        "ctaHome": "Volver al inicio",
+        "whatsappPrefilled": "Hola, soy {nombre} y acabo de registrarme en Ruta C. Quiero confirmar mi perfil."
+      },
+      "Errors": {
+        "minLength": "Te falta un poquito más de información",
+        "maxLength": "Te pasaste del máximo",
+        "invalidWhatsapp": "Número de WhatsApp inválido",
+        "invalidNit": "NIT inválido (9 a 15 dígitos, acepta puntos y guion)",
+        "invalidEmail": "Email inválido. Revisa el formato.",
+        "mustAccept": "Debes aceptar los términos para continuar"
+      }
+    }
   }
 }

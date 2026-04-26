@@ -1,7 +1,9 @@
+import { createHmac } from 'crypto'
 import type { UseCase } from '@/core/shared/domain/UseCase'
 import type { User } from '@/core/users/domain/entities/User'
 import type { AuthRepository } from '@/core/auth/domain/repositories/AuthRepository'
 import type { OtpRepository } from '@/core/auth/domain/repositories/OtpRepository'
+import { env } from '@/core/shared/infrastructure/env'
 
 export interface VerifyOtpCodeInput {
   sessionId: string
@@ -9,6 +11,8 @@ export interface VerifyOtpCodeInput {
 }
 
 export interface VerifyOtpCodeOutput {
+  accessToken: string
+  refreshToken: string
   user: User
 }
 
@@ -47,12 +51,17 @@ export class VerifyOtpCode implements UseCase<
       nit?: string
       whatsapp: string
       email?: string
-      password: string
     }
 
-    const user = await this.authRepository.registerWithOtp(
-      registrationData.email || registrationData.whatsapp + '@negocio.local',
-      registrationData.password,
+    const cleanWhatsapp = registrationData.whatsapp.replace(/\D/g, '')
+    const email =
+      registrationData.email ||
+      `phone_${cleanWhatsapp}_${Date.now()}@silveradventure.local`
+    const password = this.computeHmac(registrationData.whatsapp)
+
+    const result = await this.authRepository.registerWithOtp(
+      email,
+      password,
       registrationData.businessName,
       registrationData.whatsapp,
       {
@@ -67,6 +76,14 @@ export class VerifyOtpCode implements UseCase<
 
     await this.otpRepository.deleteSession(input.sessionId)
 
-    return { user }
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      user: result.user,
+    }
+  }
+
+  private computeHmac(whatsapp: string): string {
+    return createHmac('sha256', env.HMAC_SECRET).update(whatsapp).digest('hex')
   }
 }

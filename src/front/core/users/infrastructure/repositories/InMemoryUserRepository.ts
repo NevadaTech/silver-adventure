@@ -1,4 +1,4 @@
-import { User } from '@/core/users/domain/entities/User'
+import type { User } from '@/core/users/domain/entities/User'
 import type { UserRepository } from '@/core/users/domain/repositories/UserRepository'
 
 /**

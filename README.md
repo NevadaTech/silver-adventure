@@ -1,36 +1,131 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ruta C Conecta
 
-## Getting Started
+### Motor inteligente de clusters empresariales y recomendaciones accionables
 
-First, run the development server:
+> Una iniciativa de la Cámara de Comercio de Santa Marta para conectar la
+> economía formal e informal del Magdalena en una sola red activa.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## La idea
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Santa Marta tiene una economía mucho más grande de lo que cualquier base de datos refleja hoy. Por cada empresario formalmente registrado en Ruta C, hay decenas de comerciantes informales que mueven la economía real todos los días: vendedoras de mercado, pescadores en Taganga, artesanas en Bastidas, mototaxistas en Pescaíto, cocineras de almuerzos ejecutivos, tenderos de barrio.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Ruta C Conecta es un sistema que entiende quién hace qué en Santa Marta — formales e informales — y cada día conecta a la persona correcta con la oportunidad correcta, en el canal que esa persona ya usa.
 
-## Learn More
+El comerciante formal entra por la web. El informal entra por WhatsApp o por una promotora con un celular en el mercado. La inteligencia es la misma para todos. Lo que cambia es la puerta.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## El problema
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Ruta C, hoy, es una base de datos rica que se quedó estancada.
 
-## Deploy on Vercel
+La plataforma sabe quién es cada empresario formal, qué etapa atraviesa, en qué programas ha participado y qué dijo en su diagnóstico. Pero esa información solo viaja hacia adentro: sirve para que la Cámara reporte, no para que el empresario reciba valor de vuelta. Por eso la mayoría llena el diagnóstico una vez y nunca regresa.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Y al mismo tiempo, hay un vacío más grande: la economía informal. El sistema no sabe que una vendedora de empanadas frente a un edificio de oficinas podría surtir 12 almuerzos diarios a tres empresas que están a cuatro cuadras buscando proveedores. No los conecta porque no sabe que la vendedora existe. La vendedora, por su parte, no se considera "empresaria", no tiene RUT y no va a aprender una aplicación nueva. Pero sí tiene WhatsApp.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Cuatro fricciones se repiten:
+
+- **Asimetría de información**: cada empresario solo conoce a quien tiene cerca o a quien ya conocía.
+- **Dificultad de descubrimiento**: aunque quisiera buscar, una base de datos plana no responde "¿quién me conviene?".
+- **Falta de confianza**: un contacto frío no funciona; necesita contexto ("están en el mismo programa", "tres pares parecidos a ti ya trabajan con esa persona").
+- **Parálisis de acción**: una recomendación sin siguiente paso claro se queda en pantalla.
+
+Ruta C Conecta resuelve las cuatro al mismo tiempo.
+
+---
+
+## Para quién es
+
+La solución existe para cuatro tipos de personas. Cada una entra al sistema por una puerta distinta y recibe valor de una forma distinta.
+
+| Persona                   | Quién es                                               | Cómo entra                                     | Qué recibe                                                                                        |
+| ------------------------- | ------------------------------------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Comerciante informal      | Vendedoras, pescadores, artesanas, cocineras, tenderos | WhatsApp o registro asistido por una promotora | Oportunidades de negocio reales sin tener que descargar nada                                      |
+| Empresario formal         | Registrado en Ruta C, etapa de crecimiento o madurez   | Web de escritorio                              | Recomendaciones de proveedores, clientes, aliados y referentes con explicación clara de por qué   |
+| Promotor de la Cámara     | Asesores que trabajan en territorio                    | App móvil                                      | Capacidad de registrar a un comerciante en menos de un minuto, usando voz en lugar de formularios |
+| Coordinación de la Cámara | Equipo institucional que reporta impacto               | Panel administrativo                           | Trazabilidad del sistema, métricas de conexiones, mapa de la economía real de Santa Marta         |
+
+El beneficiario principal es el **comerciante informal**, porque es quien más valor extrae sin tener que cambiar nada de su rutina diaria.
+
+---
+
+## La solución
+
+Tres capas, una sola lógica.
+
+**Captura ligera.** Para que un comerciante exista en el sistema sin fricción. Si tiene alfabetización digital media, se registra solo desde una página web pública. Si no, lo registra una promotora en campo con un audio de 30 segundos. Si nadie lo registra, el sistema lo descubre por menciones de empresarios formales que ya hacen negocios con esa persona.
+
+**Inteligencia.** El sistema agrupa a los comerciantes en clusters dinámicos por sector, etapa, ubicación o combinaciones útiles. Calcula qué tan compatibles son entre sí. Detecta cadenas de valor que ya existen y otras que podrían existir. Genera recomendaciones priorizadas con tipo de relación (proveedor, aliado, cliente, referente) y explicaciones en lenguaje natural sobre por qué cada conexión tiene sentido.
+
+**Entrega en el canal correcto.** Los formales reciben sus recomendaciones en una vista web que vuelve a la plataforma viva. Los informales reciben mensajes por WhatsApp con la oportunidad concreta y un botón de respuesta. Las promotoras y la coordinación de la Cámara tienen sus propias vistas adaptadas a lo que necesitan hacer.
+
+Detrás de todo, un agente automatizado al que llamamos **Conector** trabaja sin que nadie se lo pida. Recalcula los clusters cada noche, detecta cuando se registra un comerciante nuevo y dispara recomendaciones inmediatas, identifica empresarios que necesitan intervención humana y los prioriza para los asesores.
+
+---
+
+## Un día normal en Ruta C Conecta
+
+**5:00 AM.** Conector recalcula los clusters de Santa Marta con los registros y cambios de la jornada anterior.
+
+**8:15 AM.** Carlos, dueño de un hotel boutique en El Rodadero, abre Ruta C desde su escritorio. Hace ocho meses no entraba. Encuentra tres recomendaciones nuevas: una lavandera en Bastidas que tres hoteles parecidos al suyo ya usan, una cooperativa de pescadores en Taganga que entrega pescado fresco diario, y una guía turística que está buscando alianzas con hoteles pequeños. Cada una con una explicación clara de por qué se la recomiendan.
+
+**10:30 AM.** Andrea, asesora de la Cámara, está en el Mercado del Magdalena. Se acerca al puesto de Doña Marleny, una vendedora de empanadas que vende ahí hace ocho años. En lugar de un formulario de 40 preguntas, abre la app, toma una foto del puesto, graba 30 segundos de audio describiendo lo que ella ve y escucha. El sistema extrae los atributos automáticamente, le muestra la información estructurada para confirmar, y crea el perfil de Doña Marleny.
+
+**2:45 PM.** Doña Marleny recibe un mensaje por WhatsApp del bot oficial de la Cámara: tres oficinas a cuatro cuadras de su puesto buscan opciones de almuerzo, una de ellas estaría dispuesta a pedir 12 almuerzos diarios. No descargó ninguna app, no se registró en ningún sitio web, no aprendió nada nuevo. Pero acaba de entrar al ecosistema económico formal por la puerta que ya usa todos los días.
+
+**5:45 PM.** Camila, coordinadora del programa Ruta C, revisa el panel administrativo. Ve cuántas conexiones se generaron hoy, cuáles fueron marcadas como exitosas, qué clusters están más activos, qué territorios están subatendidos. Conector le marca cinco empresarios que necesitan intervención humana esta semana, priorizados por urgencia.
+
+**11:00 PM.** El día termina. Conector registra todo lo que pasó y se prepara para el recálculo nocturno.
+
+---
+
+## Qué nos diferencia
+
+Otros recomendadores conectan registrados con registrados. Eso es un directorio.
+
+Ruta C Conecta hace tres cosas que no hace ningún otro sistema en el ecosistema actual.
+
+**Conecta lo formal con lo informal en una sola red.** La lavandera de Bastidas y el hotel de El Rodadero aparecen en la misma vista, con la misma lógica de matching, sin que la lavandera tenga que registrarse formalmente.
+
+**Le habla a cada quien en su canal.** La web es para quien usa web. WhatsApp es para quien usa WhatsApp. La voz es para quien prefiere hablar a escribir. Nadie tiene que aprender una herramienta nueva.
+
+**Explica sus decisiones.** Cada recomendación responde la pregunta "¿por qué a mí?" en lenguaje natural, no con métricas técnicas. Eso construye confianza tanto en el comerciante que recibe como en la Cámara que audita.
+
+---
+
+## Estado del proyecto
+
+Este repositorio contiene el prototipo desarrollado durante el Hackathon Samatech organizado por la Cámara de Comercio de Santa Marta.
+
+- **Documentación técnica**: [`docs/documentacion.md`](docs/documentacion.md) — arquitectura, stack y cómo correr el proyecto.
+- **Planeación del equipo**: [`docs/planeacion/`](docs/planeacion/) — alcance del MVP, roles, personas, motor de recomendaciones, cronograma y riesgos.
+- **Reto y datos de partida**: [`docs/hackathon/`](docs/hackathon/) — bases del reto, dataset y documentación de clustering provista por la Cámara.
+
+---
+
+## Equipo
+
+**Nombre del equipo:** _por definir_
+
+| Nombre | Rol          |
+| ------ | ------------ |
+|        | PM / Lead    |
+|        | Backend / IA |
+|        | Frontend     |
+|        | Data / ML    |
+|        | Diseño / UX  |
+
+**Cómo llegamos a esta idea**
+
+> Empezamos analizando el reto y nos dimos cuenta de que el problema real no era construir un recomendador para los empresarios registrados, sino reconocer que la economía de Santa Marta es mucho más grande que los registros formales. Decidimos que la solución tenía que abrir una puerta nueva: la del comerciante informal, que mueve la economía real del territorio pero hoy es invisible para el sistema. A partir de ahí diseñamos cuatro experiencias específicas — una por persona — y un agente que las conecta todas.
+
+---
+
+## Reconocimientos
+
+Hackathon Samatech · Cámara de Comercio de Santa Marta · 2026
+
+Reto oficial: _Ruta C Conecta — Motor Inteligente de Clusters Empresariales_
+Documento base por Hernando Alfonso Varón · Grimorum

@@ -217,4 +217,26 @@ describe('AiMatchEngine', () => {
     expect(entry!.hasMatch).toBe(true)
     expect(entry!.relationType).toBe('cliente')
   })
+
+  it('persists modelVersion from env.GEMINI_CHAT_MODEL when caching a result', async () => {
+    const gemini = new StubLlmAdapter('', {
+      has_match: true,
+      relation_type: 'cliente',
+      confidence: 0.85,
+      reason: 'r',
+    })
+    const cache = new InMemoryAiMatchCacheRepository()
+    const ciiuRepo = new InMemoryCiiuTaxonomyRepository([
+      mayorista,
+      restaurante,
+    ])
+    const engine = new AiMatchEngine(gemini, cache, ciiuRepo)
+
+    await engine.evaluate('4631', '5611')
+    const entry = await cache.get('4631', '5611')
+    expect(entry).not.toBeNull()
+    // modelVersion should be the value from env.GEMINI_CHAT_MODEL (default: 'gemini-2.5-flash')
+    expect(entry!.modelVersion).toBeTruthy()
+    expect(typeof entry!.modelVersion).toBe('string')
+  })
 })

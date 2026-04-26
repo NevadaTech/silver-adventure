@@ -107,9 +107,11 @@ async function buildUseCase(
     new PeerMatcher(f.featureBuilder),
     new ValueChainMatcher(
       new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+      false,
     ),
     new AllianceMatcher(
       new DynamicValueChainRules(new InMemoryCiiuGraphRepository()),
+      false,
     ),
   )
   return { useCase, ...f }

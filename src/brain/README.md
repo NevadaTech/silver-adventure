@@ -309,6 +309,8 @@ src/brain/src/
 
 OpenAPI auto-generado vía `@nestjs/swagger`. Disponible en `http://localhost:3001/docs` cuando el server está arriba.
 
+> **Postman / Insomnia:** colección importable en [`docs/postman/`](../../docs/postman/) con todas las rutas, variables (`baseUrl`, `companyId`, `clusterId`, `recommendationId`, `eventId`) y ejemplos de body.
+
 ### Health
 
 - `GET /api/health` — health check.

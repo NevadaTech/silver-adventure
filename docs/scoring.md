@@ -188,6 +188,8 @@ Usa **la misma función `proximity()`** que la AI, no cosine puro. La razón: `c
 
 Implementación: `src/brain/src/recommendations/application/services/ValueChainMatcher.ts`.
 
+**Reglas dinámicas (flag `AI_DRIVEN_RULES_ENABLED=true`).** Cuando la feature flag está activa, el matcher delega en `DynamicValueChainRules` que consulta `ai_match_cache` (vía `CiiuGraphPort`) y extrae aristas con `hasMatch=true AND confidence >= 0.65`. Las reglas dinámicas cubren pares del grafo; las 27 reglas hardcoded actúan como fallback selectivo para pares NO cubiertos por el grafo. Con `AI_DRIVEN_RULES_ENABLED=false` (default), el matcher usa exclusivamente las 27 reglas hardcoded — comportamiento idéntico al anterior al change.
+
 **Estrategia.** Recorre las **27 reglas hardcoded de cadena de valor** (`VALUE_CHAIN_RULES` en `ValueChainRules.ts`). Cada regla tiene la forma:
 
 ```typescript
@@ -218,6 +220,8 @@ Ambas con el mismo score y razones simétricas (`cadena_valor_directa` y `cadena
 ### 5.3. `AllianceMatcher` → emite `aliado`
 
 Implementación: `src/brain/src/recommendations/application/services/AllianceMatcher.ts`.
+
+**Ecosistemas dinámicos (flag `AI_DRIVEN_RULES_ENABLED=true`).** Cuando la flag está activa, el matcher consulta el grafo con `confidence >= 0.65` filtrando aristas tipo `aliado`. Los ecosistemas dinámicos (pares de CIIUs del grafo) se concatenan con los 6 ecosistemas hardcoded. La dedupe interna del matcher por par `(a.id, b.id)` evita que se emitan recs duplicadas.
 
 **Estrategia.** Recorre los **6 ecosistemas predefinidos** (`ECOSYSTEMS` en `ValueChainRules.ts`):
 
@@ -360,18 +364,20 @@ Cada recomendación lleva un array de `Reason` en JSONB. **No es texto libre.** 
 
 Constantes que controlan decisiones de filtrado, persistencia y notificación.
 
-| Constante               | Valor  | Dónde vive                       | Para qué                                                                                         |
-| ----------------------- | ------ | -------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `MIN_CONFIDENCE`        | `0.5`  | `GenerateRecommendations.ts:42`  | Filtra entradas del cache antes de materializar Recommendation. Por debajo → la rec no se emite. |
-| `TOP_PER_TYPE`          | `5`    | `GenerateRecommendations.ts:43`  | Cap por tipo de relación por empresa.                                                            |
-| `TOP_TOTAL`             | `20`   | `GenerateRecommendations.ts:44`  | Cap global por empresa.                                                                          |
-| `AI_WEIGHT`             | `0.6`  | `GenerateRecommendations.ts:45`  | Peso semántico de la fórmula AI.                                                                 |
-| `PROXIMITY_WEIGHT`      | `0.4`  | `GenerateRecommendations.ts:46`  | Peso estructural de la fórmula AI.                                                               |
-| `SAME_MUNICIPIO_BOOST`  | `1.0`  | `ValueChainMatcher.ts:8`         | Sin penalización si mismo municipio.                                                             |
-| `DIFF_MUNICIPIO_FACTOR` | `0.85` | `ValueChainMatcher.ts:9`         | 15% de castigo si distinto municipio.                                                            |
-| `SAME_MUNICIPIO_SCORE`  | `0.75` | `AllianceMatcher.ts:8`           | Score plano para aliados en mismo municipio.                                                     |
-| `DIFF_MUNICIPIO_SCORE`  | `0.55` | `AllianceMatcher.ts:9`           | Score plano para aliados en distinto municipio.                                                  |
-| `HIGH_SCORE_THRESHOLD`  | `0.8`  | `OpportunityDetector` (planeado) | Trigger del evento `new_high_score_match` del agente.                                            |
+| Constante                          | Valor  | Dónde vive                       | Para qué                                                                                                                                                                   |
+| ---------------------------------- | ------ | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MIN_CONFIDENCE`                   | `0.5`  | `GenerateRecommendations.ts:42`  | Filtra entradas del cache antes de materializar Recommendation. Por debajo → la rec no se emite.                                                                           |
+| `TOP_PER_TYPE`                     | `5`    | `GenerateRecommendations.ts:43`  | Cap por tipo de relación por empresa.                                                                                                                                      |
+| `TOP_TOTAL`                        | `20`   | `GenerateRecommendations.ts:44`  | Cap global por empresa.                                                                                                                                                    |
+| `AI_WEIGHT`                        | `0.6`  | `GenerateRecommendations.ts:45`  | Peso semántico de la fórmula AI.                                                                                                                                           |
+| `PROXIMITY_WEIGHT`                 | `0.4`  | `GenerateRecommendations.ts:46`  | Peso estructural de la fórmula AI.                                                                                                                                         |
+| `SAME_MUNICIPIO_BOOST`             | `1.0`  | `ValueChainMatcher.ts:8`         | Sin penalización si mismo municipio.                                                                                                                                       |
+| `DIFF_MUNICIPIO_FACTOR`            | `0.85` | `ValueChainMatcher.ts:9`         | 15% de castigo si distinto municipio.                                                                                                                                      |
+| `SAME_MUNICIPIO_SCORE`             | `0.75` | `AllianceMatcher.ts:8`           | Score plano para aliados en mismo municipio.                                                                                                                               |
+| `DIFF_MUNICIPIO_SCORE`             | `0.55` | `AllianceMatcher.ts:9`           | Score plano para aliados en distinto municipio.                                                                                                                            |
+| `HIGH_SCORE_THRESHOLD`             | `0.8`  | `OpportunityDetector` (planeado) | Trigger del evento `new_high_score_match` del agente.                                                                                                                      |
+| `MATCHER_CONFIDENCE_THRESHOLD`     | `0.65` | `DynamicValueChainRules.ts`      | Umbral mínimo para incluir aristas del grafo en reglas dinámicas de `ValueChainMatcher` y `AllianceMatcher`. Solo activo cuando `AI_DRIVEN_RULES_ENABLED=true`.            |
+| `CONFIDENCE_THRESHOLD` (ecosystem) | `0.70` | `EcosystemDiscoverer.ts`         | Umbral mínimo de confianza para incluir aristas en la detección de comunidades CIIU por label propagation. Más alto que el de los matchers para reducir ruido en clusters. |
 
 ---
 
@@ -490,11 +496,16 @@ Resumen de las decisiones de diseño y por qué se tomaron:
 
 ## 12. Configurabilidad y futuro
 
+### Clusters de ecosistema (`heuristic-ecosistema`)
+
+Cuando `AI_DRIVEN_RULES_ENABLED=true`, `GenerateClusters` corre un tercer pase usando `EcosystemDiscoverer`. Este servicio aplica **label propagation** sobre el grafo de `ai_match_cache` (aristas con `confidence >= 0.70`) para detectar comunidades de CIIUs. Por cada comunidad de ≥3 CIIUs, el servicio materializa un cluster del tipo `heuristic-ecosistema` por municipio donde haya al menos una empresa con CIIU de la comunidad. Los clusters de tipo `heuristic-ecosistema` se limpian y regeneran en cada run del agente (`deleteByType` antes del `saveMany`).
+
 ### Hoy es configurable
 
 - `AI_MATCH_INFERENCE_ENABLED` (env): apaga Gemini, fuerza fallback total.
 - `AGENT_ENABLED` (env): apaga el cron del agente (no afecta scoring, sí afecta cuándo se regenera).
 - `enableAi: boolean` en input de `GenerateRecommendations.execute()`: override por llamada (útil para tests).
+- `AI_DRIVEN_RULES_ENABLED` (env): activa reglas dinámicas del grafo `ai_match_cache` para matchers y cluster detection. Default `false`.
 
 ### Hoy NO es configurable (constantes hardcoded)
 

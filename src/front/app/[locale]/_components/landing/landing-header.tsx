@@ -7,7 +7,7 @@ export function LandingHeader() {
   const t = useTranslations('Landing.Header')
 
   return (
-    <header className="bg-bg/80 border-border-soft fixed left-0 top-0 z-50 flex h-16 w-full items-center justify-between border-b px-6 backdrop-blur-md">
+    <header className="bg-bg/80 border-border-soft fixed top-0 left-0 z-50 flex h-16 w-full items-center justify-between border-b px-6 backdrop-blur-md">
       <Link
         href="/"
         className="flex items-center gap-2"
@@ -36,7 +36,13 @@ export function LandingHeader() {
         </a>
       </nav>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
+        <Link
+          href="/login"
+          className="text-text-secondary hover:text-text hidden text-sm font-semibold transition-colors sm:inline"
+        >
+          {t('login')}
+        </Link>
         <ThemeToggle />
       </div>
     </header>

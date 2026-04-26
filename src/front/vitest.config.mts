@@ -9,6 +9,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    setupFiles: ['vitest.setup.ts'],
     include: [
       '__tests__/unit/**/*.{test,spec}.{ts,tsx}',
       '__tests__/core/**/*.{test,spec}.{ts,tsx}',

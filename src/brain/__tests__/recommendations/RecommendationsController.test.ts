@@ -8,9 +8,11 @@ import { AiMatchEngine } from '@/recommendations/application/services/AiMatchEng
 import { AllianceMatcher } from '@/recommendations/application/services/AllianceMatcher'
 import { CandidateSelector } from '@/recommendations/application/services/CandidateSelector'
 import { CiiuPairEvaluator } from '@/recommendations/application/services/CiiuPairEvaluator'
+import { DynamicValueChainRules } from '@/recommendations/application/services/DynamicValueChainRules'
 import { FeatureVectorBuilder } from '@/recommendations/application/services/FeatureVectorBuilder'
 import { PeerMatcher } from '@/recommendations/application/services/PeerMatcher'
 import { ValueChainMatcher } from '@/recommendations/application/services/ValueChainMatcher'
+import { InMemoryCiiuGraphRepository } from '@/recommendations/infrastructure/repositories/InMemoryCiiuGraphRepository'
 import { ExplainRecommendation } from '@/recommendations/application/use-cases/ExplainRecommendation'
 import { GenerateRecommendations } from '@/recommendations/application/use-cases/GenerateRecommendations'
 import { GetCompanyRecommendations } from '@/recommendations/application/use-cases/GetCompanyRecommendations'
@@ -55,8 +57,10 @@ function makeWiring() {
   const featureBuilder = new FeatureVectorBuilder()
   const selector = new CandidateSelector()
   const peer = new PeerMatcher(featureBuilder)
-  const valueChain = new ValueChainMatcher()
-  const alliance = new AllianceMatcher()
+  const graph = new InMemoryCiiuGraphRepository()
+  const dynamicRules = new DynamicValueChainRules(graph)
+  const valueChain = new ValueChainMatcher(dynamicRules)
+  const alliance = new AllianceMatcher(dynamicRules)
   const generate = new GenerateRecommendations(
     companyRepo,
     recRepo,

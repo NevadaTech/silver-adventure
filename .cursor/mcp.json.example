@@ -10,6 +10,9 @@
         "@21st-dev/magic@latest",
         "API_KEY=\"YOUR_21ST_DEV_API_KEY_HERE\""
       ]
+    },
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp"
     }
   }
 }

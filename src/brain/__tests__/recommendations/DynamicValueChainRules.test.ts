@@ -160,7 +160,9 @@ describe('DynamicValueChainRules', () => {
 
     it("undefined coerced to string is not equal to 'true'", () => {
       // The zod schema defaults to 'false', so undefined in process.env → 'false'
-      const envValue = (undefined as string | undefined) ?? 'false'
+      // Use process.env lookup to avoid TS tautological-comparison analysis
+      const rawValue: string | undefined = process.env['__NONEXISTENT_VAR__']
+      const envValue = rawValue ?? 'false'
       expect(envValue === 'true').toBe(false)
     })
 

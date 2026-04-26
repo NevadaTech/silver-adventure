@@ -5,7 +5,7 @@ import { AiMatchEngine } from '@/recommendations/application/services/AiMatchEng
 import { CiiuPairEvaluator } from '@/recommendations/application/services/CiiuPairEvaluator'
 import { AiMatchCacheEntry } from '@/recommendations/domain/entities/AiMatchCacheEntry'
 import { InMemoryAiMatchCacheRepository } from '@/recommendations/infrastructure/repositories/InMemoryAiMatchCacheRepository'
-import { StubGeminiAdapter } from '@/shared/infrastructure/gemini/StubGeminiAdapter'
+import { StubLlmAdapter } from '@/shared/infrastructure/llm/StubLlmAdapter'
 
 const ciius = [
   ['4631', 'Mayorista', 'G', '46', '463'],
@@ -34,7 +34,7 @@ const ciiuRepo = (() => {
 
 function newSetup() {
   const cache = new InMemoryAiMatchCacheRepository()
-  const gemini = new StubGeminiAdapter('', {
+  const gemini = new StubLlmAdapter('', {
     has_match: true,
     relation_type: 'cliente',
     confidence: 0.8,

@@ -5,7 +5,7 @@ import { InMemoryClusterMembershipRepository } from '@/clusters/infrastructure/r
 import { InMemoryClusterRepository } from '@/clusters/infrastructure/repositories/InMemoryClusterRepository'
 import { Company } from '@/companies/domain/entities/Company'
 import { InMemoryCompanyRepository } from '@/companies/infrastructure/repositories/InMemoryCompanyRepository'
-import { StubGeminiAdapter } from '@/shared/infrastructure/gemini/StubGeminiAdapter'
+import { StubLlmAdapter } from '@/shared/infrastructure/llm/StubLlmAdapter'
 
 function makeCompany(id: string, razonSocial = 'X SAS'): Company {
   return Company.create({
@@ -20,14 +20,14 @@ describe('ExplainCluster', () => {
   let clusterRepo: InMemoryClusterRepository
   let membershipRepo: InMemoryClusterMembershipRepository
   let companyRepo: InMemoryCompanyRepository
-  let gemini: StubGeminiAdapter
+  let gemini: StubLlmAdapter
   let useCase: ExplainCluster
 
   beforeEach(() => {
     clusterRepo = new InMemoryClusterRepository()
     membershipRepo = new InMemoryClusterMembershipRepository()
     companyRepo = new InMemoryCompanyRepository()
-    gemini = new StubGeminiAdapter('AI generated description')
+    gemini = new StubLlmAdapter('AI generated description')
     useCase = new ExplainCluster(
       clusterRepo,
       membershipRepo,

@@ -3,9 +3,9 @@ import { COMPANY_REPOSITORY } from '@/companies/domain/repositories/CompanyRepos
 import type { CompanyRepository } from '@/companies/domain/repositories/CompanyRepository'
 import { RECOMMENDATION_REPOSITORY } from '@/recommendations/domain/repositories/RecommendationRepository'
 import type { RecommendationRepository } from '@/recommendations/domain/repositories/RecommendationRepository'
-import type { GeminiPort } from '@/shared/domain/GeminiPort'
+import type { LlmPort } from '@/shared/domain/LlmPort'
 import type { UseCase } from '@/shared/domain/UseCase'
-import { GEMINI_PORT } from '@/shared/shared.module'
+import { LLM_PORT } from '@/shared/shared.module'
 
 export interface ExplainRecommendationInput {
   recommendationId: string
@@ -25,7 +25,7 @@ export class ExplainRecommendation implements UseCase<
     private readonly recRepo: RecommendationRepository,
     @Inject(COMPANY_REPOSITORY)
     private readonly companyRepo: CompanyRepository,
-    @Inject(GEMINI_PORT) private readonly gemini: GeminiPort,
+    @Inject(LLM_PORT) private readonly gemini: LlmPort,
   ) {}
 
   async execute(

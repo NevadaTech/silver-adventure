@@ -32,7 +32,7 @@ vi.mock('@/shared/infrastructure/env', () => ({
   },
 }))
 
-import { GeminiAdapter } from '@/shared/infrastructure/gemini/GeminiAdapter'
+import { GeminiAdapter } from '@/shared/infrastructure/llm/GeminiAdapter'
 
 describe('GeminiAdapter', () => {
   beforeEach(() => {

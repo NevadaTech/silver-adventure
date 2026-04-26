@@ -12,8 +12,8 @@ import {
   ECOSYSTEMS,
   VALUE_CHAIN_RULES,
 } from '@/recommendations/application/services/ValueChainRules'
-import { GEMINI_PORT } from '@/shared/shared.module'
-import type { GeminiPort } from '@/shared/domain/GeminiPort'
+import { LLM_PORT } from '@/shared/shared.module'
+import type { LlmPort } from '@/shared/domain/LlmPort'
 
 export interface InferredMatch {
   hasMatch: boolean
@@ -29,7 +29,7 @@ const SAME_CIIU_REASON =
 @Injectable()
 export class AiMatchEngine {
   constructor(
-    @Inject(GEMINI_PORT) private readonly gemini: GeminiPort,
+    @Inject(LLM_PORT) private readonly gemini: LlmPort,
     @Inject(AI_MATCH_CACHE_REPOSITORY)
     private readonly cache: AiMatchCacheRepository,
     @Inject(CIIU_TAXONOMY_REPOSITORY)

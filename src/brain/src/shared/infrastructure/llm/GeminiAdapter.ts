@@ -1,8 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import type { GeminiPort } from '@/shared/domain/GeminiPort'
+import type { LlmPort } from '@/shared/domain/LlmPort'
 import { env } from '@/shared/infrastructure/env'
 
-export class GeminiAdapter implements GeminiPort {
+export class GeminiAdapter implements LlmPort {
   private readonly client: GoogleGenerativeAI
   private readonly modelName: string
 

@@ -21,7 +21,7 @@ import { CompanyRecommendationsController } from '@/recommendations/infrastructu
 import { RecommendationsController } from '@/recommendations/infrastructure/http/recommendations.controller'
 import { InMemoryAiMatchCacheRepository } from '@/recommendations/infrastructure/repositories/InMemoryAiMatchCacheRepository'
 import { InMemoryRecommendationRepository } from '@/recommendations/infrastructure/repositories/InMemoryRecommendationRepository'
-import { StubGeminiAdapter } from '@/shared/infrastructure/gemini/StubGeminiAdapter'
+import { StubLlmAdapter } from '@/shared/infrastructure/llm/StubLlmAdapter'
 
 function makeWiring() {
   const companyRepo = new InMemoryCompanyRepository()
@@ -49,7 +49,7 @@ function makeWiring() {
       tituloGrupo: 'x',
     }),
   ])
-  const gemini = new StubGeminiAdapter('explanation from gemini')
+  const gemini = new StubLlmAdapter('explanation from gemini')
   const aiEngine = new AiMatchEngine(gemini, cache, ciiuRepo)
   const evaluator = new CiiuPairEvaluator(aiEngine, cache)
   const featureBuilder = new FeatureVectorBuilder()

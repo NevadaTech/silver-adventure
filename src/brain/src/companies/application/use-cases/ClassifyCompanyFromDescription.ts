@@ -4,8 +4,8 @@ import {
   CIIU_TAXONOMY_REPOSITORY,
   type CiiuTaxonomyRepository,
 } from '@/ciiu-taxonomy/domain/repositories/CiiuTaxonomyRepository'
-import { GEMINI_PORT } from '@/shared/shared.module'
-import type { GeminiPort } from '@/shared/domain/GeminiPort'
+import { LLM_PORT } from '@/shared/shared.module'
+import type { LlmPort } from '@/shared/domain/LlmPort'
 import type { UseCase } from '@/shared/domain/UseCase'
 
 export interface ClassifyCompanyFromDescriptionInput {
@@ -44,7 +44,7 @@ export class ClassifyCompanyFromDescription implements UseCase<
   private readonly logger = new Logger(ClassifyCompanyFromDescription.name)
 
   constructor(
-    @Inject(GEMINI_PORT) private readonly gemini: GeminiPort,
+    @Inject(LLM_PORT) private readonly gemini: LlmPort,
     @Inject(CIIU_TAXONOMY_REPOSITORY)
     private readonly taxonomy: CiiuTaxonomyRepository,
   ) {}

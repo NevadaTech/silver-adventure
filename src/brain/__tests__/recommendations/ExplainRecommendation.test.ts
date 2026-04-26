@@ -8,7 +8,7 @@ import { ExplainRecommendation } from '@/recommendations/application/use-cases/E
 import { Recommendation } from '@/recommendations/domain/entities/Recommendation'
 import { Reasons } from '@/recommendations/domain/value-objects/Reason'
 import { InMemoryRecommendationRepository } from '@/recommendations/infrastructure/repositories/InMemoryRecommendationRepository'
-import { StubGeminiAdapter } from '@/shared/infrastructure/gemini/StubGeminiAdapter'
+import { StubLlmAdapter } from '@/shared/infrastructure/llm/StubLlmAdapter'
 
 const company = (overrides: Partial<CreateCompanyInput> = {}): Company =>
   Company.create({
@@ -47,13 +47,13 @@ const recommendation = (
 describe('ExplainRecommendation', () => {
   let recRepo: InMemoryRecommendationRepository
   let companyRepo: InMemoryCompanyRepository
-  let gemini: StubGeminiAdapter
+  let gemini: StubLlmAdapter
   let useCase: ExplainRecommendation
 
   beforeEach(async () => {
     recRepo = new InMemoryRecommendationRepository()
     companyRepo = new InMemoryCompanyRepository()
-    gemini = new StubGeminiAdapter('Generated explanation from Gemini')
+    gemini = new StubLlmAdapter('Generated explanation from Gemini')
     useCase = new ExplainRecommendation(recRepo, companyRepo, gemini)
 
     await companyRepo.saveMany([

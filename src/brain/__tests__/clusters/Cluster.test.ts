@@ -6,18 +6,20 @@ import {
 } from '@/clusters/domain/value-objects/ClusterType'
 
 describe('ClusterType', () => {
-  it('exposes the 4 valid types', () => {
+  it('exposes the 5 valid types including heuristic-ecosistema', () => {
     expect(CLUSTER_TYPES).toEqual([
       'predefined',
       'heuristic-division',
       'heuristic-grupo',
       'heuristic-municipio',
+      'heuristic-ecosistema',
     ])
   })
 
   it('isClusterType narrows valid values', () => {
     expect(isClusterType('predefined')).toBe(true)
     expect(isClusterType('heuristic-grupo')).toBe(true)
+    expect(isClusterType('heuristic-ecosistema')).toBe(true)
     expect(isClusterType('foo')).toBe(false)
   })
 })
@@ -205,6 +207,64 @@ describe('Cluster', () => {
           memberCount: 10,
         }),
       ).toThrow(/municipio/i)
+    })
+  })
+
+  describe('heuristic-ecosistema', () => {
+    const ecoBase = {
+      id: 'eco-ab12ef34-santa-marta',
+      codigo: 'eco-ab12ef34-santa-marta',
+      titulo: 'Ecosistema CIIU 5511-9601 · Santa Marta',
+      tipo: 'heuristic-ecosistema' as const,
+      municipio: 'Santa Marta',
+      ciiuDivision: null,
+      ciiuGrupo: null,
+      memberCount: 7,
+    }
+
+    it('creates with valid id pattern, municipio, null ciiuDivision/ciiuGrupo', () => {
+      const c = Cluster.create(ecoBase)
+      expect(c.tipo).toBe('heuristic-ecosistema')
+      expect(c.municipio).toBe('Santa Marta')
+      expect(c.ciiuDivision).toBeNull()
+      expect(c.ciiuGrupo).toBeNull()
+    })
+
+    it('throws when municipio is null', () => {
+      expect(() => Cluster.create({ ...ecoBase, municipio: null })).toThrow(
+        /municipio/i,
+      )
+    })
+
+    it('throws when municipio is undefined', () => {
+      const { municipio: _m, ...rest } = ecoBase
+      expect(() =>
+        Cluster.create(rest as Parameters<typeof Cluster.create>[0]),
+      ).toThrow(/municipio/i)
+    })
+
+    it('throws when ciiuDivision is non-null', () => {
+      expect(() => Cluster.create({ ...ecoBase, ciiuDivision: '47' })).toThrow(
+        /ciiuDivision/i,
+      )
+    })
+
+    it('throws when ciiuGrupo is non-null', () => {
+      expect(() => Cluster.create({ ...ecoBase, ciiuGrupo: '471' })).toThrow(
+        /ciiuGrupo/i,
+      )
+    })
+
+    it('throws when id does not match eco-{8hex}-{slug} pattern', () => {
+      expect(() =>
+        Cluster.create({ ...ecoBase, id: 'eco-UPPERCASE-santa-marta' }),
+      ).toThrow(/eco.*pattern/i)
+    })
+
+    it('throws when id is missing the eco- prefix', () => {
+      expect(() =>
+        Cluster.create({ ...ecoBase, id: 'ab12ef34-santa-marta' }),
+      ).toThrow(/eco.*pattern/i)
     })
   })
 

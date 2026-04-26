@@ -26,6 +26,7 @@ export const envSchema = z
     AGENT_CRON_SCHEDULE: z.string().min(1).default('*/60 * * * * *'),
     AGENT_ENABLED: z.enum(['true', 'false']).default('true'),
     AI_MATCH_INFERENCE_ENABLED: z.enum(['true', 'false']).default('true'),
+    AI_DRIVEN_RULES_ENABLED: z.enum(['true', 'false']).default('false'),
 
     LLM_PROVIDER: z.enum(['openrouter', 'gemini']).default('openrouter'),
 

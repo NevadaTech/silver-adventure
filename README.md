@@ -95,13 +95,91 @@ Ruta C Conecta hace tres cosas que no hace ningún otro sistema en el ecosistema
 
 ---
 
+## Cómo está construido
+
+Ruta C Conecta es un **monorepo** con dos servicios independientes que se comunican por HTTP, gestionado con `bun workspaces`.
+
+```
+silver-adventure/
+├── src/
+│   ├── front/      # Web Next.js 16 (App Router) — la cara del producto
+│   └── brain/      # Servicio NestJS — el motor inteligente
+├── docs/           # Documentación funcional, planeación y specs
+├── supabase/       # Schema y migraciones de la base
+└── .env            # Single source of truth (symlinks por workspace)
+```
+
+**Dos servicios, una sola lógica.**
+
+- **`src/front/`** ([README](src/front/README.md)) — Next.js 16 con App Router, React 19 y React Compiler. Es el canal del empresario formal: landing pública, login, registro guiado y la app autenticada con cinco pantallas (`Inicio`, `Recomendaciones`, `Mi Cluster`, `Mi Negocio`, `Conexiones`). Sigue arquitectura hexagonal y patrón BFF estricto: TODA llamada externa pasa por sus propios Route Handlers.
+
+- **`src/brain/`** ([README](src/brain/README.md)) — Servicio NestJS que cumple el componente "Inteligencia" del sistema. Genera clusters (predefinidos + heurísticos en cascada), produce recomendaciones AI-first con Gemini y orquesta el agente Conector que corre en cron. Arquitectura hexagonal estricta, port `CompanySource` para ser BigQuery-ready cuando lleguen las credenciales del reto.
+
+**Comunicación entre los dos.** El front NUNCA habla con Supabase ni con Gemini directamente. Sus Route Handlers consumen al brain por REST (`GET /api/recommendations/by-company/...`, `GET /api/clusters/by-company/...`, etc.). Esto preserva el patrón BFF y permite que el brain se reemplace sin tocar UI.
+
+### Stack global
+
+| Capa       | Tecnología                                                                              |
+| ---------- | --------------------------------------------------------------------------------------- |
+| Runtime    | **Bun** 1.x para dev y scripts; Node 24 para prod del brain                             |
+| Lenguaje   | **TypeScript 6** strict en ambos workspaces                                             |
+| Front      | **Next.js 16** (App Router, React 19 + React Compiler), Tailwind 4, next-intl, SWR      |
+| Brain      | **NestJS 11**, Vitest, `@google/generative-ai`, `@nestjs/schedule` (cron), Zod, OpenAPI |
+| Datos      | **Supabase / Postgres** (cloud)                                                         |
+| IA         | **Google Gemini 2.5 Flash** (chat + structured) y `text-embedding-004` (embeddings)     |
+| Validación | **Zod 4** en front, brain y env vars                                                    |
+| Tests      | **Vitest 4** en ambos workspaces (`bun test`)                                           |
+| Calidad    | ESLint 10, Prettier 3, Husky + lint-staged + commitlint, conventional commits           |
+
+### Cómo correr el monorepo
+
+```bash
+# 1. Instalar dependencias (una sola vez)
+bun install
+
+# 2. Configurar variables de entorno
+cp .env.example .env
+# Editar .env con SUPABASE_*, GEMINI_API_KEY, etc.
+
+# 3. Levantar los dos servicios (en terminales separadas)
+bun dev:front      # http://localhost:3000  (Next.js)
+bun dev:brain      # http://localhost:3001  (NestJS, OpenAPI en /docs)
+
+# 4. Tests de TODO el monorepo
+bun test           # corre vitest en front y brain
+
+# 5. Format / lint global
+bun format
+bun lint
+```
+
+Detalles específicos de cada servicio (seeds, endpoints, pantallas, providers) viven en sus README dedicados.
+
+### Variables de entorno
+
+Hay **un solo `.env` real** en la raíz del monorepo. Cada workspace lo ve a través de un **symlink relativo** (`src/front/.env -> ../../.env`, idem brain). El archivo es shared, pero cada workspace declara qué variables consume vía Zod schema independiente, que falla-rápido al startup si falta algo. Detalle completo en [`AGENTS.md`](AGENTS.md) §8.
+
+| Categoría     | Variables principales                                                   |
+| ------------- | ----------------------------------------------------------------------- |
+| Supabase      | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` |
+| Gemini        | `GEMINI_API_KEY`, `GEMINI_CHAT_MODEL`, `GEMINI_EMBEDDING_MODEL`         |
+| Agente        | `AGENT_CRON_SCHEDULE`, `AGENT_ENABLED`, `AI_MATCH_INFERENCE_ENABLED`    |
+| GCP / BQ      | `GCP_PROJECT_ID`, `GCP_LOCATION`, `BIGQUERY_DATASET`                    |
+| Front público | `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_DEBUG_ENABLED`                      |
+
+---
+
 ## Estado del proyecto
 
 Este repositorio contiene el prototipo desarrollado durante el Hackathon Samatech organizado por la Cámara de Comercio de Santa Marta.
 
-- **Documentación técnica**: [`docs/documentacion.md`](docs/documentacion.md) — arquitectura, stack y cómo correr el proyecto.
+- **Convenciones del repo y reglas para agentes IA**: [`AGENTS.md`](AGENTS.md) — arquitectura hexagonal, BFF, hooks de Git, TDD, path aliases.
+- **Documentación técnica del entregable**: [`docs/documentacion.md`](docs/documentacion.md) — flujos, stack y cómo correr.
+- **Sistema de scoring de recomendaciones**: [`docs/scoring.md`](docs/scoring.md) — fórmulas, pesos, thresholds, ejemplos y trazabilidad.
 - **Planeación del equipo**: [`docs/planeacion/`](docs/planeacion/) — alcance del MVP, roles, personas, motor de recomendaciones, cronograma y riesgos.
+- **Specs por bounded context**: [`docs/specs/`](docs/specs/) — requirements y scenarios de cada contexto del brain.
 - **Reto y datos de partida**: [`docs/hackathon/`](docs/hackathon/) — bases del reto, dataset y documentación de clustering provista por la Cámara.
+- **Plan de implementación del motor**: [`docs/2026-04-25-brain-clustering-engine-implementation.md`](docs/2026-04-25-brain-clustering-engine-implementation.md) — fases, tasks y división de trabajo.
 
 ---
 

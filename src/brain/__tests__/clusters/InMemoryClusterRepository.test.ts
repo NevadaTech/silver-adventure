@@ -95,6 +95,53 @@ describe('InMemoryClusterRepository', () => {
     expect(await repo.count()).toBe(2)
   })
 
+  describe('deleteByType', () => {
+    it('removes all clusters of the given tipo, keeping others', async () => {
+      await repo.saveMany([
+        makeCluster({
+          id: 'eco-ab12ef34-santa-marta',
+          codigo: 'eco-ab12ef34-santa-marta',
+          titulo: 'Ecosistema 1',
+          tipo: 'heuristic-ecosistema',
+          municipio: 'Santa Marta',
+          ciiuDivision: null,
+          ciiuGrupo: null,
+        }),
+        makeCluster({
+          id: 'eco-cd56ef78-bogota',
+          codigo: 'eco-cd56ef78-bogota',
+          titulo: 'Ecosistema 2',
+          tipo: 'heuristic-ecosistema',
+          municipio: 'Bogota',
+          ciiuDivision: null,
+          ciiuGrupo: null,
+        }),
+        makeCluster({
+          id: 'eco-ef90ab12-medellin',
+          codigo: 'eco-ef90ab12-medellin',
+          titulo: 'Ecosistema 3',
+          tipo: 'heuristic-ecosistema',
+          municipio: 'Medellin',
+          ciiuDivision: null,
+          ciiuGrupo: null,
+        }),
+        makeCluster({ id: 'pred-1', tipo: 'predefined' }),
+        makeCluster({ id: 'pred-2', tipo: 'predefined' }),
+      ])
+      await repo.deleteByType('heuristic-ecosistema')
+      const all = await repo.findAll()
+      expect(all.map((c) => c.id).sort()).toEqual(['pred-1', 'pred-2'])
+    })
+
+    it('is a no-op when no clusters of the given tipo exist', async () => {
+      await repo.saveMany([makeCluster({ id: 'pred-1', tipo: 'predefined' })])
+      await expect(
+        repo.deleteByType('heuristic-ecosistema'),
+      ).resolves.not.toThrow()
+      expect(await repo.count()).toBe(1)
+    })
+  })
+
   describe('findByGrupoAndMunicipio', () => {
     it('returns matching heuristic-grupo cluster', async () => {
       await repo.saveMany([

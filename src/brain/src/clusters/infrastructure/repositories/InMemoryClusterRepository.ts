@@ -67,4 +67,12 @@ export class InMemoryClusterRepository implements ClusterRepository {
   async count(): Promise<number> {
     return this.store.size
   }
+
+  async deleteByType(tipo: ClusterType): Promise<void> {
+    for (const [id, cluster] of this.store.entries()) {
+      if (cluster.tipo === tipo) {
+        this.store.delete(id)
+      }
+    }
+  }
 }
